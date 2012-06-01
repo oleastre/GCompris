@@ -3,7 +3,7 @@
 install-activity:
 	for i in $(SUBDIRS); do $(MAKE) -C $$i $@ || break 0; done
 
-SUBDIRS = \
+SUBDIRS = piano_player-activity \
 	administration-activity \
 	advanced_colors-activity \
 	algebra_by-activity \

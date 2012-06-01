@@ -457,3 +457,5 @@ src/wordsgame-activity/wordsgame.xml.in
 src/gcompris/sugar_cli.c
 src/gcompris/sugar_gc.c
 src/gcompris/sugar_srv.c
+src/piano_player-activity/piano_player.xml.in
+src/piano_player-activity/piano_player.py
