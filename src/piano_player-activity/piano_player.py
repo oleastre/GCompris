@@ -78,6 +78,17 @@ class Staff():
 
       self.timers = []
 
+      self.noteText = goocanvas.Text(
+          parent=self.rootitem,
+          x=self.startx + 40,
+          y= -80,
+          width=100,
+          text=_('Click a colored box on the keyboard'),
+          fill_color="black",
+          anchor=gtk.ANCHOR_CENTER,
+          alignment=pango.ALIGN_CENTER
+          )
+
     def _drawStaffLines(self):
         '''
         draw three sets of staff lines
@@ -210,6 +221,7 @@ class Staff():
         self.staffImage1.remove()
         self.staffImage2.remove()
         self.staffImage3.remove()
+        self.noteText.remove()
 
     def play_it(self):
         '''
@@ -221,9 +233,10 @@ class Staff():
         if self._playedAll():
             self.noteList[self.currentNoteIndex - 1].color('black')
             return False
-
-        self.noteList[self.currentNoteIndex].play()
-        self.noteList[self.currentNoteIndex].color('red')
+        note = self.noteList[self.currentNoteIndex]
+        self.writeText('Note Name: ' + note.niceName)
+        note.play()
+        note.color('red')
         if not self._playedAll():
             if self.currentNoteIndex != 0:
                 self.noteList[self.currentNoteIndex - 1].color('black')
@@ -257,6 +270,10 @@ class Staff():
         self.currentNoteType = 'halfNote'
     def updateToWhole(self, widget=None, target=None, event=None):
         self.currentNoteType = 'wholeNote'
+
+    def writeText(self, text):
+        self.noteText.props.text = text
+
 
 class TrebleStaff(Staff):
     '''
@@ -377,7 +394,7 @@ class Note():
         self.noteName = noteName
         self.rootitem = rootitem #typically references the staff's group rootitem
         self.staffType = staffType #'trebleClef' or 'bassClef'
-
+        self.niceName = noteName.replace('2', '')
         self.x = 0
         self.y = 0
         self.rootitem = goocanvas.Group(parent=rootitem, x=self.x, y=self.y)
@@ -568,17 +585,6 @@ class Gcompris_piano_player:
         '''
         create text "buttons" to indicate options to students
         '''
-        self.noteText = goocanvas.Text(
-          parent=self.rootitem,
-          x=90,
-          y=50,
-          width=100,
-          text=_("Click on a note!"),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
-
 
         self.changeClefButton = goocanvas.Text(
           parent=self.rootitem,
@@ -847,18 +853,8 @@ class Gcompris_piano_player:
         elif self.staff.currentNoteType == 'wholeNote':
             n = WholeNote(target.name, self.staff.name, self.staff.rootitem)
 
+        self.staff.writeText('This is the ' + n.niceName + ' key')
         self.staff.drawNote(n)
-        self.noteText.remove()
-        self.noteText = goocanvas.Text(
-          parent=self.rootitem,
-          x=90,
-          y=50,
-          width=100,
-          text=_("This is the " + (target.name)[0] + ' key'),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
         n.play()
 
         return False
