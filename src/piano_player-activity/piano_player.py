@@ -28,8 +28,13 @@ TODO:
     - possibly add more notes (second level with flats & sharps?)
     - allow students to save & load their work
     
+DONE:
+    - color notes on playback
+    - add timer for sound playback
+    - make objects out of notes
+    
 '''
-
+import gobject
 import gtk
 import gtk.gdk
 import gcompris
@@ -57,7 +62,7 @@ class Staff():
       self.line1Y = 0     #starting Y position of first lines of staff
       self.line2Y = 120   #startying Y position of second lines of staff
       self.line3Y = 230   #starting Y position of third lines
-      self.currentNoteXCoordinate = 20 #starting X position of first note
+      self.currentNoteXCoordinate = self.initialX = 30 #starting X position of first note
       self.noteSpacingX = 25 #distance between each note when appended to staff
       self.staffLineSpacing = 13 #vertical distance between lines in staff
       self.staffLineThickness = 2 # thickness of staff lines
@@ -69,6 +74,9 @@ class Staff():
       self._drawStaffLines() #draw staff lines
 
       self.noteList = [] #list of note items written to staff
+      self.playingNote = False
+
+      self.timers = []
 
     def _drawStaffLines(self):
         '''
@@ -137,7 +145,7 @@ class Staff():
             return
         y = self.getNoteYCoordinate(note) #returns the y coordinate based on note name
         self.lineNum = self.getLineNum(y) #updates self.lineNum
-        note.draw(x, y, self.currentNoteType) #draws note image on canvas
+        note.draw(x, y) #draws note image on canvas
         self.noteList.append(note) #adds note object to staff list
 
     def getNoteXCoordinate(self):
@@ -151,7 +159,7 @@ class Staff():
                 #NO MORE STAFF LEFT!
                 return False
             else:
-                self.currentNoteXCoordinate = self.startx + 30
+                self.currentNoteXCoordinate = self.startx + 40
                 self.lineNum += 1
 
         return self.currentNoteXCoordinate
@@ -174,9 +182,9 @@ class Staff():
         '''
         given the Ycoordinate, returns the correct lineNum (1,2, or 3)
         '''
-        if Ycoordinate <= 25:
+        if Ycoordinate <= 65:
             return 1
-        elif Ycoordinate <= 145:
+        elif Ycoordinate <= 185:
             return 2
         else:
             return 3
@@ -189,7 +197,7 @@ class Staff():
         '''
         for n in self.noteList:
           n.remove()
-        self.currentNoteXCoordinate = 20
+        self.currentNoteXCoordinate = self.initialX
         self.noteList = []
         self.lineNum = 1
 
@@ -203,22 +211,41 @@ class Staff():
         self.staffImage2.remove()
         self.staffImage3.remove()
 
+    def play_it(self):
+        '''
+        called to play one note. Checks to see if all notes have been played
+        if not, establishes a timer for the next note depending on that note's
+        duraiton (quarter, half, whole)
+        colors the note red that it is currently sounding
+        '''
+        if self._playedAll():
+            self.noteList[self.currentNoteIndex - 1].color('black')
+            return False
+
+        self.noteList[self.currentNoteIndex].play()
+        self.noteList[self.currentNoteIndex].color('red')
+        if not self._playedAll():
+            if self.currentNoteIndex != 0:
+                self.noteList[self.currentNoteIndex - 1].color('black')
+            self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
+        self.currentNoteIndex += 1
+
+    def _playedAll(self):
+        '''
+        determine if all notes have been played in staff
+        '''
+        return self.currentNoteIndex == len(self.noteList)
+
     def playComposition(self, widget=None, target=None, event=None):
         '''
-        plays entire composition. sleep command used to allow previous sound
-        to finish sounding before next begins. This causes the board
-        to freeze until playing ceases. A better way to do this without
-        making the board freeze would be nice.
+        plays entire composition. establish timers, one per note, called after 
+        different durations according to noteType
         '''
-        import time
-        for n in self.noteList:
-            n.play()
-            if n.noteType == 'quarterNote':
-                 time.sleep(.5) #allow sound to finish playing
-            elif n.noteType == 'halfNote':
-                time.sleep(1)
-            else:
-                time.sleep(2)
+        self.timers = []
+        self.numNotesPlayed = 0
+        self.currentNoteIndex = 0
+        self.timers.append(gobject.timeout_add(\
+                self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
 
     def sound_played(self, file):
         pass #mandatory method
@@ -281,9 +308,9 @@ class TrebleStaff(Staff):
             yoffset = self.line2Y
         else:
             yoffset = self.line3Y
-        positionDict = {'C':25, 'D':21, 'E':15, 'F':9, 'G':3,
-                        'A':-4, 'B':-11, 'C2':-17}
-        return  positionDict[note.noteName] + yoffset
+        positionDict = {'C':26, 'D':22, 'E':16, 'F':9, 'G':3,
+                        'A':-4, 'B':-10, 'C2':-17}
+        return  positionDict[note.noteName] + yoffset + 36
 
 class BassStaff(Staff):
     '''
@@ -338,7 +365,7 @@ class BassStaff(Staff):
             yoffset = self.line3Y
         positionDict = {'C':-4, 'D':-11, 'E':-17, 'F':-24, 'G':-30,
                         'A':-37, 'B':-42, 'C2':-48}
-        return positionDict[note.noteName] + yoffset
+        return positionDict[note.noteName] + yoffset + 36
 
 
 class Note():
@@ -346,56 +373,169 @@ class Note():
     an object representation of a note object, containing the goocanvas image
     item as well as several instance variables to aid with identification
     '''
-    def __init__(self, noteName, rootitem, staffType='trebleClef', noteType='quarter'):
+    def __init__(self, noteName, staffType, rootitem):
         self.noteName = noteName
         self.rootitem = rootitem #typically references the staff's group rootitem
         self.staffType = staffType #'trebleClef' or 'bassClef'
-        self.noteType = noteType #'quarter', 'half', or 'whole'
 
-    def draw(self, x, y, noteType):
-        '''
-        places note image in canvas
-        '''
+        self.x = 0
+        self.y = 0
+        self.rootitem = goocanvas.Group(parent=rootitem, x=self.x, y=self.y)
+
+        self.pitchDir = self._getPitchDir()
+
+    def _drawMidLine(self, x, y):
         if self.staffType == 'trebleClef' and self.noteName == 'C'  or \
            self.staffType == 'bassClef' and self.noteName == 'C2':
-            #only the C note in treble clef needs a line through it
-             ext = 'WithLine.png'
-        else:
-           ext = '.png'
-        picDIR = noteType + ext
-
-        self.noteImage = goocanvas.Image(
-          parent=self.rootitem,
-          pixbuf=gcompris.utils.load_pixmap(picDIR),
-          x=x,
-          y=y,
-          height=45,
-          width=20
-          )
-        self.y = y
-        self.x = x
-        self.noteType = noteType
+            self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 12, y, x + 12, y ,
+                                        stroke_color="black", line_width=2)
 
     def play(self):
         '''
         plays the note sound
         '''
-        if self.staffType == 'trebleClef':
-            path = 'treble_pitches/' + self.noteType + '/' + self.noteName + '.ogg'
-        else:
-            path = 'bass_pitches/' + self.noteType + '/' + self.noteName + '.ogg'
-        gcompris.sound.play_ogg_cb(path, self.sound_played)
+        # I prefer to dynamically generate pitchDir when play method is called
+        # because this allows modifications to the object after initialization
+        # for example, (not in this piano_player activity but possibly for 
+        # future activities), a Note() object could be created with 
+        # noteType = 'quarterNote' but then changed to 'halfNote' and 
+        # I want the correct sound to be played
+
+        gcompris.sound.play_ogg_cb(self._getPitchDir(), self.sound_played) # I prefer this method
+        # gcompris.sound.play_ogg_cb(self.pitchDir, self.sound_played) #this works, but I don't prefer it
+
+        # is there any real advantage to generating pitchDir on initialization
+        # other than computational time? I can see your point, but a tiny if
+        # statements doesn't slow down processesing at all...
 
     def sound_played(self, file):
         pass
 
+    def _getPitchDir(self):
+        if self.staffType == 'trebleClef':
+             pitchDir = 'treble_pitches/' + self.noteType + '/' + self.noteName + '.ogg'
+        else:
+             pitchDir = 'bass_pitches/' + self.noteType + '/' + self.noteName + '.ogg'
+        return pitchDir
+
     def remove(self):
         '''
-        removes the note's image from canvas
+        removes the note from the canvas
         '''
-        self.noteImage.remove()
+        self.noteHead.remove()
+        if hasattr(self, 'noteFlag'):
+            self.noteFlag.remove()
+        if hasattr(self, 'midLine'):
+            self.midLine.remove()
+
+class QuarterNote(Note):
+    '''
+    an object inherited from Note, of specific duration (quarter length)
+    '''
+    noteType = 'quarterNote'
+
+    def toMillisecs(self):
+        '''
+        convert noteType to actual duration of sound, in milliseconds. for 
+        use when playing whole composition
+        Note: possibly implement 'tempo' and make this dynamic based on tempo of staff
+        '''
+        return 500
 
 
+    def draw(self, x, y):
+        '''
+        places note image in canvas
+        '''
+        self._drawMidLine(x, y)
+
+
+        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=7,
+                    radius_y=5,
+                    fill_color='black',
+                    stroke_color='black',
+                    line_width=1.0)
+
+        self.noteFlag = goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+                                    stroke_color="black", line_width=2)
+
+        self.y = y
+        self.x = x
+
+    def color(self, color):
+        '''
+        change all components of the note to color specified
+        '''
+        self.noteHead.props.fill_color = color
+        self.noteHead.props.stroke_color = color
+        if hasattr(self, 'noteFlag'):
+            self.noteFlag.props.fill_color = color
+            self.noteFlag.props.stroke_color = color
+        if hasattr(self, 'midLine'):
+            self.midLine.props.fill_color = color
+            self.midLine.props.stroke_color = color
+
+
+class HalfNote(Note):
+    '''
+    an object inherited from Note, of specific duration (half length)
+    '''
+    noteType = 'halfNote'
+    def toMillisecs(self):
+        return 1000
+
+    def draw(self, x, y):
+        '''
+        places note image in canvas
+        '''
+        self._drawMidLine(x, y)
+
+
+        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=7,
+                    radius_y=5,
+                    stroke_color='black',
+                    line_width=2.5)
+        self.noteFlag = goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+                                    stroke_color="black", line_width=2)
+        self.y = y
+        self.x = x
+
+    def color(self, color):
+        self.noteHead.props.stroke_color = color
+        self.noteFlag.props.stroke_color = color
+        if hasattr(self, 'midLine'):
+            self.midLine.props.fill_color = color
+            self.midLine.props.stroke_color = color
+
+
+class WholeNote(Note):
+    '''
+    an object inherited from Note, of specific duration (whole length)
+    '''
+    noteType = 'wholeNote'
+    def toMillisecs(self):
+        return 2000
+
+    def draw(self, x, y):
+        self._drawMidLine(x, y)
+        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=7,
+                    radius_y=5,
+                    stroke_color='black',
+                    line_width=2.5)
+
+    def color(self, color):
+        self.noteHead.props.stroke_color = color
+        if hasattr(self, 'midLine'):
+            self.midLine.props.stroke_color = color
 
 class Gcompris_piano_player:
 
@@ -654,6 +794,10 @@ class Gcompris_piano_player:
         self.keyC2.connect("button_press_event", self.keyboard_click)
         gcompris.utils.item_focus_init(self.keyC2, None)
 
+        Prop = gcompris.get_properties()
+        if(not Prop.fx):
+            gcompris.utils.dialog(_("Error: this activity cannot be played with the\nsound effects disabled.\nGo to the configuration dialogue to\nenable the sound"), stop_board)
+
 
     def change_clef_event(self, widget, target, event):
         '''
@@ -695,7 +839,14 @@ class Gcompris_piano_player:
         with a note name, text is output to canvas, the note sound is generated,
         and the note is drawn on the staff
         '''
-        n = Note(target.name, self.staff.rootitem, self.staff.name)
+
+        if self.staff.currentNoteType == 'quarterNote':
+            n = QuarterNote(target.name, self.staff.name, self.staff.rootitem)
+        elif self.staff.currentNoteType == 'halfNote':
+            n = HalfNote(target.name, self.staff.name, self.staff.rootitem)
+        elif self.staff.currentNoteType == 'wholeNote':
+            n = WholeNote(target.name, self.staff.name, self.staff.rootitem)
+
         self.staff.drawNote(n)
         self.noteText.remove()
         self.noteText = goocanvas.Text(
