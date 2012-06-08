@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GCompris>
+  <Board
+        name="piano_player"
+        type="python:piano_player"
+        section="/experimental"
+        icon="piano_player.svg"
+        difficulty="3"
+        author="Beth Hadley"
+        boarddir=""
+        >
+        <title>Piano Player</title>
+        <description>Explore music composition and the notes on a keybaord</description>
+        <prerequisite>Know Your Notes</prerequisite>
+        <goal>To understand how the notes of the keyboard can be written and recorded</goal>
+        <manual>
+        
+        This activity has six levels. Each level adds a new function to explore.
+        The final level, level six, provides all functions and can be used
+        as a composition tool for students to save and load their work.
+        Each level adds one additional feature while keeping the previous feature
+        as an option.
+        
+        The levels:
+        1. treble clef
+        2. bass clef
+        3. quarter, half, and whole notes
+        4. black keys as sharp notes
+        5. black keys as flat notes
+        6. load and save   
+            
+        </manual>
+        <credit>Bruno Coudoin for his excellent mentoring, Musescore (musescore.org) for inspiration and sound bytes</credit>
+  </Board>
+  <Data directory=""/>
+</GCompris>

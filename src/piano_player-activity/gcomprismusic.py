@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 #  gcompris - gcomprismusic.py
 #
-# Copyright (C) 2003, 2008 Bruno Coudoin
-#    Module written by: Beth Hadley
+# Copyright (C) 2003, 2008 Beth Hadley
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -215,9 +214,9 @@ class Staff():
 
     def eraseAllNotes(self, widget=None, target=None, event=None):
         '''
-        remove all notes from staff, deleting them from self.noteList, and 
-        restores self.lineNum to 1 and self.currentNoteXCoordinate to the 
-        starting position 
+        remove all notes from staff, deleting them from self.noteList, and
+        restores self.lineNum to 1 and self.currentNoteXCoordinate to the
+        starting position
         '''
         if not ready(self):
             return False
@@ -273,7 +272,7 @@ class Staff():
 
     def playComposition(self, widget=None, target=None, event=None):
         '''
-        plays entire composition. establish timers, one per note, called after 
+        plays entire composition. establish timers, one per note, called after
         different durations according to noteType
         '''
 
@@ -372,7 +371,7 @@ class Staff():
 
     def getNoteYCoordinate(self, note):
         '''
-        return a note's vertical coordinate based on the note's name. This is 
+        return a note's vertical coordinate based on the note's name. This is
         unique to each type of clef (different for bass and treble)
         '''
         if self.lineNum == 1:
@@ -502,22 +501,8 @@ class Note():
         '''
         plays the note sound
         '''
-        # I prefer to dynamically generate pitchDir when play method is called
-        # because this allows modifications to the object after initialization
-        # for example, (not in this piano_player activity but possibly for 
-        # future activities), a Note() object could be created with 
-        # noteType = 'quarterNote' but then changed to 'halfNote' and 
-        # I want the correct sound to be played
+        gcompris.sound.play_ogg(self._getPitchDir())
 
-        gcompris.sound.play_ogg_cb(self._getPitchDir(), self.sound_played) # I prefer this method
-        # gcompris.sound.play_ogg_cb(self.pitchDir, self.sound_played) #this works, but I don't prefer it
-
-        # is there any real advantage to generating pitchDir on initialization
-        # other than computational time? I can see your point, but a tiny if
-        # statements doesn't slow down processesing at all...
-
-    def sound_played(self, file):
-        pass
 
     def _getPitchDir(self):
         '''
@@ -540,9 +525,9 @@ class Note():
             self.pitchName = self.noteName
 
         if self.staffType == 'trebleClef':
-             pitchDir = 'treble_pitches/' + self.noteType + '/' + self.pitchName + '.ogg'
+             pitchDir = 'treble_pitches/' + self.noteType + '/' + self.pitchName + '.wav'
         else:
-             pitchDir = 'bass_pitches/' + self.noteType + '/' + self.pitchName + '.ogg'
+             pitchDir = 'bass_pitches/' + self.noteType + '/' + self.pitchName + '.wav'
 
         return pitchDir
 
@@ -638,7 +623,7 @@ class QuarterNote(Note):
 
     def toMillisecs(self):
         '''
-        convert noteType to actual duration of sound, in milliseconds. for 
+        convert noteType to actual duration of sound, in milliseconds. for
         use when playing whole composition
         Note: possibly implement 'tempo' and make this dynamic based on tempo of staff
         '''
@@ -747,7 +732,7 @@ class PianoKeyboard():
     object representing the one-octave piano keyboard
     '''
     def __init__(self, x, y, canvasroot):
-        self.rootitem = goocanvas.Group(parent=canvasroot, x=x, y=y)
+        self.rootitem = goocanvas.Group(parent=canvasroot, x=0, y=0)
         self.x = x
         self.y = y
         self.blackKeys = False # display black keys with buttons?
@@ -755,16 +740,19 @@ class PianoKeyboard():
         # if False, use flat notation (b)
         self.whiteKeys = True # display white keys with buttons?
 
-    def draw(self, width, height):
+    def draw(self, width, height, key_callback):
         '''
         create piano keyboard, with buttons for keys
         '''
+
+        import piano_player
+
         #piano keyboard image
         goocanvas.Image(
           parent=self.rootitem,
           pixbuf=gcompris.utils.load_pixmap("keyboard.png"),
-          x=0,
-          y=0,
+          x=self.x,
+          y=self.y,
           height=height,
           width=width
           )
@@ -779,8 +767,8 @@ class PianoKeyboard():
 
         keyWidth = width * 0.09
         keyHeight = height * 0.09
-        ypose = 0.85 * height
-        xpose = width * .02
+        ypose = self.y + 0.85 * height
+        xpose = self.x + width * .02
         seperationWidth = keyWidth * 1.37
 
         if self.whiteKeys:
@@ -837,8 +825,8 @@ class PianoKeyboard():
 
             keyWidth = width * 0.07
             keyHeight = height * 0.08
-            ypose = 0.7 * height
-            xpose = width * .089
+            ypose = self.y + 0.7 * height
+            xpose = self.x + width * .089
             seperationWidth = keyWidth * 1.780
 
 
@@ -885,6 +873,52 @@ class PianoKeyboard():
                 self.key5.name = _("B flat")
 
 
+        '''
+        connect the piano keyboard rectangles to a button press event,
+        the method keyboard_click
+        '''
+
+        if self.whiteKeys:
+            self.keyC.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyC, None)
+
+            self.keyD.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyD, None)
+
+            self.keyE.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyE, None)
+
+            self.keyF.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyF, None)
+
+            self.keyG.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyG, None)
+
+            self.keyA.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyA, None)
+
+            self.keyB.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyB, None)
+
+            self.keyC2.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.keyC2, None)
+
+        if self.blackKeys:
+            self.key1.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.key1, None)
+
+            self.key2.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.key2, None)
+
+            self.key3.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.key3, None)
+
+            self.key4.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.key4, None)
+
+            self.key5.connect("button_press_event", key_callback)
+            gcompris.utils.item_focus_init(self.key5, None)
+
 # ---------------------------------------------------------------------------
 #
 # UTILITY FUNCTIONS            
@@ -896,7 +930,7 @@ def ready(self):
     function to help prevent "double-clicks". If your function call is
     suffering from accidental system double-clicks, import this module
     and write these lines at the top of your method:
-    
+
         if not ready(self):
             return False
     '''
@@ -915,4 +949,5 @@ def ready(self):
         self.clickTimers.append(gobject.timeout_add(300, clearClick))
         self.readyForNextClick = False
         return True
+
 

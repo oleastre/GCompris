@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #  gcompris - piano_player.py
 #
-# Copyright (C) 2003, 2008 Bruno Coudoin
+# Copyright (C) 2003, 2008 Beth Hadley
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -20,12 +20,12 @@
 
 
 '''
-TODO: 
-    - 
+TODO:
+    -
     - clean up GUI, make more intuitive
     - add 'help' page
     - add level allowing changes in tempo?
-    
+
 DONE:
     - added more notes (additional levels with flats & sharps)
     - added saving capability (still todo: make implementation cleaner)
@@ -34,7 +34,7 @@ DONE:
     - made objects out of notes
     - fixed issue with double click (see utility function in gcompris music)
     - seperated activity into levels and added text instructions
-    
+
 '''
 import gobject
 import gtk
@@ -107,19 +107,19 @@ class Gcompris_piano_player:
         levelDescription = clefDescription = keyboardDescription = True
         if level == 1:
             clefText = _("This is the Treble clef staff, for high pitched notes")
-            keyboardText = _("These are the 8 \"white\" keys in an octave.")
+            keyboardText = _("These are the 8 \"white\" keys in an octave")
         elif level == 2:
             clefText = _("This is the Bass clef staff, for low pitched notes")
-            keyboardText = _("These keys form the C Major scale.")
+            keyboardText = _("These keys form the C Major scale")
         elif level == 3:
             clefText = _("Click on the note symbols to write different length notes")
-            keyboardText = _("Notes can be many types, including quarter notes, half notes, and whole notes")
+            keyboardText = _("Notes can be many types, such as quarter notes, half notes, and whole notes")
         elif level == 4:
             clefText = _("Sharp notes have a # sign")
-            keyboardText = _("The black keys are sharp and flat keys.")
+            keyboardText = _("The black keys are sharp and flat keys")
         elif level == 5:
             clefText = _("Flat notes have a b sign")
-            keyboardText = _("Each black key has two names, one with a b and one with a sharp")
+            keyboardText = _("Each black key has two names, one with a flat and one with a sharp")
         elif level == 6:
             levelDescription = False
             keyboardText = _("Now you can compose music! Click to load or save your work")
@@ -127,9 +127,9 @@ class Gcompris_piano_player:
 
         # LEVEL BOX
         if levelDescription:
-            self.levelBox = goocanvas.Rect(parent=self.rootitem, x=170, y=480, width=230,
-                           height=30, fill_color="yellow",
-                stroke_color="orange", line_width=5.0)
+            self.levelBox = goocanvas.Rect(parent=self.rootitem, x=170, y=476, width=230,
+                           height=30,
+                stroke_color="purple", line_width=3.0)
 
             self.levelDescription = goocanvas.Text(
                 parent=self.rootitem, x=285, y=490, width=300,
@@ -141,30 +141,29 @@ class Gcompris_piano_player:
          # CLEF DESCRIPTION
         if clefDescription:
             goocanvas.Rect(parent=self.rootitem, x=380, y=90, width=240,
-                           height=50, fill_color="yellow",
-                stroke_color="orange", line_width=5.0)
+                           height=50,
+                stroke_color="purple", line_width=3.0)
 
             self.clefDesciption = goocanvas.Text(
                 parent=self.rootitem, x=500, y=115, width=250,
-                text=clefText,
-                fill_color="black", anchor=gtk.ANCHOR_CENTER,
+                text=clefText, anchor=gtk.ANCHOR_CENTER,
                 alignment=pango.ALIGN_CENTER
                 )
 
         # OUTLINE FOR NOTE NAME TEXT
         goocanvas.Rect(parent=self.rootitem, x=60, y=40, width=120,
-                       height=80, fill_color="yellow",
-            stroke_color="orange", line_width=5.0)
+                       height=80,
+            stroke_color="purple", line_width=3.0)
 
 
         # KEYBOARD DESCRIPTION
         if keyboardDescription:
-            goocanvas.Rect(parent=self.rootitem, x=87, y=385, width=225,
-                           height=60, fill_color="yellow",
-                stroke_color="orange", line_width=5.0)
+            goocanvas.Rect(parent=self.rootitem, x=87, y=385, width=230,
+                           height=65,
+                stroke_color="purple", line_width=3.0)
 
             self.KeyboardDescription = goocanvas.Text(
-                parent=self.rootitem, x=202, y=415, width=225,
+                parent=self.rootitem, x=200, y=415, width=225,
                 text=keyboardText,
                 fill_color="black", anchor=gtk.ANCHOR_CENTER,
                 alignment=pango.ALIGN_CENTER
@@ -333,62 +332,16 @@ class Gcompris_piano_player:
             k.blackKeys = True
             k.sharpNotation = True
 
-        k.draw(300, 200)
-        self.keyC = k.keyC
-
-        '''
-        connect the piano keyboard rectangles to a button press event, 
-        the method keyboard_click
-        '''
-        # ISSUE: these are offset from the actual buttons when the mouse passes 
-        # over. this is due to the different rootitems & Groups. How can I fix this?
+        k.draw(300, 200, self.keyboard_click)
 
 
-        if k.whiteKeys:
-            k.keyC.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyC, None)
-
-            k.keyD.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyD, None)
-
-            k.keyE.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyE, None)
-
-            k.keyF.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyF, None)
-
-            k.keyG.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyG, None)
-
-            k.keyA.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyA, None)
-
-            k.keyB.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyB, None)
-
-            k.keyC2.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.keyC2, None)
-
-        if k.blackKeys:
-            k.key1.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.key1, None)
-
-            k.key2.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.key2, None)
-
-            k.key3.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.key3, None)
-
-            k.key4.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.key4, None)
-
-            k.key5.connect("button_press_event", self.keyboard_click)
-            gcompris.utils.item_focus_init(k.key5, None)
 
 
         Prop = gcompris.get_properties()
-        if(not Prop.fx):
-            gcompris.utils.dialog(_("Error: this activity cannot be played with the\nsound effects disabled.\nGo to the configuration dialogue to\nenable the sound"), stop_board)
+        if not (Prop.fx):
+            gcompris.utils.dialog(_("Error: This activity cannot be \
+played with the\nsound effects disabled.\nGo to the configuration \
+dialogue to\nenable the sound."), stop_board)
 
     def save_file_event(self, widget, target, event):
         '''
@@ -403,7 +356,7 @@ class Gcompris_piano_player:
         '''
         method called when 'load' button is pressed
         opens the gcompris file selector to load the music
-        calls the general_load function 
+        calls the general_load function
         '''
         gcompris.file_selector_load(self.gcomprisBoard,
                                            'comp', '.gcmusic',
@@ -515,3 +468,6 @@ def general_load(filename, filetype, staffInstance):
     '''
     print "general_load : ", filename, " type ", filetype
     staffInstance.file_to_staff(filename)
+
+def stop_board():
+  pass
