@@ -459,3 +459,7 @@ src/gcompris/sugar_gc.c
 src/gcompris/sugar_srv.c
 src/piano_player-activity/piano_player.xml.in
 src/piano_player-activity/piano_player.py
+src/name_identification-activity-activity/name_identification-activity.xml.in
+src/name_identification-activity-activity/name_identification-activity.py
+src/note_names-activity/note_names.xml.in
+src/note_names-activity/note_names.py

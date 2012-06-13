@@ -21,10 +21,7 @@
 
 '''
 TODO:
-    -
-    - clean up GUI, make more intuitive
-    - add 'help' page
-    - add level allowing changes in tempo?
+    - add level allowing changes in tempo?...but it's already pretty complex...
 
 DONE:
     - added more notes (additional levels with flats & sharps)
@@ -34,6 +31,10 @@ DONE:
     - made objects out of notes
     - fixed issue with double click (see utility function in gcompris music)
     - seperated activity into levels and added text instructions
+    - clean up GUI, make more intuitive
+    - add 'help' page
+    - add color-coding of notes, according to color theory (thanks to
+    Olivier Samyn's comment on my blog
 
 '''
 import gobject
@@ -47,7 +48,8 @@ import pango
 import gcompris.sound
 from gcompris import gcompris_gettext as _
 
-# seperate module of music-type objects
+#import sys
+#sys.path.append('/home/bhadley/Desktop/')
 from gcomprismusic import *
 
 class Gcompris_piano_player:
@@ -169,6 +171,17 @@ class Gcompris_piano_player:
                 alignment=pango.ALIGN_CENTER
                 )
 
+        self.colorCodeNotesButton = goocanvas.Text(
+          parent=self.rootitem,
+          x=345,
+          y=120,
+          width=75,
+          text=_("Color code notes?"),
+          fill_color="black",
+          anchor=gtk.ANCHOR_CENTER,
+          alignment=pango.ALIGN_CENTER
+          )
+
         self.eraseAllButton = goocanvas.Text(
           parent=self.rootitem,
           x=325.0,
@@ -269,7 +282,7 @@ class Gcompris_piano_player:
             self.saveButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('tool-save.png'),
-                x=280,
+                x=260,
                 y=100,
                 height=40,
                 width=40
@@ -282,8 +295,10 @@ class Gcompris_piano_player:
 
         if level == 2:
             self.staff = BassStaff(380, 170, self.rootitem)
+            self.staff.drawStaff(text='Click a colored box on the keyboard')
         else:
             self.staff = TrebleStaff(380, 170, self.rootitem)
+            self.staff.drawStaff(text='Click a colored box on the keyboard')
 
 
         '''
@@ -292,6 +307,9 @@ class Gcompris_piano_player:
         if level > 2:
             self.changeClefButton.connect("button_press_event", self.change_clef_event)
             gcompris.utils.item_focus_init(self.changeClefButton, None)
+
+        self.colorCodeNotesButton.connect("button_press_event", self.color_code_notes)
+        gcompris.utils.item_focus_init(self.colorCodeNotesButton, None)
 
         self.eraseNotesButton.connect("button_press_event", self.staff.eraseOneNote)
         gcompris.utils.item_focus_init(self.eraseNotesButton, None)
@@ -343,6 +361,16 @@ class Gcompris_piano_player:
 played with the\nsound effects disabled.\nGo to the configuration \
 dialogue to\nenable the sound."), stop_board)
 
+    def color_code_notes(self, widget, target, event):
+        if not ready(self):
+            return False
+        if self.staff.colorCodeNotes:
+            self.staff.colorCodeNotes = False
+            self.staff.colorAllNotes('black')
+        else:
+            self.staff.colorCodeNotes = True
+            self.staff.colorCodeAllNotes()
+
     def save_file_event(self, widget, target, event):
         '''
         method called when 'save' button is pressed
@@ -375,8 +403,10 @@ dialogue to\nenable the sound."), stop_board)
         self.staff.clear()
         if self.staff.name == "trebleClef":
             self.staff = BassStaff(380, 170, self.rootitem)
+            self.staff.drawStaff(text='Click a colored box on the keyboard')
         else:
             self.staff = TrebleStaff(380, 170, self.rootitem,)
+            self.staff.drawStaff(text='Click a colored box on the keyboard')
 
         #re-establish link to root
         self.eraseNotesButton.connect("button_press_event", self.staff.eraseOneNote)
