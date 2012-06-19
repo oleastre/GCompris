@@ -104,7 +104,7 @@ class Gcompris_piano_player:
         self.rootitem = goocanvas.Group(parent=
                                        self.gcomprisBoard.canvas.get_root_item())
 
-        levelDescription = clefDescription = keyboardDescription = True
+        clefDescription = keyboardDescription = True
         if level == 1:
             clefText = _("This is the Treble clef staff, for high pitched notes")
             keyboardText = _("These are the 8 \"white\" keys in an octave")
@@ -121,24 +121,10 @@ class Gcompris_piano_player:
             clefText = _("Flat notes have a b sign")
             keyboardText = _("Each black key has two names, one with a flat and one with a sharp")
         elif level == 6:
-            levelDescription = False
             keyboardText = _("Now you can compose music! Click to load or save your work")
             clefDescription = False
 
-        # LEVEL BOX
-        if levelDescription:
-            self.levelBox = goocanvas.Rect(parent=self.rootitem, x=170, y=476, width=230,
-                           height=30,
-                stroke_color="purple", line_width=3.0)
-
-            self.levelDescription = goocanvas.Text(
-                parent=self.rootitem, x=285, y=490, width=300,
-                text=_("Click Arrow For Next Level"),
-                fill_color="black", anchor=gtk.ANCHOR_CENTER,
-                alignment=pango.ALIGN_CENTER
-                )
-
-         # CLEF DESCRIPTION
+        # CLEF DESCRIPTION
         if clefDescription:
             goocanvas.Rect(parent=self.rootitem, x=380, y=90, width=240,
                            height=50,
