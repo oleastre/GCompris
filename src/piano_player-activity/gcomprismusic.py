@@ -328,23 +328,12 @@ class Staff():
         duration (quarter, half, whole)
         colors the note white that it is currently sounding
         '''
+        if self.currentNoteIndex >= len(self.noteList):
+            return
 
-        if self._playedAll():
-            if self.colorCodeNotes:
-                self.noteList[self.currentNoteIndex - 1].colorCodeNote()
-            else:
-                self.noteList[self.currentNoteIndex - 1].color('black')
-            return False
         note = self.noteList[self.currentNoteIndex]
         self.writeText('Note Name: ' + note.niceName)
         note.play()
-        note.color('white')
-        if not self._playedAll():
-            if self.currentNoteIndex != 0:
-                if self.colorCodeNotes:
-                    self.noteList[self.currentNoteIndex - 1].colorCodeNote()
-                else:
-                    self.noteList[self.currentNoteIndex - 1].color('black')
         self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
         self.currentNoteIndex += 1
 
@@ -637,6 +626,14 @@ class Note():
 
         self.timers = []
 
+    def drawPlayingLine(self, x, y):
+        self.playingLine = \
+            goocanvas.polyline_new_line(self.rootitem,
+                                        x - 10 , y + 10,
+                                        x + 10, y + 10,
+                                        stroke_color_rgba=0x121212D0, line_width=3)
+        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
+
     def _drawMidLine(self, x, y):
         if self.staffType == 'trebleClef' and self.noteName == 'C'  or \
            self.staffType == 'bassClef' and self.noteName == 'C2' or \
@@ -650,6 +647,7 @@ class Note():
         '''
         if not ready(self, 700):
             return False
+        self.highlight()
         gcompris.sound.play_ogg(self._getPitchDir())
 
 
@@ -680,56 +678,24 @@ class Note():
         if hasattr(self, 'keyNum') and 'sharp' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap(self.keyNum + "s.png"),
+              pixbuf=gcompris.utils.load_pixmap("blacksharp.png"),
               x=x - 23,
               y=y - 10,
-              height=20,
-              width=20
               )
-            self.alteration.set_data('type', 'sharp')
         elif hasattr(self, 'keyNum') and 'flat' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap(self.keyNum + "f.png"),
+              pixbuf=gcompris.utils.load_pixmap("blackflat.png"),
               x=x - 23,
               y=y - 14,
-              height=20,
-              width=20
               )
-            self.alteration.set_data('type', 'flat')
 
 
     def remove(self):
         '''
         removes the note from the canvas
         '''
-        self.noteHead.remove()
-        if hasattr(self, 'noteFlag'):
-            self.noteFlag.remove()
-        if hasattr(self, 'midLine'):
-            self.midLine.remove()
-        if hasattr(self, 'alteration'):
-            self.alteration.remove()
-
-    def colorAlteration(self, color):
-        '''
-        colors the flat or sharp sign
-        '''
-        if hasattr(self, 'alteration'):
-            str = self.alteration.get_data('type')
-        else:
-            return
-
-        if color == 'black':
-            self.alteration.props.pixbuf = gcompris.utils.load_pixmap("black" + str + ".png")
-        elif color == 'white':
-            self.alteration.props.pixbuf = gcompris.utils.load_pixmap("white" + str + ".png")
-        else:
-            for key, value in NOTE_COLOR_SCHEME.items():
-                if color == value:
-                    self.alteration.props.pixbuf = gcompris.utils.load_pixmap(key + str[0] + ".png")
-        self.alteration.props.height = 20
-        self.alteration.props.width = 20
+        self.rootitem.remove()
 
     def colorNoteHead(self, color, fill=True, outline=True):
         '''
@@ -738,27 +704,17 @@ class Note():
         if fill:
             self.noteHead.props.fill_color = color
         if outline:
-            self.noteHead.props.stroke_color = color
+            self.noteHead.props.stroke_color = "black"
 
         if hasattr(self, 'midLine'):
-            self.midLine.props.fill_color = color
-            self.midLine.props.stroke_color = color
-
-    def colorNoteFlag(self, color):
-        '''
-        colors the note flag (vertical line)
-        '''
-        if hasattr(self, 'noteFlag'):
-            self.noteFlag.props.fill_color = color
-            self.noteFlag.props.stroke_color = color
+            self.midLine.props.fill_color = "black"
+            self.midLine.props.stroke_color = "white"
 
     def color(self, color):
         '''
         default color method. colors all components, including notehead's fill
         '''
         self.colorNoteHead(color)
-        self.colorNoteFlag(color)
-        self.colorAlteration(color)
 
     def colorCodeNote(self):
         '''
@@ -776,16 +732,19 @@ class Note():
     def enablePlayOnMouseover(self, colorNote=None):
         self.noteHead.connect("motion_notify_event", self.play)
         if colorNote:
-            self.noteHead.connect("motion_notify_event", lambda x, y, z: self.highlight(colorNote))
+            self.noteHead.connect("motion_notify_event", lambda x, y, z: self.highlight())
 
         gcompris.utils.item_focus_init(self.noteHead, None)
 
-    def highlight(self, highlightColor):
+    def stopHighLight(self):
+        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
+
+    def highlight(self):
         '''
-        color the note a certain color for 700 milliseconds, then revert back to color-coded note color
+        highlight the note for 700 milliseconds, then revert
         '''
-        self.color(highlightColor)
-        self.timers.append(gobject.timeout_add(700, self.colorCodeNote))
+        self.playingLine.props.visibility = goocanvas.ITEM_VISIBLE
+        self.timers.append(gobject.timeout_add(700, self.stopHighLight))
 
 
 class QuarterNote(Note):
@@ -808,7 +767,22 @@ class QuarterNote(Note):
         places note image in canvas
         '''
         self._drawMidLine(x, y)
+        self.drawPlayingLine(x, y)
 
+        # A transparent background for the head
+        goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=9,
+                    radius_y=7,
+                    stroke_color_rgba=0xCFCFCF60,
+                    line_width=2.5)
+
+        # Draw the note flag
+        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
+                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
+        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+                                    stroke_color="black", line_width=2)
 
         self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
@@ -817,11 +791,7 @@ class QuarterNote(Note):
                     radius_y=5,
                     fill_color='black',
                     stroke_color='black',
-                    line_width=1.0)
-
-        self.noteFlag = goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-                                    stroke_color="black", line_width=2)
-
+                    line_width=2.5)
 
         self._drawAlteration(x, y)
 
@@ -843,6 +813,21 @@ class HalfNote(Note):
         '''
         self._drawMidLine(x, y)
 
+        # A transparent background for the head
+        goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=9,
+                    radius_y=7,
+                    stroke_color_rgba=0xCFCFCF60,
+                    line_width=2.5)
+
+        # Draw the note flag
+        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
+                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
+        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+                                    stroke_color="black", line_width=2)
+
         self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
                     center_y=y,
@@ -850,8 +835,6 @@ class HalfNote(Note):
                     radius_y=5,
                     stroke_color='black',
                     line_width=2.5)
-        self.noteFlag = goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-                                    stroke_color="black", line_width=2)
         self._drawAlteration(x, y)
         self.y = y
         self.x = x
@@ -861,8 +844,6 @@ class HalfNote(Note):
         colors all components except notehead fill
         '''
         self.colorNoteHead(color, fill=False)
-        self.colorNoteFlag(color)
-        self.colorAlteration(color)
 
 
 class WholeNote(Note):
@@ -875,6 +856,15 @@ class WholeNote(Note):
 
     def draw(self, x, y):
         self._drawMidLine(x, y)
+        # A transparent background for the head
+        goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=9,
+                    radius_y=7,
+                    stroke_color_rgba=0xCFCFCF60,
+                    line_width=2.5)
+
         self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
                     center_y=y,
@@ -882,6 +872,7 @@ class WholeNote(Note):
                     radius_y=5,
                     stroke_color='black',
                     line_width=2.5)
+
         self._drawAlteration(x, y)
         self.y = y
         self.x = x
@@ -891,7 +882,6 @@ class WholeNote(Note):
         colors all components except notehead fill
         '''
         self.colorNoteHead(color, fill=False)
-        self.colorAlteration(color)
 
 
 # ---------------------------------------------------------------------------
