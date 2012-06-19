@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #  gcompris - piano_player.py
 #
-# Copyright (C) 2003, 2008 Beth Hadley
+# Copyright (C) 2012 Beth Hadley
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -48,8 +48,6 @@ import pango
 import gcompris.sound
 from gcompris import gcompris_gettext as _
 
-#import sys
-#sys.path.append('/home/bhadley/Desktop/')
 from gcomprismusic import *
 
 class Gcompris_piano_player:
