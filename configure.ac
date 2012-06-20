@@ -532,7 +532,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(LIBS)
 
 dnl Autoconf output
-AC_OUTPUT([ src/piano_player-activity/Makefile src/name_identification-activity-activity/Makefile src/note_names-activity/Makefile src/world_music-activity/Makefile src/explore_world_template-activity/Makefile
+AC_OUTPUT([ src/piano_player-activity/Makefile src/name_identification-activity-activity/Makefile src/note_names-activity/Makefile src/world_music-activity/Makefile src/explore_world_template-activity/Makefile src/world_explore_template-activity/Makefile
 Makefile
 Makefile.mingw
 autopackage/Makefile
