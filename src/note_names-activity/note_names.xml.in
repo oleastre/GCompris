@@ -6,15 +6,41 @@
         section="/experimental"
         icon="note_names.svg"
         difficulty="1"
-        author="your name here"
+        author="Beth Hadley"
         boarddir=""
         >
-        <_title>set a title for note_names</_title>
-        <_description>set a description for note_names</_description>
-        <_prerequisite>set a prerequisite for note_names</_prerequisite>
-        <_goal>set a goal for note_names</_goal>
-        <_manual>set a manual for note_names</_manual>
-        <_credit>set a credit for note_names</_credit>
+        <title>Name that Note!</title>
+        <description>
+        Learn the names of the notes, in bass and treble clef, 
+        with the help of sounds and colors</description>
+        <prerequisite>None</prerequisite>
+        <goal>
+        To develop a good understanding of note position and naming 
+        convention. To prepare for the piano player and composition activity</goal>
+        <manual> 
+        This activity has eight levels. The first level and the fourth level
+        introduce two different staffs with a C major scale. The following three
+        levels then quiz the player on note names. To help learn the names, the
+        note pitches are player when the mouse is rolled over the note, and the
+        pitch names can be color coded.
+        
+        Here are the levels:
+        1. treble clef staff
+        2. note-identification: white key treble notes
+        3. note-identification: sharp notes
+        4. note-identificaiton: flat notes
+        5. bass clef staff
+        6. note-identification: white key bass notes
+        7. note-identification: sharp notes
+        8. note-identification: flat notes
+        
+        It is recommended that you begin with color-coding and pitch sound on, 
+        then turn them off and test your skills.
+        </manual>
+        <credit>
+        Thank you to Bruno Coudoin for his mentorship and improvements to the activity.
+        Thank you to Olivier Samyn for his contribution to improving the note design.
+        </credit>
   </Board>
   <Data directory=""/>
 </GCompris>

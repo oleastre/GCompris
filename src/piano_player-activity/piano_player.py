@@ -47,7 +47,8 @@ import goocanvas
 import pango
 import gcompris.sound
 from gcompris import gcompris_gettext as _
-
+#import sys
+#sys.path.append('/home/bhadley/Desktop/')
 from gcomprismusic import *
 
 class Gcompris_piano_player:

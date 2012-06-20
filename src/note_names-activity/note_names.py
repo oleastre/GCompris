@@ -42,7 +42,7 @@ from gcomprismusic import *
 
 
 class Gcompris_note_names:
- 
+
     def __init__(self, gcomprisBoard):
 
         # Save the gcomprisBoard, it defines everything we need
@@ -316,19 +316,23 @@ They also form the C Major Scale. Notice that the note positions are different t
         '''
         draw a random note, selected from the pitchPossibilities, and save as self.currentNote
         '''
+        self.staff.eraseAllNotes()
         noteName = self.pitchPossibilities[randint(0, len(self.pitchPossibilities) - 1)]
-        if hasattr(self, 'currentNote') and self.currentNote == noteName: #don't repeat the same note twice
+        noteNametemp = noteName.replace(' sharp', '#')
+        noteNametemp = noteNametemp.replace(' flat', 'b')
+
+        if hasattr(self, 'currentNote') and self.currentNote == noteNametemp: #don't repeat the same note twice
+
             self.drawRandomNote(staffType)
             return
-        note = HalfNote(noteName, staffType, self.staff.rootitem)
+        note = QuarterNote(noteName, staffType, self.staff.rootitem)
         self.staff.drawNote(note)
         if self.pitchSoundEnabled:
             note.play()
             note.enablePlayOnMouseover('white')
 
-        noteName = noteName.replace(' sharp', '#')
-        noteName = noteName.replace(' flat', 'b')
-        self.currentNote = noteName
+
+        self.currentNote = noteNametemp
 
     def play_scale_game(self, widget=None, target=None, event=None):
         '''

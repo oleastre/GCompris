@@ -18,7 +18,6 @@
 #
 #
 
-
 import gobject
 import gtk
 import gtk.gdk
@@ -31,6 +30,15 @@ import gcompris.sound
 from gcompris import gcompris_gettext as _
 import cPickle as pickle
 import copy
+
+'''
+TODO:
+    - resolve the issue that half and whole notes can't be colered
+    with the new design because the outline of all notes is black,
+    and half and whole notes aren't filled so they can't be filled with color.
+'''
+
+
 
 # Rainbow color scheme used throughout games,
 # according to music research on best
@@ -388,7 +396,6 @@ class Staff():
         uses python's cpickle to load the python object, a staff instance
         '''
 
-
         file = open(filename, 'rb')
         try:
             loadedStaff = pickle.load(file)
@@ -484,9 +491,6 @@ class Staff():
     def colorAllNotes(self, color):
         for note in self.noteList:
             note.color(color)
-
-
-
 
 class TrebleStaff(Staff):
     '''
@@ -639,7 +643,7 @@ class Note():
            self.staffType == 'bassClef' and self.noteName == 'C2' or \
            self.staffType == 'trebleClef' and self.noteName == 'C sharp':
             self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 12, y, x + 12, y ,
-                                        stroke_color="black", line_width=2)
+                                        stroke_color_rgba=0x121212D0, line_width=1)
 
     def play(self, x=None, y=None, z=None):
         '''
@@ -647,7 +651,11 @@ class Note():
         '''
         if not ready(self, 700):
             return False
-        self.highlight()
+        # sometimes this method is called without actually having a note
+        # printed on the page (we just want to hear the pitch). Thus, only
+        # highlight a note if it exists!
+        if hasattr(self, 'playingLine'):
+            self.highlight()
         gcompris.sound.play_ogg(self._getPitchDir())
 
 
@@ -674,13 +682,18 @@ class Note():
     def _drawAlteration(self, x, y):
         '''
         draws a flat or a sharp sign in front of the note if needed
+        width and height specifications needed because these images
+        need to be so small that scaling any larger image to the correct
+        size makes them extremely blury.
         '''
         if hasattr(self, 'keyNum') and 'sharp' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
               pixbuf=gcompris.utils.load_pixmap("blacksharp.png"),
               x=x - 23,
-              y=y - 10,
+              y=y - 9,
+              width=18,
+              height=18
               )
         elif hasattr(self, 'keyNum') and 'flat' in self.noteName:
             self.alteration = goocanvas.Image(
@@ -688,8 +701,9 @@ class Note():
               pixbuf=gcompris.utils.load_pixmap("blackflat.png"),
               x=x - 23,
               y=y - 14,
+              width=20,
+              height=20,
               )
-
 
     def remove(self):
         '''
@@ -708,7 +722,7 @@ class Note():
 
         if hasattr(self, 'midLine'):
             self.midLine.props.fill_color = "black"
-            self.midLine.props.stroke_color = "white"
+            self.midLine.props.stroke_color = "black"
 
     def color(self, color):
         '''
@@ -726,10 +740,18 @@ class Note():
             self.color(NOTE_COLOR_SCHEME[self.noteName[0]])
 
     def enablePlayOnClick(self):
+        '''
+        enables the function that the note will be played when the user clicks
+        on the note (not currently used)
+        '''
         self.noteHead.connect("button_press_event", self.play)
         gcompris.utils.item_focus_init(self.noteHead, None)
 
     def enablePlayOnMouseover(self, colorNote=None):
+        '''
+        enables the function that the note will be played when the user
+        runs the mouse over the note (used in note_names activity)
+        '''
         self.noteHead.connect("motion_notify_event", self.play)
         if colorNote:
             self.noteHead.connect("motion_notify_event", lambda x, y, z: self.highlight())
@@ -761,12 +783,73 @@ class QuarterNote(Note):
         '''
         return 500
 
+    def draw(self, x, y):
+        '''
+        places note image in canvas
+        '''
+
+        self.drawPlayingLine(x, y)
+
+#        # A transparent background for the head
+#        goocanvas.Ellipse(parent=self.rootitem,
+#                    center_x=x,
+#                    center_y=y,
+#                    radius_x=9,
+#                    radius_y=7,
+#                    stroke_color_rgba=0xCFCFCF60,
+#                    line_width=2.5)
+#
+#        # Draw the note flag
+#        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
+#                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
+#        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+#                                    stroke_color="black", line_width=2)
+
+#        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
+#                    center_x=x,
+#                    center_y=y,
+#                    radius_x=7,
+#                    radius_y=5,
+#                    fill_color='black',
+#                    stroke_color='black',
+#                    line_width=2.5)
+
+
+        # Olivier Samyn's contribution to the quarter note. I really like
+        # how thin these lines are. However, there is still the problem of how to color
+        # a half and whole note if the note is surouned with a black line....
+        # also, this only applies to the Quarter Note
+        self.noteHead = goocanvas.Path(parent=self.rootitem,
+            data="m %i %i a7,5 0 0,1 12,-3 v-32 h2 v35 a7,5 0 0,1 -14,0z" % (x - 7, y),
+            fill_color='black',
+            stroke_color='black',
+            line_width=1.0
+            )
+
+
+
+        self._drawAlteration(x, y)
+
+        self._drawMidLine(x, y)
+
+        self.y = y
+        self.x = x
+
+
+
+class HalfNote(Note):
+    '''
+    an object inherited from Note, of specific duration (half length)
+    '''
+    noteType = 'halfNote'
+
+    def toMillisecs(self):
+        return 1000
 
     def draw(self, x, y):
         '''
         places note image in canvas
         '''
-        self._drawMidLine(x, y)
         self.drawPlayingLine(x, y)
 
         # A transparent background for the head
@@ -789,55 +872,15 @@ class QuarterNote(Note):
                     center_y=y,
                     radius_x=7,
                     radius_y=5,
-                    fill_color='black',
                     stroke_color='black',
                     line_width=2.5)
-
         self._drawAlteration(x, y)
 
-        self.y = y
-        self.x = x
-
-class HalfNote(Note):
-    '''
-    an object inherited from Note, of specific duration (half length)
-    '''
-    noteType = 'halfNote'
-
-    def toMillisecs(self):
-        return 1000
-
-    def draw(self, x, y):
-        '''
-        places note image in canvas
-        '''
         self._drawMidLine(x, y)
 
-        # A transparent background for the head
-        goocanvas.Ellipse(parent=self.rootitem,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=9,
-                    radius_y=7,
-                    stroke_color_rgba=0xCFCFCF60,
-                    line_width=2.5)
-
-        # Draw the note flag
-        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
-                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
-        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-                                    stroke_color="black", line_width=2)
-
-        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=7,
-                    radius_y=5,
-                    stroke_color='black',
-                    line_width=2.5)
-        self._drawAlteration(x, y)
         self.y = y
         self.x = x
+
 
     def color(self, color):
         '''
@@ -855,7 +898,8 @@ class WholeNote(Note):
         return 2000
 
     def draw(self, x, y):
-        self._drawMidLine(x, y)
+        self.drawPlayingLine(x, y)
+
         # A transparent background for the head
         goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
@@ -874,6 +918,9 @@ class WholeNote(Note):
                     line_width=2.5)
 
         self._drawAlteration(x, y)
+
+        self._drawMidLine(x, y)
+
         self.y = y
         self.x = x
 
@@ -962,19 +1009,19 @@ class PianoKeyboard():
             seperationWidth = w * 1.780
 
             self.drawKey(x, y, w, h, self.colors['1'],
-                         (_("C sharp") if self.sharpNotation else _("D flat")  ) )
+                         (_("C sharp") if self.sharpNotation else _("D flat")))
             x += seperationWidth
             self.drawKey(x, y, w, h, self.colors['2'],
-                         (_("D sharp") if self.sharpNotation else _("E flat")  ) )
+                         (_("D sharp") if self.sharpNotation else _("E flat")))
             x += seperationWidth * 2
             self.drawKey(x, y, w, h, self.colors['3'],
-                         (_("F sharp") if self.sharpNotation else _("G flat")  ) )
+                         (_("F sharp") if self.sharpNotation else _("G flat")))
             x += seperationWidth
             self.drawKey(x, y, w, h, self.colors['4'],
-                         (_("G sharp") if self.sharpNotation else _("A flat")  ) )
+                         (_("G sharp") if self.sharpNotation else _("A flat")))
             x += seperationWidth
             self.drawKey(x, y, w, h, self.colors['5'],
-                         (_("A sharp") if self.sharpNotation else _("B flat")  ) )
+                         (_("A sharp") if self.sharpNotation else _("B flat")))
 
 
     def drawKey(self, x, y, width, height, color, name):
