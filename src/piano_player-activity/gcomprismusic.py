@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #  gcompris - gcomprismusic.py
 #
-# Copyright (C) 2003, 2008 Beth Hadley
+# Copyright (C) 2012 Beth Hadley
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# 
+#
 
 
 import gobject
@@ -32,27 +32,27 @@ from gcompris import gcompris_gettext as _
 import cPickle as pickle
 import copy
 
-# Rainbow color scheme used throughout games, 
+# Rainbow color scheme used throughout games,
 # according to music research on best
 # techniques to teach young children music
 
 NOTE_COLOR_SCHEME = {"C":'#FF0000',
-                       "1":'#FF6347',
-                       "D":'#FF7F00',
-                       "2":'#FFD700',
-                       "E":'#FFFF00',
-                       "F":'#32CD32',
-                       "3":'#20B2AA',
-                       "G":'#6495ED',
-                       "4":'#8A2BE2',
-                       "A":'#D02090',
-                       "5":'#FF00FF',
-                       "B":'#FF1493'
-                       }
+                     "1":'#FF6347',
+                     "D":'#FF7F00',
+                     "2":'#FFD700',
+                     "E":'#FFFF00',
+                     "F":'#32CD32',
+                     "3":'#20B2AA',
+                     "G":'#6495ED',
+                     "4":'#8A2BE2',
+                     "A":'#D02090',
+                     "5":'#FF00FF',
+                     "B":'#FF1493'
+                     }
 
 # ---------------------------------------------------------------------------
 #
-#  STAFF OBJECTS           
+#  STAFF OBJECTS
 #
 # ---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ class Staff():
 
       # ALL LOCATIONS BELOW ARE RELATIVE TO self.x and self.y
       self.endx = 350     #rightend location of staff lines
-      self.startx = 0  #leftend location of staff lines
+      self.startx = 0     #leftend location of staff lines
       self.lineNum = 1    #the line number (1,2,3) we're currently writing notes to
       self.line1Y = 0     #starting Y position of first lines of staff
       self.line2Y = 115   #startying Y position of second lines of staff
@@ -189,7 +189,7 @@ class Staff():
         this note as an image to the canvas. An alert is triggered if no more
         room is left on the screen. Also color-codes the note if self.colorCodeNotes == True
         '''
-        x = self.getNoteXCoordinate() #returns next x coordinate for note, 
+        x = self.getNoteXCoordinate() #returns next x coordinate for note,
         if x == False:
             try:
                 self.alert.remove()
@@ -328,23 +328,12 @@ class Staff():
         duration (quarter, half, whole)
         colors the note white that it is currently sounding
         '''
+        if self.currentNoteIndex >= len(self.noteList):
+            return
 
-        if self._playedAll():
-            if self.colorCodeNotes:
-                self.noteList[self.currentNoteIndex - 1].colorCodeNote()
-            else:
-                self.noteList[self.currentNoteIndex - 1].color('black')
-            return False
         note = self.noteList[self.currentNoteIndex]
         self.writeText('Note Name: ' + note.niceName)
         note.play()
-        note.color('white')
-        if not self._playedAll():
-            if self.currentNoteIndex != 0:
-                if self.colorCodeNotes:
-                    self.noteList[self.currentNoteIndex - 1].colorCodeNote()
-                else:
-                    self.noteList[self.currentNoteIndex - 1].color('black')
         self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
         self.currentNoteIndex += 1
 
@@ -609,7 +598,7 @@ class BassStaff(Staff):
 
 # ---------------------------------------------------------------------------
 #
-#  NOTE OBJECTS           
+#  NOTE OBJECTS
 #
 # ---------------------------------------------------------------------------
 
@@ -637,6 +626,14 @@ class Note():
 
         self.timers = []
 
+    def drawPlayingLine(self, x, y):
+        self.playingLine = \
+            goocanvas.polyline_new_line(self.rootitem,
+                                        x - 10 , y + 10,
+                                        x + 10, y + 10,
+                                        stroke_color_rgba=0x121212D0, line_width=3)
+        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
+
     def _drawMidLine(self, x, y):
         if self.staffType == 'trebleClef' and self.noteName == 'C'  or \
            self.staffType == 'bassClef' and self.noteName == 'C2' or \
@@ -650,6 +647,7 @@ class Note():
         '''
         if not ready(self, 700):
             return False
+        self.highlight()
         gcompris.sound.play_ogg(self._getPitchDir())
 
 
@@ -680,56 +678,24 @@ class Note():
         if hasattr(self, 'keyNum') and 'sharp' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap(self.keyNum + "s.png"),
+              pixbuf=gcompris.utils.load_pixmap("blacksharp.png"),
               x=x - 23,
               y=y - 10,
-              height=20,
-              width=20
               )
-            self.alteration.set_data('type', 'sharp')
         elif hasattr(self, 'keyNum') and 'flat' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap(self.keyNum + "f.png"),
+              pixbuf=gcompris.utils.load_pixmap("blackflat.png"),
               x=x - 23,
               y=y - 14,
-              height=20,
-              width=20
               )
-            self.alteration.set_data('type', 'flat')
 
 
     def remove(self):
         '''
         removes the note from the canvas
         '''
-        self.noteHead.remove()
-        if hasattr(self, 'noteFlag'):
-            self.noteFlag.remove()
-        if hasattr(self, 'midLine'):
-            self.midLine.remove()
-        if hasattr(self, 'alteration'):
-            self.alteration.remove()
-
-    def colorAlteration(self, color):
-        '''
-        colors the flat or sharp sign
-        '''
-        if hasattr(self, 'alteration'):
-            str = self.alteration.get_data('type')
-        else:
-            return
-
-        if color == 'black':
-            self.alteration.props.pixbuf = gcompris.utils.load_pixmap("black" + str + ".png")
-        elif color == 'white':
-            self.alteration.props.pixbuf = gcompris.utils.load_pixmap("white" + str + ".png")
-        else:
-            for key, value in NOTE_COLOR_SCHEME.items():
-                if color == value:
-                    self.alteration.props.pixbuf = gcompris.utils.load_pixmap(key + str[0] + ".png")
-        self.alteration.props.height = 20
-        self.alteration.props.width = 20
+        self.rootitem.remove()
 
     def colorNoteHead(self, color, fill=True, outline=True):
         '''
@@ -738,27 +704,17 @@ class Note():
         if fill:
             self.noteHead.props.fill_color = color
         if outline:
-            self.noteHead.props.stroke_color = color
+            self.noteHead.props.stroke_color = "black"
 
         if hasattr(self, 'midLine'):
-            self.midLine.props.fill_color = color
-            self.midLine.props.stroke_color = color
-
-    def colorNoteFlag(self, color):
-        '''
-        colors the note flag (vertical line)
-        '''
-        if hasattr(self, 'noteFlag'):
-            self.noteFlag.props.fill_color = color
-            self.noteFlag.props.stroke_color = color
+            self.midLine.props.fill_color = "black"
+            self.midLine.props.stroke_color = "white"
 
     def color(self, color):
         '''
         default color method. colors all components, including notehead's fill
         '''
         self.colorNoteHead(color)
-        self.colorNoteFlag(color)
-        self.colorAlteration(color)
 
     def colorCodeNote(self):
         '''
@@ -776,16 +732,19 @@ class Note():
     def enablePlayOnMouseover(self, colorNote=None):
         self.noteHead.connect("motion_notify_event", self.play)
         if colorNote:
-            self.noteHead.connect("motion_notify_event", lambda x, y, z: self.highlight(colorNote))
+            self.noteHead.connect("motion_notify_event", lambda x, y, z: self.highlight())
 
         gcompris.utils.item_focus_init(self.noteHead, None)
 
-    def highlight(self, highlightColor):
+    def stopHighLight(self):
+        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
+
+    def highlight(self):
         '''
-        color the note a certain color for 700 milliseconds, then revert back to color-coded note color
+        highlight the note for 700 milliseconds, then revert
         '''
-        self.color(highlightColor)
-        self.timers.append(gobject.timeout_add(700, self.colorCodeNote))
+        self.playingLine.props.visibility = goocanvas.ITEM_VISIBLE
+        self.timers.append(gobject.timeout_add(700, self.stopHighLight))
 
 
 class QuarterNote(Note):
@@ -808,7 +767,22 @@ class QuarterNote(Note):
         places note image in canvas
         '''
         self._drawMidLine(x, y)
+        self.drawPlayingLine(x, y)
 
+        # A transparent background for the head
+        goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=9,
+                    radius_y=7,
+                    stroke_color_rgba=0xCFCFCF60,
+                    line_width=2.5)
+
+        # Draw the note flag
+        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
+                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
+        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+                                    stroke_color="black", line_width=2)
 
         self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
@@ -817,11 +791,7 @@ class QuarterNote(Note):
                     radius_y=5,
                     fill_color='black',
                     stroke_color='black',
-                    line_width=1.0)
-
-        self.noteFlag = goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-                                    stroke_color="black", line_width=2)
-
+                    line_width=2.5)
 
         self._drawAlteration(x, y)
 
@@ -843,6 +813,21 @@ class HalfNote(Note):
         '''
         self._drawMidLine(x, y)
 
+        # A transparent background for the head
+        goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=9,
+                    radius_y=7,
+                    stroke_color_rgba=0xCFCFCF60,
+                    line_width=2.5)
+
+        # Draw the note flag
+        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
+                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
+        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
+                                    stroke_color="black", line_width=2)
+
         self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
                     center_y=y,
@@ -850,8 +835,6 @@ class HalfNote(Note):
                     radius_y=5,
                     stroke_color='black',
                     line_width=2.5)
-        self.noteFlag = goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-                                    stroke_color="black", line_width=2)
         self._drawAlteration(x, y)
         self.y = y
         self.x = x
@@ -861,8 +844,6 @@ class HalfNote(Note):
         colors all components except notehead fill
         '''
         self.colorNoteHead(color, fill=False)
-        self.colorNoteFlag(color)
-        self.colorAlteration(color)
 
 
 class WholeNote(Note):
@@ -875,6 +856,15 @@ class WholeNote(Note):
 
     def draw(self, x, y):
         self._drawMidLine(x, y)
+        # A transparent background for the head
+        goocanvas.Ellipse(parent=self.rootitem,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=9,
+                    radius_y=7,
+                    stroke_color_rgba=0xCFCFCF60,
+                    line_width=2.5)
+
         self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
                     center_x=x,
                     center_y=y,
@@ -882,6 +872,7 @@ class WholeNote(Note):
                     radius_y=5,
                     stroke_color='black',
                     line_width=2.5)
+
         self._drawAlteration(x, y)
         self.y = y
         self.x = x
@@ -891,12 +882,11 @@ class WholeNote(Note):
         colors all components except notehead fill
         '''
         self.colorNoteHead(color, fill=False)
-        self.colorAlteration(color)
 
 
 # ---------------------------------------------------------------------------
 #
-#  PIANO KEYBOARD           
+#  PIANO KEYBOARD
 #
 # ---------------------------------------------------------------------------
 
@@ -933,168 +923,80 @@ class PianoKeyboard():
         '''
         define colored rectangles to lay on top of piano keys for student to click on
 
-        Translators: note that you must write the translated note name matching the given note name in the English notation
+        Translators: note that you must write the translated note name matching the
+        given note name in the English notation
          For example, in French the correct translations would be:
         A (la), B (si), C (do), D (ré), E (mi), F (fa) , G (sol)
         '''
 
-        keyWidth = width * 0.09
-        keyHeight = height * 0.09
-        ypose = self.y + 0.85 * height
-        xpose = self.x + width * .02
-        seperationWidth = keyWidth * 1.37
+        self.key_callback = key_callback
+        w = width * 0.09
+        h = height * 0.17
+        y = self.y + 0.81 * height
+        x = self.x + width * .02
+        seperationWidth = w * 1.37
 
         if self.whiteKeys:
-            self.keyC = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['C'],
-                                       line_width=1.0)
-            self.keyC.name = _("C")
-            xpose += seperationWidth
-            self.keyD = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['D'],
-                                       line_width=1.0)
-            self.keyD.name = _("D")
-            xpose += seperationWidth
-            self.keyE = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['E'],
-                                       line_width=1.0)
-            self.keyE.name = _("E")
-            xpose += seperationWidth
-            self.keyF = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['F'],
-                                       line_width=1.0)
-            self.keyF.name = _("F")
-            xpose += seperationWidth
-            self.keyG = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['G'],
-                                       line_width=1.0)
-            self.keyG.name = _("G")
-            xpose += seperationWidth
-            self.keyA = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['A'],
-                                       line_width=1.0)
-            self.keyA.name = _("A")
-            xpose += seperationWidth
-            self.keyB = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['B'],
-                                       line_width=1.0)
-            self.keyB.name = _("B")
-            xpose += seperationWidth
-            self.keyC2 = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                        width=keyWidth, height=keyHeight,
-                                        stroke_color="black", fill_color=self.colors['C'],
-                                        line_width=1.0)
-            self.keyC2.name = _("C2")
-
+            self.drawKey(x, y, w, h, self.colors['C'], _("C"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['D'], _("D"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['E'], _("E"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['F'], _("F"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['G'], _("G"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['A'], _("A"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['B'], _("B"))
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['C'], _("C2"))
+            x += seperationWidth
 
         if self.blackKeys:
+            w = width * 0.07
+            h = height * 0.15
+            y = self.y + 0.6 * height
+            x = self.x + width * .089
+            seperationWidth = w * 1.780
 
-            keyWidth = width * 0.07
-            keyHeight = height * 0.08
-            ypose = self.y + 0.7 * height
-            xpose = self.x + width * .089
-            seperationWidth = keyWidth * 1.780
-
-
-            self.key1 = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                            width=keyWidth, height=keyHeight,
-                            stroke_color="black", fill_color=self.colors['1'],
-                            line_width=1.0)
-
-            xpose += seperationWidth
-            self.key2 = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['2'],
-                                       line_width=1.0)
-
-            xpose += seperationWidth * 2
-            self.key3 = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['3'],
-                                       line_width=1.0)
-
-            xpose += seperationWidth
-            self.key4 = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['4'],
-                                       line_width=1.0)
-
-            xpose += seperationWidth
-            self.key5 = goocanvas.Rect(parent=self.rootitem, x=xpose, y=ypose,
-                                       width=keyWidth, height=keyHeight,
-                                       stroke_color="black", fill_color=self.colors['5'],
-                                       line_width=1.0)
-
-            if self.sharpNotation:
-                self.key1.name = _("C sharp")
-                self.key2.name = _("D sharp")
-                self.key3.name = _("F sharp")
-                self.key4.name = _("G sharp")
-                self.key5.name = _("A sharp")
-            else:
-                self.key1.name = _("D flat")
-                self.key2.name = _("E flat")
-                self.key3.name = _("G flat")
-                self.key4.name = _("A flat")
-                self.key5.name = _("B flat")
+            self.drawKey(x, y, w, h, self.colors['1'],
+                         (_("C sharp") if self.sharpNotation else _("D flat")  ) )
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['2'],
+                         (_("D sharp") if self.sharpNotation else _("E flat")  ) )
+            x += seperationWidth * 2
+            self.drawKey(x, y, w, h, self.colors['3'],
+                         (_("F sharp") if self.sharpNotation else _("G flat")  ) )
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['4'],
+                         (_("G sharp") if self.sharpNotation else _("A flat")  ) )
+            x += seperationWidth
+            self.drawKey(x, y, w, h, self.colors['5'],
+                         (_("A sharp") if self.sharpNotation else _("B flat")  ) )
 
 
+    def drawKey(self, x, y, width, height, color, name):
+        '''
+        This function displays the clickable part of the key
+        '''
+        item = goocanvas.Rect(parent=self.rootitem, x=x, y=y,
+                              width=width, height=height,
+                              stroke_color="black", fill_color=color,
+                              line_width=1.0)
+        item.name = name
         '''
         connect the piano keyboard rectangles to a button press event,
         the method keyboard_click
         '''
-
-        if self.whiteKeys:
-            self.keyC.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyC, None)
-
-            self.keyD.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyD, None)
-
-            self.keyE.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyE, None)
-
-            self.keyF.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyF, None)
-
-            self.keyG.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyG, None)
-
-            self.keyA.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyA, None)
-
-            self.keyB.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyB, None)
-
-            self.keyC2.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.keyC2, None)
-
-        if self.blackKeys:
-            self.key1.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.key1, None)
-
-            self.key2.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.key2, None)
-
-            self.key3.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.key3, None)
-
-            self.key4.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.key4, None)
-
-            self.key5.connect("button_press_event", key_callback)
-            gcompris.utils.item_focus_init(self.key5, None)
+        item.connect("button_press_event", self.key_callback)
+        gcompris.utils.item_focus_init(item, None)
+        return item
 
 # ---------------------------------------------------------------------------
 #
-# UTILITY FUNCTIONS            
+# UTILITY FUNCTIONS
 #
 # ---------------------------------------------------------------------------
 
