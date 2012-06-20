@@ -1,0 +1,60 @@
+[1]
+x = 186
+y = 150
+name = Location Title Here
+text = location text here
+image = /general/default.png
+music = music file name here
+question = enter question about topic here
+answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+
+[2]
+x = 269
+y = 258
+name = Location Title Here
+text = location text here
+image = /general/default.png
+music = music file name here
+question = enter question about topic here
+answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+
+[3]
+x = 420
+y = 191
+name = Location Title Here
+text = location text here
+image = /general/default.png
+music = music file name here
+question = enter question about topic here
+answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+
+[4]
+x = 387
+y = 142
+name = Location Title Here
+text = location text here
+image = /general/default.png
+music = music file name here
+question = enter question about topic here
+answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+
+[5]
+x = 412
+y = 124
+name = Location Title Here
+text = location text here
+image = /general/default.png
+music = music file name here
+question = enter question about topic here
+answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+
+[6]
+x = 678
+y = 290
+name = Location Title Here
+text = location text here
+image = /general/default.png
+music = music file name here
+question = enter question about topic here
+answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+
