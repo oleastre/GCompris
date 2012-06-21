@@ -631,11 +631,12 @@ class Note():
         self.timers = []
 
     def drawPlayingLine(self, x, y):
-        self.playingLine = \
-            goocanvas.polyline_new_line(self.rootitem,
-                                        x - 10 , y + 10,
-                                        x + 10, y + 10,
-                                        stroke_color_rgba=0x121212D0, line_width=3)
+        self.playingLine = goocanvas.Image(
+              parent=self.rootitem,
+              pixbuf=gcompris.utils.load_pixmap("piano_player/note_highlight.png"),
+              x = x - 18,
+              y = y - 22,
+              )
         self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
 
     def _drawMidLine(self, x, y):
