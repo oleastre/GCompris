@@ -3,6 +3,6 @@
 path=$1
 activity=piano_player
 plugindir=$path/../boards/.libs
-pythonplugindir=$path 
-resourcedir=$path/resources/piano_player
+pythonplugindir=$path
+resourcedir=$path/resources
 section="/experimental"

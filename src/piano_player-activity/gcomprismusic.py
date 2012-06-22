@@ -523,7 +523,7 @@ class TrebleStaff(Staff):
                 y= -3,
                 height=h,
                 width=w,
-                pixbuf=gcompris.utils.load_pixmap('trebleClef.png')
+                pixbuf=gcompris.utils.load_pixmap('piano_player/trebleClef.png')
                 )
         if self.numStaves >= 2:
             self.staffImage2 = goocanvas.Image(
@@ -532,7 +532,7 @@ class TrebleStaff(Staff):
                 y=self.line2Y,
                 height=h,
                 width=w,
-                pixbuf=gcompris.utils.load_pixmap('trebleClef.png')
+                pixbuf=gcompris.utils.load_pixmap('piano_player/trebleClef.png')
                 )
         if self.numStaves >= 3:
             self.staffImage3 = goocanvas.Image(
@@ -541,7 +541,7 @@ class TrebleStaff(Staff):
                 y=self.line3Y,
                 height=h,
                 width=w,
-                pixbuf=gcompris.utils.load_pixmap('trebleClef.png')
+                pixbuf=gcompris.utils.load_pixmap('piano_player/trebleClef.png')
                 )
 
 class BassStaff(Staff):
@@ -576,7 +576,7 @@ class BassStaff(Staff):
                 y=0,
                 height=h,
                 width=w,
-                pixbuf=gcompris.utils.load_pixmap('bassClef.png')
+                pixbuf=gcompris.utils.load_pixmap('piano_player/bassClef.png')
                 )
         if self.numStaves >= 2:
             self.staffImage2 = goocanvas.Image(
@@ -585,7 +585,7 @@ class BassStaff(Staff):
                 y=self.line2Y,
                 height=h,
                 width=w,
-                pixbuf=gcompris.utils.load_pixmap('bassClef.png')
+                pixbuf=gcompris.utils.load_pixmap('piano_player/bassClef.png')
                 )
         if self.numStaves >= 3:
             self.staffImage3 = goocanvas.Image(
@@ -594,7 +594,7 @@ class BassStaff(Staff):
                 y=self.line3Y,
                 height=h,
                 width=w,
-                pixbuf=gcompris.utils.load_pixmap('bassClef.png')
+                pixbuf=gcompris.utils.load_pixmap('piano_player/bassClef.png')
                 )
 
 
@@ -631,11 +631,12 @@ class Note():
         self.timers = []
 
     def drawPlayingLine(self, x, y):
-        self.playingLine = \
-            goocanvas.polyline_new_line(self.rootitem,
-                                        x - 10 , y + 10,
-                                        x + 10, y + 10,
-                                        stroke_color_rgba=0x121212D0, line_width=3)
+        self.playingLine = goocanvas.Image(
+              parent=self.rootitem,
+              pixbuf=gcompris.utils.load_pixmap("piano_player/note_highlight.png"),
+              x = x - 18,
+              y = y - 22,
+              )
         self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
 
     def _drawMidLine(self, x, y):
@@ -672,9 +673,9 @@ class Note():
             n = self.noteName
 
         if self.staffType == 'trebleClef':
-             pitchDir = 'treble_pitches/' + self.noteType + '/' + n + '.wav'
+             pitchDir = 'piano_player/treble_pitches/' + self.noteType + '/' + n + '.wav'
         else:
-             pitchDir = 'bass_pitches/' + self.noteType + '/' + n + '.wav'
+             pitchDir = 'piano_player/bass_pitches/' + self.noteType + '/' + n + '.wav'
 
         return pitchDir
 
@@ -689,7 +690,7 @@ class Note():
         if hasattr(self, 'keyNum') and 'sharp' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap("blacksharp.png"),
+              pixbuf=gcompris.utils.load_pixmap("piano_player/blacksharp.png"),
               x=x - 23,
               y=y - 9,
               width=18,
@@ -698,7 +699,7 @@ class Note():
         elif hasattr(self, 'keyNum') and 'flat' in self.noteName:
             self.alteration = goocanvas.Image(
               parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap("blackflat.png"),
+              pixbuf=gcompris.utils.load_pixmap("piano_player/blackflat.png"),
               x=x - 23,
               y=y - 14,
               width=20,
@@ -960,7 +961,7 @@ class PianoKeyboard():
         #piano keyboard image
         goocanvas.Image(
           parent=self.rootitem,
-          pixbuf=gcompris.utils.load_pixmap("keyboard.png"),
+          pixbuf=gcompris.utils.load_pixmap("piano_player/keyboard.png"),
           x=self.x,
           y=self.y,
           height=height,

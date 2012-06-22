@@ -229,7 +229,7 @@ class Gcompris_piano_player:
 
             self.quarterNoteSelectedButton = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('quarterNote.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/quarterNote.png'),
                 x=630,
                 y=80,
                 height=45,
@@ -238,7 +238,7 @@ class Gcompris_piano_player:
 
             self.halfNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('halfNote.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/halfNote.png'),
                 x=660,
                 y=80,
                 height=45,
@@ -247,7 +247,7 @@ class Gcompris_piano_player:
 
             self.wholeNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('wholeNote.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/wholeNote.png'),
                 x=700,
                 y=80,
                 height=45,
@@ -257,7 +257,7 @@ class Gcompris_piano_player:
         if (level == 6):
             self.loadButton = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('tool-load.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/tool-load.png'),
                 x=200,
                 y=100,
                 height=40,
@@ -266,7 +266,7 @@ class Gcompris_piano_player:
 
             self.saveButton = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('tool-save.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/tool-save.png'),
                 x=260,
                 y=100,
                 height=40,
