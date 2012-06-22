@@ -19,9 +19,14 @@
 
 '''
 TO-DO:
+    - write credits from content.txt to xml file?
+    - make music playing/pausing/etc smooth...right now the music stops spontaneously
     - add more features???
     - make the 'game' for challenging?
     - use template to make music around the world activity
+Done:
+    - completed two locations as samples (Australia and Africa)
+
 '''
 
 '''
@@ -66,9 +71,10 @@ text: Enter whatever textual information you'd like to appear on the page
 image: Enter the file location of a picture you'd like to appear on the page. Be sure
 to save the picture in the resources folder. The size of the picture will not be
 scaled in any way, so save the picture at the size you'd like it to appear in
-the activity. (example: /general/default.png)
+the activity. (example: /general/default.png) You should use png files.
 
-music: Enter the file location of a .wav file you'd like to play for the lcoation
+music: Enter the file location of a .wav file you'd like to play for the lcoation.
+You must use .wav files. Use audacity to convert .ogg and .mp3 files to .wav
 
 question: Enter a quesiton you'd like to ask the students about the topic to
 test their understanding. This provides some challenge in the game and an incentive
@@ -195,7 +201,7 @@ class Gcompris_world_explore_template:
             )
 
         # check to see if student has won game
-        if self.score == len(self.data.sections()) and self.score != 0:
+        if self.score == (len(self.data.sections()) - 1) and self.score != 0:
             # show congratulations image!
             goocanvas.Image(
             parent=self.rootitem,
@@ -286,6 +292,9 @@ class Gcompris_world_explore_template:
         thellipse will be colored green. Otherwise, the ellipse is red.
         '''
         for section in self.data.sections():
+            if section == 'other':
+                self.data.credits = self.data.get('other', 'credits')
+                continue
             if section in self.sectionsAnsweredCorrectly:
                 color = '#008000'
             else:
@@ -359,7 +368,7 @@ class Gcompris_world_explore_template:
         name = _(self.data.get(sectionNum, 'name'))
         goocanvas.Text(
           parent=self.rootitem,
-          x=400,
+          x=410,
           y=50,
           text='<span font_family="century schoolbook L" size="x-large" weight="bold">' + name + '</span>',
           fill_color="black",
@@ -371,7 +380,7 @@ class Gcompris_world_explore_template:
         text = self.data.get(sectionNum, 'text')
         goocanvas.Text(
           parent=self.rootitem,
-          x=170,
+          x=150,
           y=290,
           width=220,
           text=_(text),
@@ -382,17 +391,17 @@ class Gcompris_world_explore_template:
         image = self.data.get(sectionNum, 'image')
         goocanvas.Image(
             parent=self.rootitem,
-            x=290,
-            y=100,
+            x=260,
+            y=75,
             pixbuf=gcompris.utils.load_pixmap(image)
             )
 
         question = self.data.get(sectionNum, 'question')
         goocanvas.Text(
           parent=self.rootitem,
-          x=675,
+          x=700,
           y=100,
-          width=200,
+          width=150,
           text=_(question),
           fill_color="black",
           anchor=gtk.ANCHOR_CENTER,
@@ -419,7 +428,8 @@ class Gcompris_world_explore_template:
             gcompris.utils.item_focus_init(vars(self)[answer], None)
 
         # play music...do I need a timer to do this? seems to work okay so far....
-        music = self.data.get(sectionNum, 'music')
+        music = str(self.data.get(sectionNum, 'music'))
+
         gcompris.sound.play_ogg(music)
 
     def check_answer(self, sectionNum, widget=None, target=None, event=None):
@@ -456,6 +466,10 @@ class Gcompris_world_explore_template:
     def end(self):
         if RECORD_LOCATIONS:
             # write locations and template to content.txt
+            self.data.add_section('other')
+            self.data.set('other', 'credits', 'enter a list of credits and links to resources you used here')
+            self.data.set('other', 'creator', 'enter your name here!')
+
             with open(gcompris.DATA_DIR + '/' + '/content.txt', 'wb') as configfile:
                 self.data.write(configfile)
 

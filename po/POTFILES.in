@@ -475,3 +475,5 @@ src/explore_world_template-activity/explore_world_template.xml.in
 src/explore_world_template-activity/explore_world_template.py
 src/world_explore_template-activity/world_explore_template.xml.in
 src/world_explore_template-activity/world_explore_template.py
+src/intro_gravity-activity/intro_gravity.xml.in
+src/intro_gravity-activity/intro_gravity.py

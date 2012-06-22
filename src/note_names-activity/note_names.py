@@ -63,6 +63,8 @@ class Gcompris_note_names:
         # play the pitch sounds
         self.master_is_not_ready = False # boolean to prepare sound timing
 
+        self._okayToRepeat = False
+
     def start(self):
         # Set the buttons we want in the bar
         gcompris.bar_set(gcompris.BAR_LEVEL)
@@ -316,15 +318,18 @@ They also form the C Major Scale. Notice that the note positions are different t
         '''
         draw a random note, selected from the pitchPossibilities, and save as self.currentNote
         '''
-        self.staff.eraseAllNotes()
+        if not self._okayToRepeat:
+            if not ready(self):
+                return
         noteName = self.pitchPossibilities[randint(0, len(self.pitchPossibilities) - 1)]
         noteNametemp = noteName.replace(' sharp', '#')
         noteNametemp = noteNametemp.replace(' flat', 'b')
 
         if hasattr(self, 'currentNote') and self.currentNote == noteNametemp: #don't repeat the same note twice
-
+            self._okayToRepeat = True
             self.drawRandomNote(staffType)
             return
+        self._okayToRepeat = False
         note = QuarterNote(noteName, staffType, self.staff.rootitem)
         self.staff.drawNote(note)
         if self.pitchSoundEnabled:
@@ -454,7 +459,7 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         self.responsePic = goocanvas.Image(
         parent=self.rootitem,
-        pixbuf=gcompris.utils.load_pixmap('happyNote.png'),
+        pixbuf=gcompris.utils.load_pixmap('note_names/happyNote.png'),
         x=300,
         y=100,
         height=300,
@@ -471,7 +476,7 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         self.responsePic = goocanvas.Image(
         parent=self.rootitem,
-        pixbuf=gcompris.utils.load_pixmap('sadNote.png'),
+        pixbuf=gcompris.utils.load_pixmap('note_names/sadNote.png'),
         x=300,
         y=100,
         height=300,

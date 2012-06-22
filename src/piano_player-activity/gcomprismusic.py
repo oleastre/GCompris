@@ -630,12 +630,12 @@ class Note():
 
         self.timers = []
 
-    def drawPlayingLine(self, x, y):
+    def drawPictureFocus(self, x, y):
         self.playingLine = goocanvas.Image(
               parent=self.rootitem,
               pixbuf=gcompris.utils.load_pixmap("piano_player/note_highlight.png"),
-              x = x - 18,
-              y = y - 22,
+              x=x - 13,
+              y=y - 15,
               )
         self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
 
@@ -789,7 +789,7 @@ class QuarterNote(Note):
         places note image in canvas
         '''
 
-        self.drawPlayingLine(x, y)
+        self.drawPictureFocus(x, y)
 
 #        # A transparent background for the head
 #        goocanvas.Ellipse(parent=self.rootitem,
@@ -851,7 +851,7 @@ class HalfNote(Note):
         '''
         places note image in canvas
         '''
-        self.drawPlayingLine(x, y)
+        self.drawPictureFocus(x, y)
 
         # A transparent background for the head
         goocanvas.Ellipse(parent=self.rootitem,
@@ -899,7 +899,7 @@ class WholeNote(Note):
         return 2000
 
     def draw(self, x, y):
-        self.drawPlayingLine(x, y)
+        self.drawPictureFocus(x, y)
 
         # A transparent background for the head
         goocanvas.Ellipse(parent=self.rootitem,

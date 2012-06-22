@@ -1,60 +1,25 @@
 [1]
-x = 186
-y = 150
-name = Location Title Here
-text = location text here
-image = /general/default.png
-music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+x = 685
+y = 293
+name = Australia
+text = Aboriginals were the first people to live in Australia. They sing and play instruments, like the didgeridoo. It is made from a log and can be up to five meters long!
+image = australia.jpg
+music = australia.wav
+question = What is the digeridoo made out of?
+answeroptions = wood, metal, bamboo, animal skin
+
 
 [2]
-x = 269
-y = 258
-name = Location Title Here
-text = location text here
-image = /general/default.png
-music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+x = 439
+y = 206
+name = Africa
+text = Music is a part of everyday life in Africa. African music features a great variety of drums, and they believe it is a sacred and magical instrument.
+image = africa.png
+music = africa.wav
+question = The music you hear is African. What aspect of the music is the most important?
+answeroptions = rhythm, melody, singing, dancing
 
-[3]
-x = 420
-y = 191
-name = Location Title Here
-text = location text here
-image = /general/default.png
-music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
-
-[4]
-x = 387
-y = 142
-name = Location Title Here
-text = location text here
-image = /general/default.png
-music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
-
-[5]
-x = 412
-y = 124
-name = Location Title Here
-text = location text here
-image = /general/default.png
-music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
-
-[6]
-x = 678
-y = 290
-name = Location Title Here
-text = location text here
-image = /general/default.png
-music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
-
+[other]
+credits = http://commons.wikimedia.org/wiki/Category:Didgeridoos, \
+http://archive.org/details/EncinitasCommunityDrummers, \
+http://archive.org/details/didgeridoorelax
