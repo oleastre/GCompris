@@ -821,7 +821,7 @@ class QuarterNote(Note):
         # a half and whole note if the note is surouned with a black line....
         # also, this only applies to the Quarter Note
         self.noteHead = goocanvas.Path(parent=self.rootitem,
-            data="m %i %i a7,5 0 0,1 12,-3 v-32 h2 v35 a7,5 0 0,1 -14,0z" % (x - 7, y),
+            data="m %i %i a7,5 0 0,1 12,-3.5 v-32 h2 v35 a7,5 0 0,1 -14,0z" % (x - 7, y),
             fill_color='black',
             stroke_color='black',
             line_width=1.0
@@ -853,41 +853,19 @@ class HalfNote(Note):
         '''
         self.drawPictureFocus(x, y)
 
-        # A transparent background for the head
-        goocanvas.Ellipse(parent=self.rootitem,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=9,
-                    radius_y=7,
-                    stroke_color_rgba=0xCFCFCF60,
-                    line_width=2.5)
+        self.noteHead = goocanvas.Path(parent=self.rootitem,
+            data="m %i %i a7,5 0 0,1 12,-3.5 v-32 h2 v35 a7,5 0 0,1 -14,0 z m 3,0 a 4,2 0 0 0 8,0 4,2 0 1 0 -8,0 z" % (x - 7, y),
+            fill_color='black',
+            stroke_color='black',
+            line_width=1.0
+            )
 
-        # Draw the note flag
-        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
-                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
-        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-                                    stroke_color="black", line_width=2)
-
-        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=7,
-                    radius_y=5,
-                    stroke_color='black',
-                    line_width=2.5)
         self._drawAlteration(x, y)
 
         self._drawMidLine(x, y)
 
         self.y = y
         self.x = x
-
-
-    def color(self, color):
-        '''
-        colors all components except notehead fill
-        '''
-        self.colorNoteHead(color, fill=False)
 
 
 class WholeNote(Note):
@@ -901,22 +879,12 @@ class WholeNote(Note):
     def draw(self, x, y):
         self.drawPictureFocus(x, y)
 
-        # A transparent background for the head
-        goocanvas.Ellipse(parent=self.rootitem,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=9,
-                    radius_y=7,
-                    stroke_color_rgba=0xCFCFCF60,
-                    line_width=2.5)
-
-        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=7,
-                    radius_y=5,
-                    stroke_color='black',
-                    line_width=2.5)
+        self.noteHead = goocanvas.Path(parent=self.rootitem,
+            data="m %i %i a 7,5 0 1 1 14,0 7,5 0 0 1 -14,0 z m 3,0 a 4,2 0 0 0 8,0 a 4,2 0 1 0 -8,0 z" % (x - 7, y),
+            fill_color='black',
+            stroke_color='black',
+            line_width=1.0
+            )
 
         self._drawAlteration(x, y)
 
@@ -924,12 +892,6 @@ class WholeNote(Note):
 
         self.y = y
         self.x = x
-
-    def color(self, color):
-        '''
-        colors all components except notehead fill
-        '''
-        self.colorNoteHead(color, fill=False)
 
 
 # ---------------------------------------------------------------------------
