@@ -101,6 +101,7 @@ class Staff():
 
       self.colorCodeNotes = True # optionally set to False to mark all notes black
 
+      self.notReadyToPlay = False
     def drawStaff(self, text=None):
         '''
         draw the staff, including staff lines and optional staff text
@@ -337,6 +338,7 @@ class Staff():
         colors the note white that it is currently sounding
         '''
         if self.currentNoteIndex >= len(self.noteList):
+            self.notReadyToPlay = False
             return
 
         note = self.noteList[self.currentNoteIndex]
@@ -357,14 +359,13 @@ class Staff():
         different durations according to noteType
         '''
 
-        if not self.noteList:
+        if not self.noteList or self.notReadyToPlay:
             return
-
+        self.notReadyToPlay = True
         if not ready(self):
             return False
 
         self.timers = []
-        self.numNotesPlayed = 0
         self.currentNoteIndex = 0
         self.timers.append(gobject.timeout_add(\
                 self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
@@ -482,7 +483,7 @@ class Staff():
             note = QuarterNote(pitch, self.name, self.rootitem)
             self.drawNote(note)
             self.writeLabel(note)
-            note.enablePlayOnMouseover('white')
+            note.enablePlayOnClick()
 
     def colorCodeAllNotes(self):
         for note in self.noteList:
@@ -620,6 +621,7 @@ class Note():
         self.y = 0
         self.rootitem = goocanvas.Group(parent=rootitem, x=self.x, y=self.y)
 
+        self.silent = False #make note silent always?
         if self.noteName in ["C sharp", "D flat"]: self.keyNum = "1"
         if self.noteName in ["D sharp", "E flat"]: self.keyNum = "2"
         if self.noteName in ["F sharp", "G flat"]: self.keyNum = "3"
@@ -650,7 +652,7 @@ class Note():
         '''
         plays the note sound
         '''
-        if not ready(self, 700):
+        if not ready(self, 700) or self.silent:
             return False
         # sometimes this method is called without actually having a note
         # printed on the page (we just want to hear the pitch). Thus, only
@@ -747,18 +749,21 @@ class Note():
         '''
         self.noteHead.connect("button_press_event", self.play)
         gcompris.utils.item_focus_init(self.noteHead, None)
+        self.silent = False
+    def disablePlayOnClick(self):
+        self.silent = True
 
-    def enablePlayOnMouseover(self, colorNote=None):
+    def enablePlayOnMouseover(self):
         '''
         enables the function that the note will be played when the user
         runs the mouse over the note (used in note_names activity)
+
+        Apparently mouseover actions aren't recommended for GCompris (touchpad
+        issues, etc.) so this method isn't used.
         '''
         self.noteHead.connect("motion_notify_event", self.play)
-        if colorNote:
-            self.noteHead.connect("motion_notify_event", lambda x, y, z: self.highlight())
-
         gcompris.utils.item_focus_init(self.noteHead, None)
-
+        self.silent = False
     def stopHighLight(self):
         self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
 
@@ -767,7 +772,7 @@ class Note():
         highlight the note for 700 milliseconds, then revert
         '''
         self.playingLine.props.visibility = goocanvas.ITEM_VISIBLE
-        self.timers.append(gobject.timeout_add(700, self.stopHighLight))
+        self.timers.append(gobject.timeout_add(self.toMillisecs(), self.stopHighLight))
 
 
 class QuarterNote(Note):
@@ -791,43 +796,13 @@ class QuarterNote(Note):
 
         self.drawPictureFocus(x, y)
 
-#        # A transparent background for the head
-#        goocanvas.Ellipse(parent=self.rootitem,
-#                    center_x=x,
-#                    center_y=y,
-#                    radius_x=9,
-#                    radius_y=7,
-#                    stroke_color_rgba=0xCFCFCF60,
-#                    line_width=2.5)
-#
-#        # Draw the note flag
-#        goocanvas.polyline_new_line(self.rootitem, x + 5.5, y, x + 6.5, y - 35,
-#                                    stroke_color_rgba=0xCFCFCF60, line_width=5)
-#        goocanvas.polyline_new_line(self.rootitem, x + 6.5, y, x + 6.5, y - 35,
-#                                    stroke_color="black", line_width=2)
-
-#        self.noteHead = goocanvas.Ellipse(parent=self.rootitem,
-#                    center_x=x,
-#                    center_y=y,
-#                    radius_x=7,
-#                    radius_y=5,
-#                    fill_color='black',
-#                    stroke_color='black',
-#                    line_width=2.5)
-
-
-        # Olivier Samyn's contribution to the quarter note. I really like
-        # how thin these lines are. However, there is still the problem of how to color
-        # a half and whole note if the note is surouned with a black line....
-        # also, this only applies to the Quarter Note
+        # Thanks to Olivier Samyn for the note shape
         self.noteHead = goocanvas.Path(parent=self.rootitem,
             data="m %i %i a7,5 0 0,1 12,-3.5 v-32 h2 v35 a7,5 0 0,1 -14,0z" % (x - 7, y),
             fill_color='black',
             stroke_color='black',
             line_width=1.0
             )
-
-
 
         self._drawAlteration(x, y)
 
@@ -853,6 +828,7 @@ class HalfNote(Note):
         '''
         self.drawPictureFocus(x, y)
 
+        # Thanks to Olivier Samyn for the note shape
         self.noteHead = goocanvas.Path(parent=self.rootitem,
             data="m %i %i a7,5 0 0,1 12,-3.5 v-32 h2 v35 a7,5 0 0,1 -14,0 z m 3,0 a 4,2 0 0 0 8,0 4,2 0 1 0 -8,0 z" % (x - 7, y),
             fill_color='black',
@@ -879,6 +855,7 @@ class WholeNote(Note):
     def draw(self, x, y):
         self.drawPictureFocus(x, y)
 
+        # Thanks to Olivier Samyn for the note shape
         self.noteHead = goocanvas.Path(parent=self.rootitem,
             data="m %i %i a 7,5 0 1 1 14,0 7,5 0 0 1 -14,0 z m 3,0 a 4,2 0 0 0 8,0 a 4,2 0 1 0 -8,0 z" % (x - 7, y),
             fill_color='black',

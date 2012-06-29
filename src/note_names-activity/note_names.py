@@ -19,9 +19,13 @@
 
 
 '''
+DONE:
+    - replace 'mouseover' actions with click & ok button
+
 TODO:
     - bring green and red pop-up notes to front with sort order, but I don't
     know how to do this yet....
+    - highlight selection on click
 
 '''
 
@@ -184,6 +188,16 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         if level in [2, 3, 4, 6, 7, 8]:
             self.updateGameLevel(level)
+            self.selected = '' # the note name the child has selected
+            # The OK Button
+            item = goocanvas.Svg(parent=self.rootitem,
+                                 svg_handle=gcompris.skin.svg_get(),
+                                 svg_id="#OK"
+                                 )
+            zoom = 1
+            item.translate(110, -100)
+            item.connect("button_press_event", self.ok_event)
+            gcompris.utils.item_focus_init(item, None)
 
             self.colorButtons = True
             self.pitchSoundEnabled = True
@@ -215,7 +229,7 @@ They also form the C Major Scale. Notice that the note positions are different t
             gcompris.utils.item_focus_init(self.soundToggle, None)
 
         if level == 2 or level == 6:
-            instructionText = _("Click on the note name that matches the displayed note.")
+            instructionText = _("Click on the note name to match the pitch. Then click ok to check.")
         elif level == 3 or level == 7:
             instructionText = _("Now there are sharp notes. These pitches are raised a half step.")
         elif level == 4 or level == 8:
@@ -245,7 +259,7 @@ They also form the C Major Scale. Notice that the note positions are different t
           x=120,
           y=100,
           width=150,
-          text=_("Mouseover the notes and note names to hear them played"),
+          text=_("Click the note to hear it played"),
           fill_color="black",
           anchor=gtk.ANCHOR_CENTER,
           alignment=pango.ALIGN_CENTER
@@ -280,7 +294,7 @@ They also form the C Major Scale. Notice that the note positions are different t
             self.staff.rootitem.scale(2.0, 2.0)
             self.staff.rootitem.translate(-350, -75)
 
-        self.pitchPossibilities = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C2']
+        self.pitchPossibilities = [ 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C2']
         if levelNum == 3 or levelNum == 7:
             self.pitchPossibilities.extend(['C sharp', 'D sharp', 'F sharp', 'G sharp', 'A sharp'])
         if levelNum == 4 or levelNum == 8:
@@ -309,10 +323,11 @@ They also form the C Major Scale. Notice that the note positions are different t
         if self.pitchSoundEnabled:
             self.pitchSoundEnabled = False
             self.soundToggle.props.text = _("Click here to hear the pitches.")
+            self.currentNoteObject.disablePlayOnClick()
         else:
             self.pitchSoundEnabled = True
             self.soundToggle.props.text = _("Ready for a challenge? Turn off pitch sound")
-
+            self.currentNoteObject.enablePlayOnClick()
 
     def drawRandomNote(self, staffType):
         '''
@@ -325,20 +340,20 @@ They also form the C Major Scale. Notice that the note positions are different t
         noteNametemp = noteName.replace(' sharp', '#')
         noteNametemp = noteNametemp.replace(' flat', 'b')
 
-        if hasattr(self, 'currentNote') and self.currentNote == noteNametemp: #don't repeat the same note twice
+        if hasattr(self, 'currentNote') and \
+        self.currentNote.replace('2', '') == noteNametemp.replace('2', ''): #don't repeat the same note twice
             self._okayToRepeat = True
             self.drawRandomNote(staffType)
             return
         self._okayToRepeat = False
         note = QuarterNote(noteName, staffType, self.staff.rootitem)
+
         self.staff.drawNote(note)
         if self.pitchSoundEnabled:
             note.play()
-            note.enablePlayOnMouseover('white')
-
-
+            note.enablePlayOnClick()
         self.currentNote = noteNametemp
-
+        self.currentNoteObject = note
     def play_scale_game(self, widget=None, target=None, event=None):
         '''
         button to move to the next level and have kids play the game. Also
@@ -377,7 +392,7 @@ They also form the C Major Scale. Notice that the note positions are different t
                        "B":'#FF1493'
                        }
 
-        def drawNoteButton(x, y, pitchName, key_callback, play_sound_on_mouseover):
+        def drawNoteButton(x, y, pitchName, play_sound_on_click):
             '''
             local method to draw one button
             '''
@@ -404,8 +419,7 @@ They also form the C Major Scale. Notice that the note positions are different t
               )
             vars(self)[pitchName].scale(2.0, 2.0)
             vars(self)[pitchName].translate(-250, -150)
-            vars(self)[pitchName].connect("button_press_event", key_callback)
-            vars(self)[pitchName].connect("motion_notify_event", play_sound_on_mouseover)
+            vars(self)[pitchName].connect("button_press_event", play_sound_on_click)
             gcompris.utils.item_focus_init(vars(self)[pitchName], None)
 
         x = 450
@@ -413,30 +427,36 @@ They also form the C Major Scale. Notice that the note positions are different t
         random.shuffle(self.pitchPossibilities)
         for name in self.pitchPossibilities:
             if name != 'C2':
-                drawNoteButton(x, y, name, self.key_callback, self.play_sound_on_mouseover)
+                drawNoteButton(x, y, name, self.play_sound_on_click)
                 y += 20
             if y > 330:
                 y = 200
                 x = x + 50
 
-    def play_sound_on_mouseover(self, widget=None, target=None, event=None):
+    def play_sound_on_click(self, widget=None, target=None, event=None):
         '''
-        plays the note sound when the mouse moves over the note name
+        plays the note sound when the mouse clikcs on the  over the note name
         '''
+        self.selected = widget.props.text
+        noteName = widget.props.text.replace('#', ' sharp')
+        noteName = noteName.replace('b', ' flat')
+
+        if self.currentNote == 'C2' and noteName == 'C':
+            noteName = 'C2'
+
         if self.pitchSoundEnabled:
-            if not ready(self, 900) or self.master_is_not_ready:
+            if not ready(self) or self.master_is_not_ready:
                 return
-            noteName = widget.props.text.replace('#', ' sharp')
-            noteName = noteName.replace('b', ' flat')
-            if self.currentNote == 'C2' and noteName == 'C':
-                noteName = 'C2'
+
+
             HalfNote(noteName, self.staff.name, self.staff.rootitem).play()
+
 
     def readyToSoundAgain(self):
         self.master_is_not_ready = False
 
 
-    def key_callback(self, widget=None, target=None, event=None):
+    def ok_event(self, widget=None, target=None, event=None):
         '''
         called when the kid presses a notename. Checks to see if this is the correct
         note name. displays the appropriate (happy or sad) note picture, and
@@ -444,7 +464,7 @@ They also form the C Major Scale. Notice that the note positions are different t
         '''
         self.master_is_not_ready = True
         self.timers.append(gobject.timeout_add(2000, self.readyToSoundAgain))
-        if widget.props.text == self.currentNote.replace('2', ''):
+        if self.selected.replace('2', '') == self.currentNote.replace('2', ''):
             self.displayYouWin()
         else:
             self.displayIncorrectAnswer()

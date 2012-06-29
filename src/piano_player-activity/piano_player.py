@@ -156,16 +156,16 @@ class Gcompris_piano_player:
                 alignment=pango.ALIGN_CENTER
                 )
 
-        self.colorCodeNotesButton = goocanvas.Text(
-          parent=self.rootitem,
-          x=345,
-          y=120,
-          width=75,
-          text=_("Color code notes?"),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
+#        self.colorCodeNotesButton = goocanvas.Text(
+#          parent=self.rootitem,
+#          x=345,
+#          y=120,
+#          width=75,
+#          text=_("Color code notes?"),
+#          fill_color="black",
+#          anchor=gtk.ANCHOR_CENTER,
+#          alignment=pango.ALIGN_CENTER
+#          )
 
         self.eraseAllButton = goocanvas.Text(
           parent=self.rootitem,
@@ -257,7 +257,7 @@ class Gcompris_piano_player:
         if (level == 6):
             self.loadButton = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('piano_player/tool-load.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/load.png'),
                 x=200,
                 y=100,
                 height=40,
@@ -266,7 +266,7 @@ class Gcompris_piano_player:
 
             self.saveButton = goocanvas.Image(
                 parent=self.rootitem,
-                pixbuf=gcompris.utils.load_pixmap('piano_player/tool-save.png'),
+                pixbuf=gcompris.utils.load_pixmap('piano_player/save.png'),
                 x=260,
                 y=100,
                 height=40,
@@ -293,8 +293,8 @@ class Gcompris_piano_player:
             self.changeClefButton.connect("button_press_event", self.change_clef_event)
             gcompris.utils.item_focus_init(self.changeClefButton, None)
 
-        self.colorCodeNotesButton.connect("button_press_event", self.color_code_notes)
-        gcompris.utils.item_focus_init(self.colorCodeNotesButton, None)
+#        self.colorCodeNotesButton.connect("button_press_event", self.color_code_notes)
+#        gcompris.utils.item_focus_init(self.colorCodeNotesButton, None)
 
         self.eraseNotesButton.connect("button_press_event", self.staff.eraseOneNote)
         gcompris.utils.item_focus_init(self.eraseNotesButton, None)
@@ -322,7 +322,6 @@ class Gcompris_piano_player:
             self.loadButton.connect("button_press_event", self.load_file_event)
             gcompris.utils.item_focus_init(self.loadButton, None)
 
-
         '''
         create piano keyboard for use on every level
         optionally specify to display the "black keys"
@@ -336,9 +335,6 @@ class Gcompris_piano_player:
             k.sharpNotation = True
 
         k.draw(300, 200, self.keyboard_click)
-
-
-
 
         Prop = gcompris.get_properties()
         if not (Prop.fx):
