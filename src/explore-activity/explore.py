@@ -107,7 +107,7 @@ from gcompris import gcompris_gettext as _
 # set to True if you'd like to record selected locations to make a new activity
 # BEWARE: setting this to true will delete all your previous records!
 RECORD_LOCATIONS = False
-ACTIVITY = 'worldanimals' # or 'worldmusic' (THIS IS A TEMPORARY SOLUTION UNTIL
+ACTIVITY = 'worldmusic' # or 'worldmusic' (THIS IS A TEMPORARY SOLUTION UNTIL
 # I FIGURE OUT HOW TO DO HAVE SEPERATE ACTIVITIES!)
 class Gcompris_explore:
 
@@ -425,16 +425,17 @@ comma-seperated list, of answer options here, The correct answer should, be list
           )
 
         text = self.data.get(sectionNum, '_text')
-        goocanvas.Text(
+        t = goocanvas.Text(
           parent=self.rootitem,
-          x=150,
-          y=290,
-          width=220,
+          x=120,
+          y=190,
+          width=150,
           text=_(text),
           fill_color="black",
           anchor=gtk.ANCHOR_CENTER,
           alignment=pango.ALIGN_CENTER
           )
+        t.scale(1.4, 1.4)
         image = self.data.get(sectionNum, 'image')
         goocanvas.Image(
             parent=self.rootitem,

@@ -188,7 +188,7 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         if level in [2, 3, 4, 6, 7, 8]:
             self.updateGameLevel(level)
-            self.selected = '' # the note name the child has selected
+            self.selectedNoteObject = None # the note name the child has selected
             # The OK Button
             item = goocanvas.Svg(parent=self.rootitem,
                                  svg_handle=gcompris.skin.svg_get(),
@@ -268,6 +268,7 @@ They also form the C Major Scale. Notice that the note positions are different t
     def prepareGame(self):
         self.clearPic()
         self.staff.eraseAllNotes()
+        self._okayToRepeat = True
         self.drawRandomNote(self.staff.name)
 
     def updateGameLevel(self, levelNum):
@@ -437,8 +438,8 @@ They also form the C Major Scale. Notice that the note positions are different t
         '''
         plays the note sound when the mouse clikcs on the  over the note name
         '''
-        self.selected = widget.props.text
-        noteName = widget.props.text.replace('#', ' sharp')
+        self.selectedNoteObject = widget
+        noteName = self.selectedNoteObject.props.text.replace('#', ' sharp')
         noteName = noteName.replace('b', ' flat')
 
         if self.currentNote == 'C2' and noteName == 'C':
@@ -447,24 +448,37 @@ They also form the C Major Scale. Notice that the note positions are different t
         if self.pitchSoundEnabled:
             if not ready(self) or self.master_is_not_ready:
                 return
-
-
             HalfNote(noteName, self.staff.name, self.staff.rootitem).play()
-
-
+        if hasattr(self, 'focusRect'):
+            self.focusRect.remove()
+        if 'sharp' in noteName or 'flat' in noteName:
+            width = 29
+            xoff = -7
+        else:
+            width = 15
+            xoff = 0
+        self.focusRect = goocanvas.Rect(parent=self.rootitem,
+                                        x=self.selectedNoteObject.props.x + xoff,
+                                        y=self.selectedNoteObject.props.y,
+                                        width=width, height=20,
+                                        radius_x=5, radius_y=5,
+                                        stroke_color="black", line_width=2.0)
+        self.focusRect.translate(-515, -320)
+        self.focusRect.scale(2.0, 2.0)
     def readyToSoundAgain(self):
         self.master_is_not_ready = False
 
 
-    def ok_event(self, widget=None, target=None, event=None):
+    def ok_event(self, widget, target, event):
         '''
         called when the kid presses a notename. Checks to see if this is the correct
         note name. displays the appropriate (happy or sad) note picture, and
         resets the board if appropriate
         '''
+
         self.master_is_not_ready = True
         self.timers.append(gobject.timeout_add(2000, self.readyToSoundAgain))
-        if self.selected.replace('2', '') == self.currentNote.replace('2', ''):
+        if self.selectedNoteObject.props.text.replace('2', '') == self.currentNote.replace('2', ''):
             self.displayYouWin()
         else:
             self.displayIncorrectAnswer()
