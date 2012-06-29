@@ -107,7 +107,8 @@ from gcompris import gcompris_gettext as _
 # set to True if you'd like to record selected locations to make a new activity
 # BEWARE: setting this to true will delete all your previous records!
 RECORD_LOCATIONS = False
-
+ACTIVITY = 'worldanimals' # or 'worldmusic' (THIS IS A TEMPORARY SOLUTION UNTIL
+# I FIGURE OUT HOW TO DO HAVE SEPERATE ACTIVITIES!)
 class Gcompris_explore:
 
 
@@ -297,7 +298,7 @@ comma-seperated list, of answer options here, The correct answer should, be list
         self.data for reference later.
         '''
         config = ConfigParser.RawConfigParser()
-        filename = gcompris.DATA_DIR + '/explore/content.desktop.in'
+        filename = gcompris.DATA_DIR + '/explore/' + ACTIVITY + '/content.desktop.in'
         try:
             gotit = config.read(filename)
             if not gotit:
@@ -521,7 +522,7 @@ comma-seperated list, of answer options here, The correct answer should, be list
             self.data.set('common', 'credits', _('enter a list of credits and \
 links to resources you used here'))
             self.data.set('common', 'creator', _('enter your name here!'))
-            with open(gcompris.DATA_DIR + '/explore/content.desktop.in', 'wb') as configfile:
+            with open(gcompris.DATA_DIR + '/explore/' + ACTIVITY + '/content.desktop.in', 'wb') as configfile:
                 self.data.write(configfile)
 
         self.rootitem.remove()
