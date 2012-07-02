@@ -1,7 +1,6 @@
-# Passthrough, do not break uplevel make rule
-install-activity:
+include $(top_srcdir)/Makefile.activity
 
-SUBDIRS =
+SUBDIRS = resources
 
 pythondir = $(PYTHON_PLUGIN_DIR)
 
@@ -27,6 +26,7 @@ $(xml_DATA): %.xml: %.xml.in
 # Use this directive and instead of the one above to embed the translations
 # in the xml files directly, this is needed for the tool gcompris2spip
 #@INTLTOOL_XML_RULE@
+
 
 icondir = $(pkgdatadir)/@PACKAGE_DATA_DIR@
 icon_DATA = explore.svg

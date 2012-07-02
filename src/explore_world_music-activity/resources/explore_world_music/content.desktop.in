@@ -1,0 +1,98 @@
+[common]
+background = worldmap.png
+credits =  http://commons.wikimedia.org/wiki, http://archive.org
+creator = Beth Hadley
+locationpic = suitcase.png
+completedlocationpic = star.png
+gamewonpic = dancingWorld.png
+
+[1]
+x = 678
+y = 294
+_title = Australia
+_text = Aboriginals were the first people to live in Australia. They sing and play instruments, like the didgeridoo. It is made from a log and can be up to five meters long!
+image = australia.png
+music = australia.ogg
+_question = What is the digeridoo made out of?
+_answeroptions = wood, metal, bamboo, animal skin
+
+
+[2]
+x = 449
+y = 247
+_title = Africa
+_text = Music is a part of everyday life in Africa. African music features a great variety of drums, and they believe it is a sacred and magical instrument.
+image = africa.png
+music = africa.ogg
+_question = The music you hear is African. What aspect of the music is the most important?
+_answeroptions = rhythm, melody, singing, dancing
+
+[3]
+x= 537
+y=164
+_title = Middle East
+_text = Music is a very important part of middle eastern culture. Specific songs are played to call worshipers to prayer. The lute is an instrument invented thousands of years ago and still in use today.
+image= middleeast.png
+music= middleeast.ogg
+_question = Middle eastern music uses more tones between the typical whole tone and chromatic tone. These pitches are called:
+_answeroptions = quarter tones, half tones, semitones, demitones
+
+[4]
+x=691
+y=153
+_title = Japan
+_text = Taiko drumming comes from Japan. This type of drumming was originally used to scare enemies in battle. It is very loud, and performances are very exciting with crouds chearing and performers yelling!
+image = japan.png
+music = japan.ogg
+_question = Taiko drumming performances are very...
+_answeroptions = exciting, quiet, solemn, new
+
+[5]
+x=382
+y=111
+_title = Scotland and Ireland
+_text = Folk music of this region is called celtic music, often incorporates a narrative poem or story. Typical instruments include bappipes, fiddles, flutes, harps, and accordians.
+_question = Bagpipers, both female and male, often wear:
+_answeroptions = a skirt (called a kilt), sunglasses, gloves
+image = ireland.png
+music = ireland.ogg
+
+[6]
+x=431
+y=140
+_title = Italy
+_text = Italy is famous for its Opera. Opera is a musical theatre where actors tell a story by acting and singing. Opera sings, both male and female, learn special techniques to sing operas.
+_question = Opera music mainly features:
+_answeroptions = human voice, orchestra, solo instrument, drums
+image = italy.png
+music = italy.ogg
+
+[7]
+x=435
+y=100
+_title = European Classical Music
+_text = Europe is the home of classical music. Famous composers like Bach, Beethoven, and mozart forevor changed music history.
+_question = An orchestra usually has how many members?
+_answeroptions = 100, 10, 50, 200
+image = orchestra.png
+music = beethoven.ogg
+
+[8]
+x=185
+y=183
+_title = Mexico
+_text = Mariachi is a famous type of Mexican music. It features guitars, trumpets, and violins. These bands play for many occasions, including weddings and parties.
+_question = At parties, people often dance to the Mariachi music. A Famous dance is:
+_answeroptions = the hat dance, the jig, the waltz, the tango
+music = mexico.ogg
+image = mexico.png
+
+[9]
+x=184
+y=141
+_title = America
+_text = America also has a wide variety of musical genres, but perhaps it is most famous for rock n' roll music. This music features vocalists, guitars, and drums.
+_question = The 'king' of rock n' roll is
+_answeroptions = Elvis Presley, Beatles, Muhammad Ali, Mozart
+music = america.ogg
+image = america.png

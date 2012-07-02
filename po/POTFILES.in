@@ -483,3 +483,9 @@ src/explore-activity/explore.xml.in
 src/explore-activity/explore.py
 src/explore-activity/explore.xml.in
 src/explore-activity/explore.py
+src/explore_world_animals-activity/explore_world_animals.xml.in
+src/explore_world_animals-activity/explore_world_animals.py
+src/new-activity/new.xml.in
+src/new-activity/new.py
+src/explore_world_animals-activity/explore_world_animals.xml.in
+src/explore_world_animals-activity/explore_world_animals.py

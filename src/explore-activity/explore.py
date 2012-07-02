@@ -19,30 +19,37 @@
 
 '''
 TO-DO:
-    - write credits from content.desktop.in to xml file?
-
-    - add more features???
-    - make the 'game' for challenging?
+    - make a class out of the content file reader & writer
+    - write credits from content.desktop.in to xml file
+    - raise warning before overwriting content.desktop.in
 
 Done:
     - completed two locations as samples (Australia and Africa)
     - make music playing/pausing/etc smooth...right now the music stops spontaneously
     - use template to make music around the world activity
     - replace boring icons with exciting images
+    - replaced .wav files with .ogg mono files
+    - fixed resource link errors...
 '''
 
 '''
 HOW-TO USE THIS TEMPLATE:
 
-This activity is intended to be used as a template for development of future
+This activity is intended to be used to easily make future
 activities of similar format. The activity features an exploration of interesting
-topics at different locations around the world. For example, themes might include
-music, landmarks, traditions, languages, etc. around the world.
+topics pertaining to a certain grand theme. For example, themes might include
+music, landmarks, traditions, languages, etc. around the world, body parts,
+types of fruit, etc.
 
-Customizing this activity for a specific theme is easy. All information
-is read from a text file, so you must only modify the text file (entitled content.desktop.in)
-However, to create the locations on the map that you'd like to discuss in your activity,
-you must, run this activity with RECORD_LOCATIONS = True. This will open the map,
+Customizing this activity for a specific theme is easy. You must first select the
+theme you'd like to write about, then choose a good background picture. THis will
+be used as the home screen from which players may click on specific locations to
+learn more about that topic, and answer a question about the topic. The game is won
+when the player correctly answers all questions about all topics.
+
+All data is read directly from a text file, so you must only modify the text file (entitled content.desktop.in)
+However, to create the locations on the background image that you'd like to discuss in your activity,
+you must, run your activity with RECORD_LOCATIONS = True. This will open the map,
 and you can click locations on the map. Notice the numbers that appear when you
 click. These numbers correspond to the section in the text file that you will
 enter content regarding that location, so it is best to keep a record of which
@@ -56,27 +63,30 @@ section 1 looks like this:
 [1]
 x = 270
 y = 245
-name = Location Title Here
-text = location text here
-image = default.png
+_title = Location Title Here
+_text = location text here
+image = image filepath here
 music = music file name here
-question = enter question about topic here
-answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
+_question = enter question about topic here
+_answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
 
 This is automatically generated with the section number, and correct x and y corrdinates.
-You then must enter the correct content:
+You then must enter the correct content. Note: ALL FILEPATHS are relative to the resources/name_of_activity
+file directory, so if you wish to specify an image, for example, located in this directory rather than enter
+/name_of_actiivty/name_of_piction.png, simply enter name_of_picture.png
 
-name: Enter the name of the location
+title: Enter the name of the location
 
-text: Enter whatever textual information you'd like to appear on the page
+text: Enter whatever textual information you'd like to appear on the page, Remember,
+these are young kids so shorter sentences are probably better!
 
 image: Enter the file location of a picture you'd like to appear on the page. Be sure
-to save the picture in the resources folder. The size of the picture will not be
+to save the picture in the resources folder of your new activity. The size of the picture will not be
 scaled in any way, so save the picture at the size you'd like it to appear in
-the activity. (example: default.png) You should use png files.
+the activity. (example: default.png) You should use png or svg files.
 
-music: Enter the file location of a .wav file you'd like to play for the lcoation.
-You must use .wav files. Use audacity to convert .ogg and .mp3 files to .wav
+music: Enter the file location of a mono .ogg file you'd like to play for the lcoation.
+You must use .ogg files. Use audacity to convert .wav and .mp3 files to .ogg
 
 question: Enter a quesiton you'd like to ask the students about the topic to
 test their understanding. This provides some challenge in the game and an incentive
@@ -107,8 +117,7 @@ from gcompris import gcompris_gettext as _
 # set to True if you'd like to record selected locations to make a new activity
 # BEWARE: setting this to true will delete all your previous records!
 RECORD_LOCATIONS = False
-ACTIVITY = 'worldmusic' # or 'worldmusic' (THIS IS A TEMPORARY SOLUTION UNTIL
-# I FIGURE OUT HOW TO DO HAVE SEPERATE ACTIVITIES!)
+ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
 class Gcompris_explore:
 
 
@@ -119,10 +128,10 @@ class Gcompris_explore:
 
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
-
+        self.activityDataFilePath = '/' + self.gcomprisBoard.name + '/'
 
         self.numLocations = 0 # the total number of locations in this activity
-        self.data = ConfigParser.RawConfigParser() # the data that is parsed from
+
         # content.desktop.in
         self.timers = []
         self.score = 0 # the number of locations the student has selected the
@@ -150,6 +159,10 @@ class Gcompris_explore:
         self.loadHomePage()
 
     def loadHomePage(self, x=None, y=None, z=None):
+        '''
+        loads the home screen, which is the background image where the player
+        may select which location or item to explore.
+        '''
         gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
         # Create our rootitem.
         if hasattr(self, 'rootitem'):
@@ -160,14 +173,15 @@ class Gcompris_explore:
         # -------------------------------------------------------------
         # Draw home page
         # -------------------------------------------------------------
-        self.read_data() # read in the data from content.desktop.in file
+        if not hasattr(self, 'data'):
+            self.read_data() # read in the data from content.desktop.in file
 
         self.map = goocanvas.Image(
             parent=self.rootitem,
             x=20, y=20,
             width=760,
             height=450,
-            pixbuf=gcompris.utils.load_pixmap(self.background)
+            pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + self.background)
             )
 
         if RECORD_LOCATIONS:
@@ -205,20 +219,13 @@ class Gcompris_explore:
               use_markup=True
               )
 
-#            goocanvas.Image(
-#                parent=self.rootitem,
-#                x=30,
-#                y=280,
-#                pixbuf=gcompris.utils.load_pixmap('travel.png')
-#                )
-
             # check to see if student has won game
             if self.score == (len(self.data.sections()) - 1) and self.score != 0:
                 # show congratulations image!
                 goocanvas.Image(
                 parent=self.rootitem,
                 x=100, y= -30,
-                pixbuf=gcompris.utils.load_pixmap('explore/winner.png')
+                pixbuf=gcompris.utils.load_pixmap(self.gameWonPic)
                 )
                 # reset the game
                 self.score = 0
@@ -246,9 +253,16 @@ class Gcompris_explore:
                 parent=self.rootitem,
                 x=x + (barwidth / 2.0) - 15,
                 y=460,
-                pixbuf=gcompris.utils.load_pixmap('explore/ribbon.png')
+                pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'ribbon.png')
                 )
                 x += barwidth
+
+# I noticed in the find_it activity that there are some nice classes 
+# to handle importing and exporting data from the content.desktop.in file
+# such as finditDataSetObject and finditDataSet.When I was first developing
+# this activity my data file was so simple that no special class was really
+# necessary, but now that it has gotten a bit more complicated
+# I can see the advantage to writing a class. This is on my to-do list next...
 
     def record_location(self, widget=None, target=None, event=None):
         '''
@@ -256,6 +270,8 @@ class Gcompris_explore:
         Method called if RECORD_LOCATIONS = True and developer clicks map. Merhod
         record the location of the click, and writes a template of the section
         to content.desktop.in to be filled in later by the developer.
+
+         (soon to be integrated into new data class)
         '''
         self.numLocations += 1
         self.data.add_section(str(self.numLocations))
@@ -265,7 +281,7 @@ class Gcompris_explore:
         self.data.set(str(self.numLocations), 'y', int(y))
         self.data.set(str(self.numLocations), '_title', _('Location Title Here'))
         self.data.set(str(self.numLocations), '_text', _('location text here'))
-        self.data.set(str(self.numLocations), 'image', _('/explore/default.png'))
+        self.data.set(str(self.numLocations), 'image', _('image filepath here, located in resources/name_of_activity/'))
         self.data.set(str(self.numLocations), 'music', _('music file name here'))
         self.data.set(str(self.numLocations), '_question', _('enter question about topic here'))
         self.data.set(str(self.numLocations), '_answerOptions', _('provide \
@@ -296,9 +312,12 @@ comma-seperated list, of answer options here, The correct answer should, be list
         '''
         method to read in the data from content.desktop.in. Saves this data as
         self.data for reference later.
+
+         (soon to be integrated into new data class)
         '''
+        #self.data = ConfigParser.RawConfigParser() # the data that is parsed from
         config = ConfigParser.RawConfigParser()
-        filename = gcompris.DATA_DIR + '/explore/' + ACTIVITY + '/content.desktop.in'
+        filename = gcompris.DATA_DIR + '/' + self.gcomprisBoard.name + '/content.desktop.in'
         try:
             gotit = config.read(filename)
             if not gotit:
@@ -317,6 +336,11 @@ comma-seperated list, of answer options here, The correct answer should, be list
         self.parseData()
 
     def parseData(self):
+        '''
+        extract the data from the content file
+
+        (soon to be integrated into new data class)
+        '''
         self.sectionNames = []
         for section in self.data.sections():
             if section == 'common':
@@ -327,11 +351,14 @@ comma-seperated list, of answer options here, The correct answer should, be list
                 content.desktop.in"), None, None)
                 try: self.author = self.data.get('common', 'author')
                 except: self.author = ''
-                try: self.locationPic = self.data.get('common', 'locationpic')
-                except: self.locationPic = '/explore/defaultLocationPic.png'
-                try: self.completedLocationPic = self.data.get('common', 'completedlocationpic')
-                except: self.completedLocationPic = '/explore/defaultCompletedLocationPic.png'
+                try: self.locationPic = self.activityDataFilePath + self.data.get('common', 'locationpic')
+                except: self.locationPic = ExploreActivityResourcesFilepath + 'defaultLocationPic.png'
+                try: self.completedLocationPic = self.activityDataFilePath + self.data.get('common', 'completedlocationpic')
+                except: self.completedLocationPic = ExploreActivityResourcesFilepath + 'defaultCompletedLocationPic.png'
+                try: self.gameWonPic = self.activityDataFilePath + self.data.get('common', 'gamewonpic')
+                except: self.gameWonPic = ExploreActivityResourcesFilepath + 'happyFace.png'
             else:
+
                 self.sectionNames.append(section)
 
     def drawLocations(self):
@@ -370,27 +397,14 @@ comma-seperated list, of answer options here, The correct answer should, be list
 
 
         # ---------------------------------------------------------------------
-        # Page Decorations
+        # Page Decorations - should I add more?
         # ---------------------------------------------------------------------
-#        self.image = goocanvas.Image(
-#            parent=self.rootitem,
-#            x=330,
-#            y=460,
-#            pixbuf=gcompris.utils.load_pixmap('explore/plane.png')
-#            )
-
-#        goocanvas.Image(
-#            parent=self.rootitem,
-#            x=610,
-#            y=350,
-#            pixbuf=gcompris.utils.load_pixmap('explore/luggage.png')
-#            )
 
         goocanvas.Image(
             parent=self.rootitem,
             x=10,
             y=10,
-            pixbuf=gcompris.utils.load_pixmap('explore/border.png')
+            pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'border.png')
             )
 
         # draw back button
@@ -441,7 +455,7 @@ comma-seperated list, of answer options here, The correct answer should, be list
             parent=self.rootitem,
             x=300,
             y=75,
-            pixbuf=gcompris.utils.load_pixmap(image)
+            pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + image)
             )
 
         question = self.data.get(sectionNum, '_question')
@@ -478,10 +492,9 @@ comma-seperated list, of answer options here, The correct answer should, be list
             lambda x, y, z: self.check_answer(sectionNum, x, y, z))
             gcompris.utils.item_focus_init(vars(self)[answer], None)
 
-        # play music...do I need a timer to do this? seems to work okay so far....
         try:
             music = str(self.data.get(sectionNum, 'music'))
-            gcompris.sound.play_ogg(music)
+            gcompris.sound.play_ogg(self.activityDataFilePath + music)
         except: pass
 
 
@@ -495,9 +508,9 @@ comma-seperated list, of answer options here, The correct answer should, be list
             if not (sectionNum in self.sectionsAnsweredCorrectly):
                 self.score += 1
                 self.sectionsAnsweredCorrectly.append(sectionNum)
-            pic = 'explore/happyFace.png'
+            pic = ExploreActivityResourcesFilepath + 'happyFace.png'
         else:
-            pic = 'explore/sadFace.png'
+            pic = ExploreActivityResourcesFilepath + 'sadFace.png'
 
         if hasattr(self, 'responsePic'):
             self.responsePic.remove()
@@ -520,10 +533,18 @@ comma-seperated list, of answer options here, The correct answer should, be list
     def end(self):
         if RECORD_LOCATIONS:
             # write locations and template to content.desktop.in
-            self.data.set('common', 'credits', _('enter a list of credits and \
-links to resources you used here'))
-            self.data.set('common', 'creator', _('enter your name here!'))
-            with open(gcompris.DATA_DIR + '/explore/' + ACTIVITY + '/content.desktop.in', 'wb') as configfile:
+            try: self.data.set('common', 'credits', _('enter a list of credits and links to resources you used here'))
+            except: pass
+            try: self.data.set('common', 'creator', _('enter your name here!'))
+            except: pass
+            try: self.data.set('common', 'locationpic', _('enter the filename of the picture you would like to use to identify items to click on your background image'))
+            except: pass
+            try: self.data.set('common', 'completedlocationpic', _('enter the filename of the picture to be used as the identification picture after the player has answered the question correctly'))
+            except: pass
+            try: self.data.set('common', 'gamewonpic', _('enter the filename of the picture to be shown when the player wins the entire game'))
+            except: pass
+
+            with open(gcompris.DATA_DIR + '/' + self.gcomprisBoard.name + '/content.desktop.in', 'wb') as configfile:
                 self.data.write(configfile)
 
         self.rootitem.remove()

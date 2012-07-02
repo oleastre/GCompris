@@ -3,6 +3,6 @@
 path=$1
 activity=explore_world_music
 plugindir=$path/../boards/.libs
-pythonplugindir=$path/../explore
+pythonplugindir=$path/../explore-activity
 resourcedir=$path/resources
 section="/experimental"

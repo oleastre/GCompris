@@ -1,1 +1,1 @@
-SUBDIRS = explore
+SUBDIRS = explore_world_music
