@@ -3,7 +3,7 @@
 install-activity:
 	for i in $(SUBDIRS); do $(MAKE) -C $$i $@ || break 0; done
 
-SUBDIRS = explore_world_animals-activity new-activity explore_world_animals-activity explore-activity explore-activity explore_world_music-activity intro_gravity-activity world_explore_template-activity explore_world_template-activity world_music-activity note_names-activity name_identification-activity-activity piano_player-activity \
+SUBDIRS = explore_world_animals-activity explore_world_animals-activity new-activity explore_world_animals-activity explore-activity explore-activity explore_world_music-activity intro_gravity-activity world_explore_template-activity explore_world_template-activity world_music-activity note_names-activity name_identification-activity-activity piano_player-activity \
 	administration-activity \
 	advanced_colors-activity \
 	algebra_by-activity \

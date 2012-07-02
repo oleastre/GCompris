@@ -1,0 +1,51 @@
+[common]
+background = world.png
+credits = http://aliciac.hubpages.com, http://www.public-domain-image.com, http://www.publicdomainpictures.net
+creator = Christina Hadley (with help from Beth Hadley)
+locationpic = tux.png
+
+[1]
+x = 273
+y = 271
+_title = Jaguars in South America
+_text = Jaguars are named after the Native American word meaning 'he who kills with one leap'
+ because they like to climb trees to attack their prey. 
+image = jaggy.png
+_question =  What makes jaguars different than many other big cats? 
+_answeroptions = They like to swim., They can't climb trees., They are vegetarians.
+
+[2]
+x = 428
+y = 122
+_title = Hedgehogs in Europe
+_text = Hedgehogs eat small animals, like frogs and insects, so many people keep them as useful pets. When in danger, they will curl up into a ball and stick up their coat of sharp spines.  
+image = hedgy.png
+_question = Which of their senses is a hedgehog's weakest?
+_answeroptions = Sight, Smell, Hearing
+
+[3]
+x = 433
+y = 193
+_title = Giraffes in Africa
+_text = The giraffe lives in Africa and is the tallest mammal in the world. Just their legs, which are usually 1.8 meters long, are taller than most humans! 
+image = gt.png
+_question = How long is a giraffe's tongue?
+_answeroptions = 45-50 centimeters,  5-10 centimeters, 15-20 centimeters
+
+[4]
+x = 172
+y = 137
+_title = Bison in America
+_text = Bison live on the plains of North America and were hunted by the Native Americans for food.
+image = bison.png
+_question = Humans almost hunted the bison to extinction.  How many are left now?
+_answeroptions = 200000 bison , 1 million bison, 100 bison 
+
+[5]
+x = 391
+y = 61
+_title = Narwhals in the Arctic
+_text = Narwhals are whales that live in the Arctic Ocean and have long tusks. These tusks remind many people of the mythical unicorn's horn. 
+image = narwhal.png
+_question = How long can the Narwhal's tusk grow?
+_answeroptions = 2.5 meters, 10 centimeters, 10 meters
