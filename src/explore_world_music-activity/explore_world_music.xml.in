@@ -2,7 +2,7 @@
 <GCompris>
   <Board
         name="explore_world_music"
-        type="python:explore_world_music"
+        type="python:explore"
         section="/experimental"
         icon="explore_world_music.svg"
         difficulty="1"

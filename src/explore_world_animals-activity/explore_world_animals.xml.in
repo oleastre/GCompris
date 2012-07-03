@@ -2,7 +2,7 @@
 <GCompris>
   <Board
         name="explore_world_animals"
-        type="python:explore_world_animals"
+        type="python:explore"
         section="/experimental"
         icon="explore_world_animals.svg"
         difficulty="1"
