@@ -178,9 +178,7 @@ class Gcompris_explore:
 
         self.map = goocanvas.Image(
             parent=self.rootitem,
-            x=20, y=20,
-            width=760,
-            height=450,
+            x=16, y=20,
             pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + self.background)
             )
 

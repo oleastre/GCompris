@@ -21,12 +21,11 @@
 '''
 DONE:
     - replace 'mouseover' actions with click & ok button
+    - highlight selection on click
 
 TODO:
     - bring green and red pop-up notes to front with sort order, but I don't
     know how to do this yet....
-    - highlight selection on click
-
 '''
 
 import gtk
@@ -102,8 +101,6 @@ class Gcompris_note_names:
         7. note-identification: sharp notes
         8. note-identification: flat notes
         '''
-
-
         if self.rootitem:
             self.rootitem.remove()
         if hasattr(self, 'noteButtonsRootItem'):
@@ -479,44 +476,10 @@ They also form the C Major Scale. Notice that the note positions are different t
         self.master_is_not_ready = True
         self.timers.append(gobject.timeout_add(2000, self.readyToSoundAgain))
         if self.selectedNoteObject.props.text.replace('2', '') == self.currentNote.replace('2', ''):
-            self.displayYouWin()
+            displayYouWin(self, self.prepareGame)
         else:
-            self.displayIncorrectAnswer()
+            displayIncorrectAnswer(self, self.clearPic)
 
-
-    def displayYouWin(self):
-        '''
-        displays the happy note for 800 milliseconds
-        '''
-        if hasattr(self, 'responsePic'):
-            self.responsePic.remove()
-
-        self.responsePic = goocanvas.Image(
-        parent=self.rootitem,
-        pixbuf=gcompris.utils.load_pixmap('note_names/happyNote.png'),
-        x=300,
-        y=100,
-        height=300,
-        width=150
-        )
-        self.timers.append(gobject.timeout_add(800, self.prepareGame))
-
-    def displayIncorrectAnswer(self):
-        '''
-        displays the sad note for 800 milliseconds
-        '''
-        if hasattr(self, 'responsePic'):
-            self.responsePic.remove()
-
-        self.responsePic = goocanvas.Image(
-        parent=self.rootitem,
-        pixbuf=gcompris.utils.load_pixmap('note_names/sadNote.png'),
-        x=300,
-        y=100,
-        height=300,
-        width=150
-        )
-        self.timers.append(gobject.timeout_add(800, self.clearPic))
 
     def clearPic(self):
         if hasattr(self, 'responsePic'):

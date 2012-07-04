@@ -491,3 +491,5 @@ src/explore_world_animals-activity/explore_world_animals.xml.in
 src/explore_world_animals-activity/explore_world_animals.py
 src/explore_world_animals-activity/explore_world_animals.xml.in
 src/explore_world_animals-activity/explore_world_animals.py
+src/got_rhythm-activity/got_rhythm.xml.in
+src/got_rhythm-activity/got_rhythm.py

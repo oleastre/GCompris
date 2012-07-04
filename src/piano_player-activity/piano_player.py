@@ -22,6 +22,7 @@
 '''
 TODO:
     - add level allowing changes in tempo?...but it's already pretty complex...
+    - write more explanatory help xml
 
 DONE:
     - added more notes (additional levels with flats & sharps)
@@ -35,6 +36,9 @@ DONE:
     - add 'help' page
     - add color-coding of notes, according to color theory (thanks to
     Olivier Samyn's comment on my blog
+    - reset text box on piano player when all erase (hackish - consider fixing implementation)
+    - highlight note type selected
+    - click on note to listen to it enabled
 
 '''
 import gobject
@@ -248,7 +252,7 @@ class Gcompris_piano_player:
             self.wholeNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_player/wholeNote.png'),
-                x=700,
+                x=690,
                 y=80,
                 height=45,
                 width=20
@@ -427,6 +431,7 @@ dialogue to\nenable the sound."), stop_board)
         self.staff.writeText('This is the ' + n.niceName + ' key')
         self.staff.drawNote(n)
         n.play()
+        n.enablePlayOnClick()
         return False
 
     def end(self):

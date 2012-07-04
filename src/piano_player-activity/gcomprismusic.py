@@ -33,12 +33,9 @@ import copy
 
 '''
 TODO:
-    - resolve the issue that half and whole notes can't be colered
-    with the new design because the outline of all notes is black,
-    and half and whole notes aren't filled so they can't be filled with color.
+    - write eighth note class
+    - fix implementation of note text
 '''
-
-
 
 # Rainbow color scheme used throughout games,
 # according to music research on best
@@ -102,6 +99,8 @@ class Staff():
       self.colorCodeNotes = True # optionally set to False to mark all notes black
 
       self.notReadyToPlay = False
+
+      self.donotwritenotetext = False
     def drawStaff(self, text=None):
         '''
         draw the staff, including staff lines and optional staff text
@@ -314,7 +313,9 @@ class Staff():
             self.alert.remove()
         except:
             pass
-
+        # this is hackish, but will have to do for now....
+        if hasattr(self, 'noteText'):
+            self.noteText.props.text = 'Click a colored box on the keyboard'
     def clear(self):
         '''
         removes and erases all notes and clefs on staff (in preparation for
@@ -342,7 +343,8 @@ class Staff():
             return
 
         note = self.noteList[self.currentNoteIndex]
-        self.writeText('Note Name: ' + note.niceName)
+        if not self.donotwritenotetext:
+            self.writeText('Note Name: ' + note.niceName)
         note.play()
         self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
         self.currentNoteIndex += 1
@@ -373,13 +375,25 @@ class Staff():
     def sound_played(self, file):
         pass #mandatory method
 
+    def drawFocusRect(self, x, y):
+        if hasattr(self, 'focusRect'):
+            self.focusRect.remove()
+        self.focusRect = goocanvas.Rect(parent=self.rootitem,
+                                    x=x,
+                                    y=y,
+                                    width=25, height=45,
+                                    radius_x=5, radius_y=5,
+                                    stroke_color="black", line_width=2.0)
     #update current note type based on button clicks
     def updateToQuarter(self, widget=None, target=None, event=None):
         self.currentNoteType = 'quarterNote'
+        self.drawFocusRect(248, -90)
     def updateToHalf(self, widget=None, target=None, event=None):
         self.currentNoteType = 'halfNote'
+        self.drawFocusRect(278, -90)
     def updateToWhole(self, widget=None, target=None, event=None):
         self.currentNoteType = 'wholeNote'
+        self.drawFocusRect(308, -90)
 
     def staff_to_file(self, filename):
         '''
@@ -774,6 +788,35 @@ class Note():
         self.playingLine.props.visibility = goocanvas.ITEM_VISIBLE
         self.timers.append(gobject.timeout_add(self.toMillisecs(), self.stopHighLight))
 
+#class EighthNote(Note):
+#    '''
+#    an object inherited from Note, of specific duration (eighth length)
+#    '''
+#    noteType = 'eighthNote'
+#
+#    def toMillisecs(self):
+#        return 500
+#
+#    def draw(self, x, y):
+#        '''
+#        places note image in canvas
+#        '''
+#        self.drawPictureFocus(x, y)
+#
+#        # Thanks to Olivier Samyn for the note shape
+#        self.noteHead = goocanvas.Path(parent=self.rootitem,
+#            data="m %i %i a7,5 0 0,1 12,-3.5 v-32 h2 v35 a7,5 0 0,1 -14,0 z m 3,0 a 4,2 0 0 0 8,0 4,2 0 1 0 -8,0 z" % (x - 7, y),
+#            fill_color='black',
+#            stroke_color='black',
+#            line_width=1.0
+#            )
+#
+#        self._drawAlteration(x, y)
+#
+#        self._drawMidLine(x, y)
+#
+#        self.y = y
+#        self.x = x
 
 class QuarterNote(Note):
     '''
@@ -1012,4 +1055,40 @@ def ready(self, timeouttime=300):
         self.readyForNextClick = False
         return True
 
+def clearResponsePic(self):
+    self.responsePic.remove()
 
+def displayYouWin(self, nextMethod):
+    '''
+    displays the happy note for 900 milliseconds
+    '''
+    if hasattr(self, 'responsePic'):
+        self.responsePic.remove()
+
+    self.responsePic = goocanvas.Image(
+    parent=self.rootitem,
+    pixbuf=gcompris.utils.load_pixmap('piano_player/happyNote.png'),
+    x=300,
+    y=100,
+    height=300,
+    width=150
+    )
+    self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
+    self.timers.append(gobject.timeout_add(910, nextMethod))
+def displayIncorrectAnswer(self, nextMethod):
+    '''
+    displays the sad note for 900 milliseconds
+    '''
+    if hasattr(self, 'responsePic'):
+        self.responsePic.remove()
+
+    self.responsePic = goocanvas.Image(
+    parent=self.rootitem,
+    pixbuf=gcompris.utils.load_pixmap('piano_player/sadNote.png'),
+    x=300,
+    y=100,
+    height=300,
+    width=150
+    )
+    self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
+    self.timers.append(gobject.timeout_add(910, nextMethod))
