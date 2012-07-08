@@ -5,10 +5,12 @@ creator = Beth Hadley
 locationpic = suitcase.png
 completedlocationpic = star.png
 gamewonpic = dancingWorld.png
+game1text = Explore world music! Click on the suitcases.
+game2text = Click on the location that matches the music you hear.
 
 [1]
 x = 678
-y = 294
+y = 274
 _title = Australia
 _text = Aboriginals were the first people to live in Australia. They sing and play instruments, like the didgeridoo. It is made from a log and can be up to five meters long!
 image = australia.png
@@ -73,7 +75,7 @@ y=100
 _title = European Classical Music
 _text = Europe is the home of classical music. Famous composers like Bach, Beethoven, and Mozart forevor changed music history.
 _question = An orchestra usually has how many members?
-_answeroptions = 50, 10, 100, 200
+_answeroptions = 50 to 100, 20 to 40, more than 100, less than 10
 image = orchestra.png
 music = beethoven.ogg
 

@@ -1,2 +1,0 @@
-SUBDIRS = piano_player
-

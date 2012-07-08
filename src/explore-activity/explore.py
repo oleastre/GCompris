@@ -114,6 +114,9 @@ import ConfigParser
 import gcompris.sound
 from gcompris import gcompris_gettext as _
 
+from random import randint
+import random
+
 # set to True if you'd like to record selected locations to make a new activity
 # BEWARE: setting this to true will delete all your previous records!
 RECORD_LOCATIONS = False
@@ -125,7 +128,8 @@ class Gcompris_explore:
         # Save the gcomprisBoard, it defines everything we need
         # to know from the core
         self.gcomprisBoard = gcomprisBoard
-
+        self.gcomprisBoard.level = 1
+        self.gcomprisBoard.maxlevel = 2
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
         self.activityDataFilePath = '/' + self.gcomprisBoard.name + '/'
@@ -134,10 +138,15 @@ class Gcompris_explore:
 
         # content.desktop.in
         self.timers = []
-        self.score = 0 # the number of locations the student has selected the
-        # correct answer for (max score == self.numLocations)
-        self.sectionsAnsweredCorrectly = [] # list of section numbers that
+        self.score1 = 0 # the number of locations the student has selected the
+        self.score2 = 0
+        # correct answer for (max score1 == self.numLocations)
+        self.sectionsAnsweredCorrectlyGame1 = [] # list of section numbers that
+        self.sectionsAnsweredCorrectlyGame2 = []
         # the student has successfully answered
+
+        self.soundClips = [] # list of sound clips extracted from content.desktop.in
+        self.allClips = []
 
     def start(self):
         '''
@@ -146,8 +155,7 @@ class Gcompris_explore:
         by any of the location pages.
         '''
         # Set the buttons we want in the bar
-        gcompris.bar_set(0) # just quit and help buttons
-        gcompris.bar_location(20, -1, 0.6) # small, bottom left corner
+        gcompris.bar_set(gcompris.BAR_LEVEL)
 
         gcompris.set_default_background(self.gcomprisBoard.canvas.get_root_item())
 
@@ -156,13 +164,14 @@ class Gcompris_explore:
         gcompris.sound.policy_set(gcompris.sound.PLAY_AND_INTERRUPT)
         gcompris.sound.pause()
 
-        self.loadHomePage()
+        self.display_level(self.gcomprisBoard.level)
 
-    def loadHomePage(self, x=None, y=None, z=None):
-        '''
-        loads the home screen, which is the background image where the player
-        may select which location or item to explore.
-        '''
+    def display_level(self, x=None, y=None, z=None):
+        level = self.gcomprisBoard.level
+        gcompris.bar_set(gcompris.BAR_LEVEL)
+        gcompris.bar_set_level(self.gcomprisBoard)
+        gcompris.bar_location(20, -1, 0.6)
+
         gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
         # Create our rootitem.
         if hasattr(self, 'rootitem'):
@@ -171,7 +180,7 @@ class Gcompris_explore:
                                         self.gcomprisBoard.canvas.get_root_item())
 
         # -------------------------------------------------------------
-        # Draw home page
+        # Load Map
         # -------------------------------------------------------------
         if not hasattr(self, 'data'):
             self.read_data() # read in the data from content.desktop.in file
@@ -183,77 +192,307 @@ class Gcompris_explore:
             )
 
         if RECORD_LOCATIONS:
-            for section in self.data.sections():
-                if section != 'common':
-                    self.data.remove_section(section)
-
-            self.map.connect("button_press_event", self.record_location)
-            gcompris.utils.item_focus_init(self.map, None)
+            self.recordLocationForDeveloper()
         else:
+            if self.loadBasicHomePage() == False:
+                return
+            self.drawLocations()
 
-            self.drawLocations() # draw the locations on the map
-            txt = _('Explore the world! Click the locations.')
-            goocanvas.Text(
-              parent=self.rootitem,
-              x=100,
-              y=230,
-              width=150,
-              text='<span font_family="URW Gothic L" size="medium" \
-              weight="bold" style="italic">' + txt + '</span>',
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER,
-              use_markup=True
-              )
+            if level == 1:
+                self.writeText(self.game1text)
+            if level == 2:
+                self.writeText(self.game2text)
+                self.playRandomSong()
 
-            txt2 = _('Explore Status:')
-            goocanvas.Text(
-              parent=self.rootitem,
-              x=180,
-              y=490,
-              text='<span font_family="URW Gothic L" size="medium" \
-              weight="bold" style="italic">' + txt2 + '</span>',
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER,
-              use_markup=True
-              )
+    def writeText(self, txt):
+        goocanvas.Text(
+          parent=self.rootitem,
+          x=100,
+          y=230,
+          width=150,
+          text='<span font_family="URW Gothic L" size="medium" \
+          weight="bold" style="italic">' + txt + '</span>',
+          anchor=gtk.ANCHOR_CENTER,
+          alignment=pango.ALIGN_CENTER,
+          use_markup=True
+          )
 
-            # check to see if student has won game
-            if self.score == (len(self.data.sections()) - 1) and self.score != 0:
-                # show congratulations image!
-                goocanvas.Image(
-                parent=self.rootitem,
-                x=100, y= -30,
-                pixbuf=gcompris.utils.load_pixmap(self.gameWonPic)
-                )
-                # reset the game
-                self.score = 0
-                self.sectionsAnsweredCorrectly = []
-                self.timers = []
-                self.timers.append(gobject.timeout_add(3000, self.loadHomePage))
+    def playRandomSong(self):
+        if self.soundClips:
+            self.currentMusicSelection = self.soundClips[randint(0, len(self.soundClips) - 1)]
+            self.timers.append(gobject.timeout_add(500, gcompris.sound.play_ogg, (self.activityDataFilePath + self.currentMusicSelection[0])))
 
-            x = 240 # starting x position of progress bar
-            self.progressBar = goocanvas.Rect(parent=self.rootitem,
-                    x=x, y=480, width=500, height=25,
-                    stroke_color="black",
-                    line_width=3.0)
+    def loadBasicHomePage(self):
+        txt2 = _('Explore Status:')
+        goocanvas.Text(
+          parent=self.rootitem,
+          x=195,
+          y=490,
+          width=100,
+          text='<span font_family="URW Gothic L" size="medium" \
+          weight="bold" style="italic">' + txt2 + '</span>',
+          anchor=gtk.ANCHOR_CENTER,
+          alignment=pango.ALIGN_CENTER,
+          use_markup=True
+          )
 
-            # display the correct progress in the progress bar, according to the 
-            # number of locations the student has correclty answered the question for
-            for num in range(0, self.score):
-                barwidth = 500.0 / (len(self.data.sections()) - 1)
-                goocanvas.Rect(parent=self.rootitem,
-                x=x, y=480, width=barwidth, height=25,
+        x = 240 # starting x position of progress bar
+        self.progressBar = goocanvas.Rect(parent=self.rootitem,
+                x=x, y=480, width=500, height=25,
                 stroke_color="black",
-                fill_color="#32CD32",
                 line_width=3.0)
 
-                goocanvas.Image(
+        if self.gcomprisBoard.level == 1:
+            s = self.score1
+            sec = self.sectionsAnsweredCorrectlyGame1
+        else:
+            s = self.score2
+            sec = self.sectionsAnsweredCorrectlyGame2
+
+        # display the correct progress in the progress bar, according to the 
+        # number of locations the student has correclty answered the question for
+        for num in range(0, s):
+            barwidth = 500.0 / (len(self.data.sections()) - 1)
+            goocanvas.Rect(parent=self.rootitem,
+            x=x, y=480, width=barwidth, height=25,
+            stroke_color="black",
+            fill_color="#32CD32",
+            line_width=3.0)
+
+            goocanvas.Image(
+            parent=self.rootitem,
+            x=x + (barwidth / 2.0) - 15,
+            y=460,
+            pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'ribbon.png')
+            )
+            x += barwidth
+
+        # check to see if student has won game
+        if s == (len(self.data.sections()) - 1) and s != 0:
+
+            if self.gcomprisBoard.level == 1:
+                self.score1 = 0
+                self.sectionsAnsweredCorrectlyGame1 = []
+            else:
+                self.score2 = 0
+                self.sectionsAnsweredCorrectlyGame2 = []
+                self.soundClips = self.allClips
+
+            self.timers = []
+
+            gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
+            # show congratulations image!
+            goocanvas.Image(
+            parent=self.rootitem,
+            x=100, y= -30,
+            pixbuf=gcompris.utils.load_pixmap(self.gameWonPic)
+            )
+            # reset the game
+
+            self.timers.append(gobject.timeout_add(3000, self.display_level))
+            return False
+        return True
+
+
+    def drawLocations(self):
+        '''
+        draw ellipses on the map, one for each section in content.desktop.in at the
+        location specified in the file by 'x' and 'y'. If the student
+        has already visited the location and correctly answered the quetsion,
+        thellipse will be colored green. Otherwise, the ellipse is red.
+        '''
+        if self.gcomprisBoard.level == 1:
+             l = self.sectionsAnsweredCorrectlyGame1
+             method = self.goto_location
+        else:
+             l = self.sectionsAnsweredCorrectlyGame2
+             method = self.checkAnswerGame2
+        for section in self.sectionNames:
+            if section in l:
+                filename = self.completedLocationPic
+            else:
+                filename = self.locationPic
+            vars()[section] = goocanvas.Image(
                 parent=self.rootitem,
-                x=x + (barwidth / 2.0) - 15,
-                y=460,
-                pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'ribbon.png')
+                x=int(self.data.get(section, 'x')) - 20,
+                y=int(self.data.get(section, 'y')) - 20,
+                pixbuf=gcompris.utils.load_pixmap(filename)
                 )
-                x += barwidth
+
+            vars()[section].connect("button_press_event", method)
+            gcompris.utils.item_focus_init(vars()[section], None)
+            vars()[section].set_data('sectionNum', section)
+
+    def goto_location(self, widget=None, target=None, event=None):
+            '''
+            method called when student clicks on one of the ellipses.
+            method loads the location page, including the text, picture, music, and question.
+            '''
+            self.rootitem.remove()
+            self.rootitem = goocanvas.Group(parent=
+                                            self.gcomprisBoard.canvas.get_root_item())
+            sectionNum = target.get_data('sectionNum')
+
+            goocanvas.Image(parent=self.rootitem, x=10, y=10,
+                pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'border.png'))
+
+            # draw back button
+            txt = _('Back to Homepage')
+            self.backButton = goocanvas.Text(
+              parent=self.rootitem,
+              x=260,
+              y=490,
+              text='<span font_family="purisa" size="medium" style="italic">' + txt + '</span>',
+              anchor=gtk.ANCHOR_CENTER,
+              alignment=pango.ALIGN_CENTER,
+              use_markup=True
+              )
+
+            self.backButton.connect("button_press_event", self.display_level)
+            gcompris.utils.item_focus_init(self.backButton, None)
+
+            # ---------------------------------------------------------------------
+            # WRITE LOCATION-SPECIFIC CONTENT TO PAGE
+            # ---------------------------------------------------------------------
+
+            name = _(self.data.get(sectionNum, '_title'))
+            goocanvas.Text(
+              parent=self.rootitem,
+              x=410,
+              y=50,
+              text='<span font_family="century schoolbook L" size="x-large" weight="bold">' + name + '</span>',
+              fill_color="black",
+              anchor=gtk.ANCHOR_CENTER,
+              alignment=pango.ALIGN_CENTER,
+              use_markup=True
+              )
+
+            text = self.data.get(sectionNum, '_text')
+            t = goocanvas.Text(
+              parent=self.rootitem,
+              x=120,
+              y=190,
+              width=150,
+              text=_(text),
+              fill_color="black",
+              anchor=gtk.ANCHOR_CENTER,
+              alignment=pango.ALIGN_CENTER
+              )
+            t.scale(1.4, 1.4)
+            image = self.data.get(sectionNum, 'image')
+            goocanvas.Image(
+                parent=self.rootitem,
+                x=300,
+                y=75,
+                pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + image)
+                )
+
+            question = self.data.get(sectionNum, '_question')
+            goocanvas.Text(
+              parent=self.rootitem,
+              x=500,
+              y=390,
+              width=400,
+              text=_(question),
+              fill_color="black",
+              anchor=gtk.ANCHOR_CENTER,
+              alignment=pango.ALIGN_CENTER
+              )
+
+            options = self.data.get(sectionNum, '_answerOptions').split(',')
+            m = []
+            for el in options:
+                m.append(el.strip())
+            self.correctAnswer = m[0]
+            m.sort()
+            y = 400
+            for answer in m:
+                y += 25
+                vars(self)[answer] = goocanvas.Text(
+                      parent=self.rootitem,
+                      x=500,
+                      y=y,
+                      text=_(answer),
+                      anchor=gtk.ANCHOR_CENTER,
+                      alignment=pango.ALIGN_CENTER,
+                      )
+
+                vars(self)[answer].connect("button_press_event",
+                lambda x, y, z: self.checkAnswerGame1(sectionNum, x, y, z))
+                gcompris.utils.item_focus_init(vars(self)[answer], None)
+
+            try:
+                music = str(self.data.get(sectionNum, 'music'))
+                gcompris.sound.play_ogg(self.activityDataFilePath + music)
+            except: pass
+
+
+    def checkAnswerGame2(self, widget=None, target=None, event=None):
+        if target.get_data('sectionNum') == self.currentMusicSelection[1]:
+            self.score2 += 1
+            self.sectionsAnsweredCorrectlyGame2.append(target.get_data('sectionNum'))
+            pic = ExploreActivityResourcesFilepath + 'happyFace.png'
+            self.soundClips.remove(self.currentMusicSelection)
+            self.timers.append(gobject.timeout_add(810, self.display_level))
+
+        else:
+            pic = ExploreActivityResourcesFilepath + 'sadFace.png'
+
+        if hasattr(self, 'responsePic'):
+            self.responsePic.remove()
+
+        self.responsePic = goocanvas.Image(
+        parent=self.rootitem,
+        pixbuf=gcompris.utils.load_pixmap(pic),
+        x=200,
+        y=50
+        )
+        self.timers.append(gobject.timeout_add(800, self.clearPic))
+
+
+    def checkAnswerGame1(self, sectionNum, widget=None, target=None, event=None):
+        '''
+        check to see if the student pressed the correct answer. If so, increment
+        score1. Display appropriate face (happy or sad) for 800 ms.
+        '''
+        if target.props.text == self.correctAnswer:
+            if not (sectionNum in self.sectionsAnsweredCorrectlyGame1):
+                self.score1 += 1
+                self.sectionsAnsweredCorrectlyGame1.append(sectionNum)
+            pic = ExploreActivityResourcesFilepath + 'happyFace.png'
+        else:
+            pic = ExploreActivityResourcesFilepath + 'sadFace.png'
+
+        if hasattr(self, 'responsePic'):
+            self.responsePic.remove()
+
+        self.responsePic = goocanvas.Image(
+        parent=self.rootitem,
+        pixbuf=gcompris.utils.load_pixmap(pic),
+        x=200,
+        y=50
+        )
+        self.timers.append(gobject.timeout_add(800, self.clearPic))
+
+    def clearPic(self):
+        '''
+        remove happy/sad face
+        '''
+        if hasattr(self, 'responsePic'):
+            self.responsePic.remove()
+
+    def set_level(self, level):
+        '''
+        updates the level for the game when child clicks on bottom
+        left navigation bar to increment level
+        '''
+        self.gcomprisBoard.level = level
+        gcompris.bar_set_level(self.gcomprisBoard)
+        self.display_level(self.gcomprisBoard.level)
+
+# --------------------------------------------------------------------------
+# METHODS TO DEAL WITH INPUT & OUTPUT OF CONTENT FILE
+# --------------------------------------------------------------------------
 
 # I noticed in the find_it activity that there are some nice classes 
 # to handle importing and exporting data from the content.desktop.in file
@@ -261,6 +500,14 @@ class Gcompris_explore:
 # this activity my data file was so simple that no special class was really
 # necessary, but now that it has gotten a bit more complicated
 # I can see the advantage to writing a class. This is on my to-do list next...
+
+    def recordLocationsForDeveloper(self):
+        for section in self.data.sections():
+            if section != 'common':
+                self.data.remove_section(section)
+
+        self.map.connect("button_press_event", self.record_location)
+        gcompris.utils.item_focus_init(self.map, None)
 
     def record_location(self, widget=None, target=None, event=None):
         '''
@@ -355,179 +602,16 @@ comma-seperated list, of answer options here, The correct answer should, be list
                 except: self.completedLocationPic = ExploreActivityResourcesFilepath + 'defaultCompletedLocationPic.png'
                 try: self.gameWonPic = self.activityDataFilePath + self.data.get('common', 'gamewonpic')
                 except: self.gameWonPic = ExploreActivityResourcesFilepath + 'happyFace.png'
+                try: self.game1text = self.data.get('common', 'game1text')
+                except:pass
+                try: self.game2text = self.data.get('common', 'game2text')
+                except:pass
             else:
-
+                try:
+                    self.soundClips.append((self.data.get(section, 'music'), section))
+                    self.allClips.append((self.data.get(section, 'music'), section))
+                except: pass
                 self.sectionNames.append(section)
-
-    def drawLocations(self):
-        '''
-        draw ellipses on the map, one for each section in content.desktop.in at the
-        location specified in the file by 'x' and 'y'. If the student
-        has already visited the location and correctly answered the quetsion,
-        thellipse will be colored green. Otherwise, the ellipse is red.
-        '''
-
-        for section in self.sectionNames:
-            if section in self.sectionsAnsweredCorrectly:
-                filename = self.completedLocationPic
-            else:
-                filename = self.locationPic
-            vars()[section] = goocanvas.Image(
-                parent=self.rootitem,
-                x=int(self.data.get(section, 'x')) - 20,
-                y=int(self.data.get(section, 'y')) - 20,
-                pixbuf=gcompris.utils.load_pixmap(filename)
-                )
-
-            vars()[section].connect("button_press_event", self.goto_location)
-            gcompris.utils.item_focus_init(vars()[section], None)
-            vars()[section].set_data('sectionNum', section)
-
-    def goto_location(self, widget=None, target=None, event=None):
-        '''
-        method called when student clicks on one of the ellipses.
-        method loads the location page, including the text, picture, music, and question.
-        '''
-        self.rootitem.remove()
-        self.rootitem = goocanvas.Group(parent=
-                                        self.gcomprisBoard.canvas.get_root_item())
-        sectionNum = target.get_data('sectionNum')
-
-
-        # ---------------------------------------------------------------------
-        # Page Decorations - should I add more?
-        # ---------------------------------------------------------------------
-
-        goocanvas.Image(
-            parent=self.rootitem,
-            x=10,
-            y=10,
-            pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'border.png')
-            )
-
-        # draw back button
-        txt = _('Back To World Map')
-        self.backButton = goocanvas.Text(
-          parent=self.rootitem,
-          x=230,
-          y=490,
-          text='<span font_family="purisa" size="medium" style="italic">' + txt + '</span>',
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER,
-          use_markup=True
-          )
-
-        self.backButton.connect("button_press_event", self.loadHomePage)
-        gcompris.utils.item_focus_init(self.backButton, None)
-
-        # ---------------------------------------------------------------------
-        # WRITE LOCATION-SPECIFIC CONTENT TO PAGE
-        # ---------------------------------------------------------------------
-
-        name = _(self.data.get(sectionNum, '_title'))
-        goocanvas.Text(
-          parent=self.rootitem,
-          x=410,
-          y=50,
-          text='<span font_family="century schoolbook L" size="x-large" weight="bold">' + name + '</span>',
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER,
-          use_markup=True
-          )
-
-        text = self.data.get(sectionNum, '_text')
-        t = goocanvas.Text(
-          parent=self.rootitem,
-          x=120,
-          y=190,
-          width=150,
-          text=_(text),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
-        t.scale(1.4, 1.4)
-        image = self.data.get(sectionNum, 'image')
-        goocanvas.Image(
-            parent=self.rootitem,
-            x=300,
-            y=75,
-            pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + image)
-            )
-
-        question = self.data.get(sectionNum, '_question')
-        goocanvas.Text(
-          parent=self.rootitem,
-          x=500,
-          y=390,
-          width=400,
-          text=_(question),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
-
-        options = self.data.get(sectionNum, '_answerOptions').split(',')
-        m = []
-        for el in options:
-            m.append(el.strip())
-        self.correctAnswer = m[0]
-        m.sort()
-        y = 400
-        for answer in m:
-            y += 25
-            vars(self)[answer] = goocanvas.Text(
-                  parent=self.rootitem,
-                  x=500,
-                  y=y,
-                  text=_(answer),
-                  anchor=gtk.ANCHOR_CENTER,
-                  alignment=pango.ALIGN_CENTER,
-                  )
-
-            vars(self)[answer].connect("button_press_event",
-            lambda x, y, z: self.check_answer(sectionNum, x, y, z))
-            gcompris.utils.item_focus_init(vars(self)[answer], None)
-
-        try:
-            music = str(self.data.get(sectionNum, 'music'))
-            gcompris.sound.play_ogg(self.activityDataFilePath + music)
-        except: pass
-
-
-
-    def check_answer(self, sectionNum, widget=None, target=None, event=None):
-        '''
-        check to see if the student pressed the correct answer. If so, increment
-        score. Display appropriate face (happy or sad) for 800 ms.
-        '''
-        if target.props.text == self.correctAnswer:
-            if not (sectionNum in self.sectionsAnsweredCorrectly):
-                self.score += 1
-                self.sectionsAnsweredCorrectly.append(sectionNum)
-            pic = ExploreActivityResourcesFilepath + 'happyFace.png'
-        else:
-            pic = ExploreActivityResourcesFilepath + 'sadFace.png'
-
-        if hasattr(self, 'responsePic'):
-            self.responsePic.remove()
-
-        self.responsePic = goocanvas.Image(
-        parent=self.rootitem,
-        pixbuf=gcompris.utils.load_pixmap(pic),
-        x=200,
-        y=50
-        )
-        self.timers.append(gobject.timeout_add(800, self.clearPic))
-
-    def clearPic(self):
-        '''
-        remove happy/sad face
-        '''
-        if hasattr(self, 'responsePic'):
-            self.responsePic.remove()
-
     def end(self):
         if RECORD_LOCATIONS:
             # write locations and template to content.desktop.in
@@ -541,7 +625,10 @@ comma-seperated list, of answer options here, The correct answer should, be list
             except: pass
             try: self.data.set('common', 'gamewonpic', _('enter the filename of the picture to be shown when the player wins the entire game'))
             except: pass
-
+            try: self.data.set('common', 'game1text', _('enter the text to appear on your image for game1'))
+            except: pass
+            try: self.data.set('common', 'game2text', _('enter the text to appear on your image for game2'))
+            except: pass
             with open(gcompris.DATA_DIR + '/' + self.gcomprisBoard.name + '/content.desktop.in', 'wb') as configfile:
                 self.data.write(configfile)
 
@@ -551,6 +638,7 @@ comma-seperated list, of answer options here, The correct answer should, be list
 
     def ok(self):
         pass
+
     def repeat(self):
         pass
 
@@ -566,8 +654,3 @@ comma-seperated list, of answer options here, The correct answer should, be list
 
     def pause(self, pause):
         pass
-
-    def set_level(self, level):
-        pass
-
-

@@ -493,3 +493,9 @@ src/explore_world_animals-activity/explore_world_animals.xml.in
 src/explore_world_animals-activity/explore_world_animals.py
 src/got_rhythm-activity/got_rhythm.xml.in
 src/got_rhythm-activity/got_rhythm.py
+src/play_piano-activity/play_piano.xml.in
+src/play_piano-activity/play_piano.py
+src/play_rhythm-activity/play_rhythm.xml.in
+src/play_rhythm-activity/play_rhythm.py
+src/piano_composition-activity/piano_composition.xml.in
+src/piano_composition-activity/piano_composition.py
