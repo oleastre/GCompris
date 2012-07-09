@@ -102,6 +102,11 @@ class Staff():
       self.notReadyToPlay = False
 
       self.donotwritenotetext = False
+
+      self.labelBeatNumbers = False
+      self.beatNumLabels = []
+      self.drawPlayingLine = False
+
     def drawStaff(self, text=None):
         '''
         draw the staff, including staff lines and optional staff text
@@ -222,6 +227,26 @@ class Staff():
             note.colorCodeNote()
         self.noteList.append(note) #adds note object to staff list
 
+        if self.labelBeatNumbers:
+            for n in note.beatNums:
+                if n == note.beatNums[0]:
+                    size = "10000"
+                else:
+                    size = "5000"
+
+                blob = goocanvas.Text(
+                parent=self.rootitem,
+                x=x,
+                y=y - 75,
+                text='<span size="' + size + '" >' + n + '</span>',
+                fill_color="black",
+                anchor=gtk.ANCHOR_CENTER,
+                alignment=pango.ALIGN_CENTER,
+                use_markup=True)
+                self.beatNumLabels.append(blob)
+                x += self.noteSpacingX / len(note.beatNums)
+
+
     def writeLabel(self, note):
         '''
         writes a note label on the note, in color-code if applicable
@@ -303,7 +328,8 @@ class Staff():
         '''
         #if not ready(self):
         #    return False
-
+        for o in self.beatNumLabels:
+            o.remove()
         for n in self.noteList:
           n.remove()
         self.currentNoteXCoordinate = self.initialX
@@ -341,21 +367,28 @@ class Staff():
         colors the note white that it is currently sounding
         '''
         if self.currentNoteIndex >= len(self.noteList):
+            if hasattr(self, 'verticalPlayLine'):
+                self.verticalPlayLine.remove()
             self.notReadyToPlay = False
             return
 
         note = self.noteList[self.currentNoteIndex]
         if not self.donotwritenotetext:
             self.writeText('Note Name: ' + note.niceName)
+        if hasattr(self, 'verticalPlayLine'):
+            self.verticalPlayLine.remove()
+
+        if self.drawPlayingLine:
+            self.verticalPlayLine = goocanvas.polyline_new_line(self.rootitem,
+                                note.x, note.y, note.x, note.y - 50,
+                                stroke_color_rgba=0x121212D0, line_width=2)
+
+            self.verticalPlayLine.animate(self.noteSpacingX, 0, 1.0, 0.0, \
+                absolute=False, duration=note.toMillisecs(), step_time=50, type=goocanvas.ANIMATE_FREEZE)
+
         note.play()
         self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
         self.currentNoteIndex += 1
-
-    def _playedAll(self):
-        '''
-        determine if all notes have been played in staff
-        '''
-        return self.currentNoteIndex == len(self.noteList)
 
     def playComposition(self, widget=None, target=None, event=None):
         '''
@@ -371,13 +404,16 @@ class Staff():
 
         self.timers = []
         self.currentNoteIndex = 0
-        self.timers.append(gobject.timeout_add(\
-                self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
+        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
+
 
     def sound_played(self, file):
         pass #mandatory method
 
     def drawFocusRect(self, x, y):
+        '''
+        draws focus rectangle around notes (quarter/half/whole) in piano_composition game
+        '''
         if hasattr(self, 'focusRect'):
             self.focusRect.remove()
         self.focusRect = goocanvas.Rect(parent=self.rootitem,
@@ -795,7 +831,7 @@ class EighthNote(Note):
     an object inherited from Note, of specific duration (eighth length)
     '''
     noteType = 'eighthNote'
-
+    beatNums = ['+']
     def toMillisecs(self):
         return 250
 
@@ -836,7 +872,7 @@ class QuarterNote(Note):
     an object inherited from Note, of specific duration (quarter length)
     '''
     noteType = 'quarterNote'
-
+    beatNums = ['1']
     def toMillisecs(self):
         '''
         convert noteType to actual duration of sound, in milliseconds. for
@@ -874,7 +910,7 @@ class HalfNote(Note):
     an object inherited from Note, of specific duration (half length)
     '''
     noteType = 'halfNote'
-
+    beatNums = ['1', '2']
     def toMillisecs(self):
         return 1000
 
@@ -905,6 +941,7 @@ class WholeNote(Note):
     an object inherited from Note, of specific duration (whole length)
     '''
     noteType = 'wholeNote'
+    beatNums = ['1', '2', '3', '4']
     def toMillisecs(self):
         return 2000
 

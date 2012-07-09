@@ -96,7 +96,11 @@ class Gcompris_play_rhythm:
 
     def display_level(self, level):
         drawBasicPlayHomePagePart1(self)
-
+        goocanvas.Rect(parent=self.rootitem,
+            x=200, y=160, width=400, height=30,
+            stroke_color="black", fill_color='white',
+            line_width=3.0)
+        writeText(self, _("Beat Count:"), 260, 175)
         gcompris.bar_set(gcompris.BAR_LEVEL)
         gcompris.bar_set_level(self.gcomprisBoard)
         gcompris.bar_location(20, -1, 0.6)
@@ -104,8 +108,10 @@ class Gcompris_play_rhythm:
         self.staff = TrebleStaff(450, 175, self.rootitem, numStaves=1)
 
         self.staff.donotwritenotetext = True
+        self.staff.drawPlayingLine = True
         self.staff.noteSpacingX = 36
         self.staff.endx = 200
+        self.staff.labelBeatNumbers = True
         self.staff.drawStaff()
         self.staff.rootitem.scale(2.0, 2.0)
         self.staff.rootitem.translate(-350, -75)
