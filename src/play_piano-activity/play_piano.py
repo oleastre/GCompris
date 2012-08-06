@@ -65,7 +65,7 @@ class Gcompris_play_piano:
         gcomprisBoard.disable_im_context = True
 
         self.gcomprisBoard.level = 1
-        self.gcomprisBoard.maxlevel = 5
+        self.gcomprisBoard.maxlevel = 6
 
         self.metronomePlaying = False
 
@@ -108,18 +108,9 @@ class Gcompris_play_piano:
 
 
 
-        if level <= 7:
-            drawFillRect(self, 70, 185, 60, 60)
-            self.colorCodeNotesButton = goocanvas.Text(
-              parent=self.rootitem,
-              x=100,
-              y=215,
-              width=75,
-              text=_("Color code notes?"),
-              fill_color="black",
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER
-              )
+        if level <= 5:
+            self.colorCodeNotesButton = textButton(100, 215, _("Color code notes?"), self, 'green')
+
             self.colorCodeNotesButton.connect("button_press_event", self.color_code_notes)
             gcompris.utils.item_focus_init(self.colorCodeNotesButton, None)
         else:
@@ -132,13 +123,12 @@ class Gcompris_play_piano:
         self.show_melody()
         self.kidsNoteList = []
         self.piano = PianoKeyboard(250, 300, self.rootitem)
-        if level >= 7:
+        if level >= 4:
             self.piano.blackKeys = True
 
         self.piano.draw(300, 175, self.keyboard_click)
 
-        drawFillRect(self, 288, 40, 200, 80)
-        writeText(self, _("Click the piano keys that match the written notes."), 388, 80)
+        textBox(_("Click the piano keys that match the written notes."), 388, 80, self, fill_color='gray', width=200)
 
         drawBasicPlayHomePagePart2(self)
 
@@ -148,25 +138,25 @@ class Gcompris_play_piano:
 
         if not ready(self):
             return False
-        n = QuarterNote(target.name, 'trebleClef', self.staff.rootitem)
+        n = QuarterNote(target.numID, 'trebleClef', self.staff.rootitem)
         n.play()
-        self.kidsNoteList.append(target.name)
+        self.kidsNoteList.append(target.numID)
 
     def generateMelody(self):
         level = self.gcomprisBoard.level
         if level >= 1:
-            options = ['C', 'D', 'E']
+            options = [1, 2, 3]
             notenum = 3
         if level >= 2:
-            options.extend(['F', 'G', 'A'])
+            options.extend([4, 5, 6])
             notenum = 3
         if level >= 3:
-            options.extend(['B', 'C2'])
+            options.extend([7, 8])
             notenum = 4
         if level >= 4:
-            options.extend(['C sharp', 'D sharp'])
+            options.extend([-1, -2])
         if level >= 5:
-            options.extend(['F sharp', 'G sharp', 'A sharp'])
+            options.extend([-3, -4, -5])
 
         newmelody = []
         for ind in range(0, notenum):

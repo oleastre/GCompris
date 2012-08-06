@@ -100,7 +100,7 @@ class Gcompris_play_rhythm:
             x=200, y=160, width=400, height=30,
             stroke_color="black", fill_color='white',
             line_width=3.0)
-        writeText(self, _("Beat Count:"), 260, 175)
+        textBox(_("Beat Count:"), 260, 175, self, noRect=True)
         gcompris.bar_set(gcompris.BAR_LEVEL)
         gcompris.bar_set_level(self.gcomprisBoard)
         gcompris.bar_location(20, -1, 0.6)
@@ -119,15 +119,11 @@ class Gcompris_play_rhythm:
         self.givenRhythm = []
         self.show_rhythm()
 
-        drawFillRect(self, 60, 350, 180, 100)
-        writeText(self, _("1. Click the play button to hear the rhythm."), 150, 400)
-        drawFillRect(self, 300, 350, 200, 100)
-        writeText(self, _("2. Beat the drum to the rhythm you heard."), 400, 400)
-        drawFillRect(self, 550, 350, 200, 100)
-        writeText(self, _("3. Click the okay button when you are done to see if you got it right!"), 650, 400)
+        textBox(_("1. Click the play button to hear the rhythm."), 150, 400, self, fill_color='gray', width=200)
+        textBox(_("2. Beat the drum to the rhythm you heard."), 400, 400, self, fill_color='gray', width=200)
+        textBox(_("3. Click the okay button when you are done to see if you got it right!"), 650, 400, self, fill_color='gray', width=200)
 
-        drawFillRect(self, 340, 15, 90, 30)
-        writeText(self, _('Drum'), 390, 30)
+        textBox(_('Drum'), 390, 30, self, fill_color='gray')
 
         # RECORD BUTTON
         self.recordButton = goocanvas.Image(
@@ -139,8 +135,7 @@ class Gcompris_play_rhythm:
         self.recordButton.connect("button_press_event", self.record_click)
         gcompris.utils.item_focus_init(self.recordButton, None)
 
-        drawFillRect(self, 15, 60, 150, 80)
-        writeText(self, _('Click the Metronome to hear the tempo'), 90, 100)
+        textBox(_('Click the Metronome to hear the tempo'), 90, 100, self, fill_color='gray', width=150)
         # METRONOME BUTTON
         self.metornomeButton = goocanvas.Image(
                 parent=self.rootitem,
@@ -207,13 +202,13 @@ class Gcompris_play_rhythm:
         self.givenRhythm = self.generateRhythm()
         for item in self.givenRhythm:
             if item == 'e':
-                note = EighthNote('C', 'trebleClef', self.staff.rootitem)
+                note = EighthNote(1, 'trebleClef', self.staff.rootitem)
             elif item == 'q':
-                note = QuarterNote('C', 'trebleClef', self.staff.rootitem)
+                note = QuarterNote(1, 'trebleClef', self.staff.rootitem)
             elif item == 'h':
-                note = HalfNote('C', 'trebleClef', self.staff.rootitem)
+                note = HalfNote(1, 'trebleClef', self.staff.rootitem)
             elif item == 'w':
-                note = WholeNote('C', 'trebleClef', self.staff.rootitem)
+                note = WholeNote(1, 'trebleClef', self.staff.rootitem)
             self.staff.drawNote(note)
 
     def ok_event(self, widget, target, event):
@@ -274,6 +269,7 @@ class Gcompris_play_rhythm:
     def record_click(self, x, y, z):
         if not ready(self):
             return
+        gcompris.sound.play_ogg('piano_composition/treble_pitches/C.wav')
         if self.recordedHits == []:
             self.startTime = time.time()
             self.recordedHits.append(0.0)

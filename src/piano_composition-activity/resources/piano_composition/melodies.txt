@@ -1,0 +1,15 @@
+Twinkle Twinkle Little Star
+English Lullaby
+trebleClef 1,4 1,4 5,4 5,4 6,4 6,4 5,2 4,4 4,4 3,4 3,4 2,4 2,4 1,2
+
+Yankee Doodle
+Patriotic, America
+trebleClef 5,8 5,8 6,8 7,8 5,8 7,8 6,4 5,8 5,8 6,8 7,8 5,4 -3,4 5,8 5,8 6,8 7,8 8,8 7,8 6,8 5,8 -3,8 2,8 3,8 -3,8 5,4 5,4
+
+Simple Gifts
+Shaker Tune, America
+trebleClef 1,8 1,8 4,4 4,8 5,8 6,8 4,8 6,8 -5,8 8,4 8,8 -5,8 6,4 5,8 4,8 5,4 1,4 5,4 4,4 5,8 6,8 5,8 3,8 1,2
+
+Old MacDonald Had a Farm
+nursery rhyme, America
+bassClef 5,4 5,4 5,4 2,4 3,4 3,4 2,2 7,4 7,4 6,4 6,4 5,2 2,2 5,4 5,4 5,4 2,4 3,4 3,4 2,2 7,4 7,4 6,4 6,4 5,1

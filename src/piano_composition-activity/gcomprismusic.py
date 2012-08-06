@@ -42,19 +42,42 @@ TODO:
 # according to music research on best
 # techniques to teach young children music
 
-NOTE_COLOR_SCHEME = {"C":'#FF0000',
-                     "1":'#FF6347',
-                     "D":'#FF7F00',
-                     "2":'#FFD700',
-                     "E":'#FFFF00',
-                     "F":'#32CD32',
-                     "3":'#20B2AA',
-                     "G":'#6495ED',
-                     "4":'#8A2BE2',
-                     "A":'#D02090',
-                     "5":'#FF00FF',
-                     "B":'#FF1493'
+NOTE_COLOR_SCHEME = {1:'#FF0000',
+                     - 1:'#FF6347',
+                     2:'#FF7F00',
+                     - 2:'#FFD700',
+                     3:'#FFFF00',
+                     4:'#32CD32',
+                     - 3:'#20B2AA',
+                     5:'#6495ED',
+                     - 4:'#8A2BE2',
+                     6:'#D02090',
+                     - 5:'#FF00FF',
+                     7:'#FF1493',
+                     8:'#FF0000'
                      }
+# this is unique to the English notation system
+# translators must modify this dictionary for each language
+WHITE_KEY_NOTATION = {1:_('C'), 2:_('D'), 3:_('E'), 4:_('F'), 5:_('G'), 6:_('A'), 7:_('B'), 8:_('C')}
+SHARP_NOTATION = {-1:_('C#'), -2:_('D#'), -3:_('F#'), -4:_('G#'), -5:_('A#')}
+FLAT_NOTATION = {-1:_('Db'), -2:_('Eb'), -3:_('Gb'), -4:_('Ab'), -5:_('Bb')}
+'''
+Translators: note that you must write the translated note name matching the
+given note name in the English notation
+ For example, in many European countries the correct translations would be:
+ C C♯ D D♯ E F F♯ G G♯ A B H C
+'''
+def getKeyNameFromID(numID, sharpNotation=True):
+    '''optionally sharpNotation = True for sharp notation, or
+    sharpNotation = False for flat notation'''
+    if numID > 0:
+        return WHITE_KEY_NOTATION[numID]
+    elif sharpNotation:
+        return SHARP_NOTATION[numID]
+    else:
+        return FLAT_NOTATION[numID]
+
+
 
 # ---------------------------------------------------------------------------
 #
@@ -88,7 +111,7 @@ class Staff():
       self.staffLineThickness = 2 # thickness of staff lines
       self.numStaves = numStaves # number of staves to draw (1,2, or 3)
 
-      self.currentNoteType = 'quarterNote' #could be quarter, half, whole (not eight for now)
+      self.currentNoteType = 4 #could be quarter, half, whole (not eight for now)
 
       self.rootitem = goocanvas.Group(parent=canvasRoot, x=self.x, y=self.y)
 
@@ -107,25 +130,13 @@ class Staff():
       self.beatNumLabels = []
       self.drawPlayingLine = False
 
-    def drawStaff(self, text=None):
+    def drawStaff(self):
         '''
         draw the staff, including staff lines and optional staff text
         '''
-        if text:
-            self.noteText = goocanvas.Text(
-              parent=self.originalRoot,
-              x=120,
-              y=81,
-              width=100,
-              text=text,
-              fill_color="black",
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER
-              )
-
         self._drawStaffLines() #draw staff lines
 
-    def writeText(self, text):
+    def textBox(self, text):
         '''
         change the staff text
         '''
@@ -247,25 +258,20 @@ class Staff():
                 x += self.noteSpacingX / len(note.beatNums)
 
 
-    def writeLabel(self, note):
+    def writeLabel(self, text, note):
         '''
-        writes a note label on the note, in color-code if applicable
+        writes a note label below the note, such as labeling the note name,
+        in color-code if applicable
         '''
         if self.colorCodeNotes:
-            if note.noteName in ["C sharp", "D flat"]: color = NOTE_COLOR_SCHEME["1"]
-            elif note.noteName in ["D sharp", "E flat"]: color = NOTE_COLOR_SCHEME["2"]
-            elif note.noteName in ["F sharp", "G flat"]: color = NOTE_COLOR_SCHEME["3"]
-            elif note.noteName in ["G sharp", "A flat"]: color = NOTE_COLOR_SCHEME["4"]
-            elif note.noteName in ["A sharp", "B flat"]: color = NOTE_COLOR_SCHEME["5"]
-            else:
-                color = NOTE_COLOR_SCHEME[note.noteName[0]]
+            color = NOTE_COLOR_SCHEME[note.numID]
 
         if note in self.noteList:
             goocanvas.Text(
                   parent=self.rootitem,
                   x=note.x,
                   y=self.staffLineSpacing * 6,
-                  text=note.niceName,
+                  text=text,
                   fill_color=color,
                   anchor=gtk.ANCHOR_CENTER,
                   alignment=pango.ALIGN_CENTER
@@ -340,9 +346,7 @@ class Staff():
             self.alert.remove()
         except:
             pass
-        # this is hackish, but will have to do for now....
-        if hasattr(self, 'noteText'):
-            self.noteText.props.text = 'Click a colored box on the keyboard'
+
 
     def clear(self):
         '''
@@ -373,8 +377,8 @@ class Staff():
             return
 
         note = self.noteList[self.currentNoteIndex]
-        if not self.donotwritenotetext:
-            self.writeText('Note Name: ' + note.niceName)
+#        if not self.donotwritenotetext:
+#            self.textBox('Note Name: ' + note.niceName)
         if hasattr(self, 'verticalPlayLine'):
             self.verticalPlayLine.remove()
 
@@ -419,30 +423,70 @@ class Staff():
         self.focusRect = goocanvas.Rect(parent=self.rootitem,
                                     x=x,
                                     y=y,
-                                    width=25, height=45,
+                                    width=28, height=45,
                                     radius_x=5, radius_y=5,
                                     stroke_color="black", line_width=2.0)
     #update current note type based on button clicks
+    def updateToEighth(self, widget=None, target=None, event=None):
+        self.currentNoteType = 8
+        self.drawFocusRect(-100, -60)
     def updateToQuarter(self, widget=None, target=None, event=None):
-        self.currentNoteType = 'quarterNote'
-        self.drawFocusRect(248, -90)
+        self.currentNoteType = 4
+        self.drawFocusRect(-70, -60)
     def updateToHalf(self, widget=None, target=None, event=None):
-        self.currentNoteType = 'halfNote'
-        self.drawFocusRect(278, -90)
+        self.currentNoteType = 2
+        self.drawFocusRect(-42, -60)
     def updateToWhole(self, widget=None, target=None, event=None):
-        self.currentNoteType = 'wholeNote'
-        self.drawFocusRect(308, -90)
+        self.currentNoteType = 1
+        self.drawFocusRect(-15, -60)
+
 
     def staff_to_file(self, filename):
         '''
         uses python's cpickle to save the python object stored in self, a Staff instance
         '''
-        file = open(filename, 'wb')
+        file = open(filename , 'wb')
+        file.write(self.staffName + ' ')
+        for note in self.noteList:
+            file.write(str(note.numID) + ',' + str(note.noteType) + ' ')
 
-        # Save the descriptif frame:
-        pickle.dump(self, file, 2)
 
         file.close()
+
+
+    def stringToNotation(self, melodyString):
+        if hasattr(self, 'newClef'):
+            self.newClef.clear()
+        self.clear()
+        keys = melodyString.split()
+        staffName = keys[0]
+        if staffName == 'trebleClef':
+            self.newClef = TrebleStaff(self.x, self.y, self.originalRoot)
+            self.newClef._drawClefs()
+        elif staffName == 'bassClef':
+            self.newClef = BassStaff(self.x, self.y, self.originalRoot)
+            self.newClef._drawClefs()
+        else:
+            print "please use trebleClef or bassClef"
+            return
+        self.positionDict = self.newClef.positionDict
+        for exp in keys[1:]:
+            numID, duration = exp.split(',')
+            duration = int(duration)
+            numID = int(numID)
+            if duration == 4:
+                note = QuarterNote(numID, staffName, self.rootitem)
+            elif duration == 2:
+                note = HalfNote(numID, staffName, self.rootitem)
+            elif duration == 1:
+                note = WholeNote(numID, staffName, self.rootitem)
+            elif duration == 8:
+                note = EighthNote(numID, staffName, self.rootitem)
+            else:
+                print 'ERROR: notetype not supported', exp
+                return
+
+            self.drawNote(note)
 
     def file_to_staff(self, filename):
         '''
@@ -450,66 +494,72 @@ class Staff():
         '''
 
         file = open(filename, 'rb')
-        try:
-            loadedStaff = pickle.load(file)
-        except:
-            file.close()
-            print 'Cannot load ', filename , " as a GCompris animation"
-            return
-        #self.rootitem = self.originalRoot
-
         self.clear()
+        self.stringToNotation(file.read())
 
-        '''
-        PROBLEM: I can't seem to be able to get a direct pointer from the
-        loadedStaff instance to the self instance....This would be cleanest,
-        but I'm getting a nasty error about rootitems that I can't seem
-        to fix. I tried copy.deepcopy on the loaded staff, but that also
-        doesn't work...
-        '''
-#        self = copy.deepcopy(loadedStaff)
-#        self = loadedStaff
-#        for note in self.noteList:
-#            print note
+#        try:
+
+
+
+#            loadedStaff = pickle.load(file)
+#        except:
+#            file.close()
+#            print 'Cannot load ', filename , " as a GCompris animation"
+#            return
+#        #self.rootitem = self.originalRoot
+#
+#       
+#
+#        '''
+#        PROBLEM: I can't seem to be able to get a direct pointer from the
+#        loadedStaff instance to the self instance....This would be cleanest,
+#        but I'm getting a nasty error about rootitems that I can't seem
+#        to fix. I tried copy.deepcopy on the loaded staff, but that also
+#        doesn't work...
+#        '''
+##        self = copy.deepcopy(loadedStaff)
+##        self = loadedStaff
+##        for note in self.noteList:
+##            print note
+##            self.drawNote(note)
+#
+#        '''
+#        So my fall-back solution is to reconstruct the objects manually. This
+#        is a huge waste of the power of pickle, and I'd like to figure out
+#        how not to do this. Help please ?
+#        '''
+#        if loadedStaff.staffName == 'trebleClef':
+#            y = TrebleStaff(self.x, self.y, self.originalRoot)
+#            y._drawClefs()
+#        else:
+#            y = BassStaff(self.x, self.y, self.originalRoot)
+#            y._drawClefs()
+#        self.positionDict = y.positionDict
+#        self.numID = y.numID
+#
+#        for n in loadedStaff.noteList:
+#            if n.noteType == 'quarterNote':
+#                note = QuarterNote(n.numID, loadedStaff.staffName, self.rootitem)
+#            elif n.noteType == 'halfNote':
+#                note = HalfNote(n.numID, loadedStaff.staffName, self.rootitem)
+#            elif n.noteType == 'wholeNote':
+#                note = WholeNote(n.numID, loadedStaff.staffName, self.rootitem)
+#            else:
+#                print 'ERROR: notetype not supported: ' , n.noteType
+#
 #            self.drawNote(note)
-
-        '''
-        So my fall-back solution is to reconstruct the objects manually. This
-        is a huge waste of the power of pickle, and I'd like to figure out
-        how not to do this. Help please ?
-        '''
-        if loadedStaff.name == 'trebleClef':
-            y = TrebleStaff(self.x, self.y, self.originalRoot)
-            y._drawClefs()
-        else:
-            y = BassStaff(self.x, self.y, self.originalRoot)
-            y._drawClefs()
-        self.positionDict = y.positionDict
-        self.name = y.name
-
-        for n in loadedStaff.noteList:
-            if n.noteType == 'quarterNote':
-                note = QuarterNote(n.noteName, loadedStaff.name, self.rootitem)
-            elif n.noteType == 'halfNote':
-                note = HalfNote(n.noteName, loadedStaff.name, self.rootitem)
-            elif n.noteType == 'wholeNote':
-                note = WholeNote(n.noteName, loadedStaff.name, self.rootitem)
-            else:
-                print 'ERROR: notetype not supported: ' , n.noteType
-
-            self.drawNote(note)
-
-        file.close()
-        self.noteText = goocanvas.Text(
-          parent=self.originalRoot,
-          x=120,
-          y=81,
-          width=100,
-          text='',
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
+#
+#        file.close()
+#        self.noteText = goocanvas.Text(
+#          parent=self.originalRoot,
+#          x=120,
+#          y=81,
+#          width=100,
+#          text='',
+#          fill_color="black",
+#          anchor=gtk.ANCHOR_CENTER,
+#          alignment=pango.ALIGN_CENTER
+#          )
 
     def getNoteYCoordinate(self, note):
         '''
@@ -523,18 +573,27 @@ class Staff():
         else:
             yoffset = self.line3Y
 
-        return  self.positionDict[note.noteName[0:2].strip()] + yoffset + 36
+        if note.numID < 0 and note.sharpNotation:
+            numID = {-1:1, -2:2, -3:4, -4:5, -5:6}[note.numID]
+        elif note.numID < 0:
+            numID = {-1:2, -2:3, -3:5, -4:6, -5:7}[note.numID]
+        else:
+            numID = note.numID
+
+        return  self.positionDict[numID] + yoffset + 36
 
     def drawScale(self, scaleName, includeNoteNames=True):
         '''
         draw the scale on the staff, optionally including Note Names
         '''
         if scaleName == 'C Major':
-            pitches = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C2']
-        for pitch in pitches:
-            note = QuarterNote(pitch, self.name, self.rootitem)
+            numIDs = [1, 2, 3, 4, 5, 6, 7, 8]
+        for id in numIDs:
+            note = QuarterNote(id, self.staffName, self.rootitem)
             self.drawNote(note)
-            self.writeLabel(note)
+            if includeNoteNames:
+                text = getKeyNameFromID(note.numID)
+                self.writeLabel(text, note)
             note.enablePlayOnClick()
 
     def colorCodeAllNotes(self):
@@ -553,15 +612,15 @@ class TrebleStaff(Staff):
     def __init__(self, x, y, canvasRoot, numStaves=3):
         Staff.__init__(self, x, y, canvasRoot, numStaves)
 
-        self.name = 'trebleClef'
+        self.staffName = 'trebleClef'
 
          # for use in getNoteYCoordinateMethod
-        self.positionDict = {'C':26, 'D':22, 'E':16, 'F':9, 'G':3,
-                        'A':-4, 'B':-10, 'C2':-17}
+        self.positionDict = {1:26, 2:22, 3:16, 4:9, 5:3,
+                        6:-4, 7:-10, 8:-17}
 
-    def drawStaff(self, text=None):
+    def drawStaff(self):
         self._drawClefs()
-        Staff.drawStaff(self, text)
+        Staff.drawStaff(self)
 
     def _drawClefs(self):
         '''
@@ -605,15 +664,15 @@ class BassStaff(Staff):
     def __init__(self, x, y, canvasRoot, numStaves=3):
         Staff.__init__(self, x, y, canvasRoot, numStaves)
 
-        self.name = 'bassClef'
+        self.staffName = 'bassClef'
 
         # for use in getNoteYCoordinateMethod
-        self.positionDict = {'C':-4, 'D':-11, 'E':-17, 'F':-24, 'G':-30,
-                        'A':-36, 'B':-42, 'C2':-48}
+        self.positionDict = {1:-4, 2:-11, 3:-17, 4:-24, 5:-30,
+                        6:-36, 7:-42, 8:-48}
 
     def drawStaff(self, text=None):
         self._drawClefs()
-        Staff.drawStaff(self, text)
+        Staff.drawStaff(self)
 
 
     def _drawClefs(self):
@@ -650,9 +709,6 @@ class BassStaff(Staff):
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/bassClef.png')
                 )
 
-
-
-
 # ---------------------------------------------------------------------------
 #
 #  NOTE OBJECTS
@@ -665,24 +721,22 @@ class Note():
     an object representation of a note object, containing the goocanvas image
     item as well as several instance variables to aid with identification
     '''
-    def __init__(self, noteName, staffType, rootitem):
-        self.noteName = noteName
+    def __init__(self, numID, staffType, rootitem, sharpNotation=True):
+        self.numID = numID
+
         self.staffType = staffType #'trebleClef' or 'bassClef'
-        self.niceName = noteName.replace('2', '')
+
         self.x = 0
         self.y = 0
         self.rootitem = goocanvas.Group(parent=rootitem, x=self.x, y=self.y)
 
         self.silent = False #make note silent always?
-        if self.noteName in ["C sharp", "D flat"]: self.keyNum = "1"
-        if self.noteName in ["D sharp", "E flat"]: self.keyNum = "2"
-        if self.noteName in ["F sharp", "G flat"]: self.keyNum = "3"
-        if self.noteName in ["G sharp", "A flat"]: self.keyNum = "4"
-        if self.noteName in ["A sharp", "B flat"]: self.keyNum = "5"
 
         self.pitchDir = self._getPitchDir()
 
         self.timers = []
+        self.sharpNotation = sharpNotation # toggle to switch note between sharp notation
+        # and flat notation, if applicable
 
     def drawPictureFocus(self, x, y):
         self.playingLine = goocanvas.Image(
@@ -694,9 +748,8 @@ class Note():
         self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
 
     def _drawMidLine(self, x, y):
-        if self.staffType == 'trebleClef' and self.noteName == 'C'  or \
-           self.staffType == 'bassClef' and self.noteName == 'C2' or \
-           self.staffType == 'trebleClef' and self.noteName == 'C sharp':
+        if self.staffType == 'trebleClef' and (self.numID == 1 or  (self.numID == -1 and self.sharpNotation)) or \
+           (self.staffType == 'bassClef' and self.numID == 1 or self.numID == 8) :
             self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 12, y, x + 12, y ,
                                         stroke_color_rgba=0x121212D0, line_width=1)
 
@@ -706,7 +759,7 @@ class Note():
         '''
         if not ready(self, 700) or self.silent:
             return False
-        # sometimes this method is called without actually having a note
+        # sometimes this method is called without actually having fa note
         # printed on the page (we just want to hear the pitch). Thus, only
         # highlight a note if it exists!
         if hasattr(self, 'playingLine'):
@@ -721,15 +774,10 @@ class Note():
         to flat notes using the circle of fifths dictionary
         '''
 
-        if hasattr(self, 'keyNum'):
-            n = str(self.keyNum)
-        else:
-            n = self.noteName
-
         if self.staffType == 'trebleClef':
-             pitchDir = 'piano_composition/treble_pitches/' + self.noteType + '/' + n + '.wav'
+             pitchDir = 'piano_composition/treble_pitches/' + str(self.noteType) + '/' + str(self.numID) + '.wav'
         else:
-             pitchDir = 'piano_composition/bass_pitches/' + self.noteType + '/' + n + '.wav'
+             pitchDir = 'piano_composition/bass_pitches/' + str(self.noteType) + '/' + str(self.numID) + '.wav'
 
         return pitchDir
 
@@ -741,24 +789,25 @@ class Note():
         need to be so small that scaling any larger image to the correct
         size makes them extremely blury.
         '''
-        if hasattr(self, 'keyNum') and 'sharp' in self.noteName:
-            self.alteration = goocanvas.Image(
-              parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap("piano_composition/blacksharp.png"),
-              x=x - 23,
-              y=y - 9,
-              width=18,
-              height=18
-              )
-        elif hasattr(self, 'keyNum') and 'flat' in self.noteName:
-            self.alteration = goocanvas.Image(
-              parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap("piano_composition/blackflat.png"),
-              x=x - 23,
-              y=y - 14,
-              width=20,
-              height=20,
-              )
+        if self.numID < 0:
+            if self.sharpNotation:
+                self.alteration = goocanvas.Image(
+                  parent=self.rootitem,
+                  pixbuf=gcompris.utils.load_pixmap("piano_composition/blacksharp.png"),
+                  x=x - 23,
+                  y=y - 9,
+                  width=18,
+                  height=18
+                  )
+            else:
+                self.alteration = goocanvas.Image(
+                  parent=self.rootitem,
+                  pixbuf=gcompris.utils.load_pixmap("piano_composition/blackflat.png"),
+                  x=x - 23,
+                  y=y - 14,
+                  width=20,
+                  height=20,
+                  )
 
     def remove(self):
         '''
@@ -789,10 +838,8 @@ class Note():
         '''
         color the note the appropriate color based on the given color scheme
         '''
-        if hasattr(self, 'keyNum'):
-            self.color(NOTE_COLOR_SCHEME[self.keyNum])
-        else:
-            self.color(NOTE_COLOR_SCHEME[self.noteName[0]])
+        self.color(NOTE_COLOR_SCHEME[self.numID])
+
 
     def enablePlayOnClick(self):
         '''
@@ -830,7 +877,7 @@ class EighthNote(Note):
     '''
     an object inherited from Note, of specific duration (eighth length)
     '''
-    noteType = 'eighthNote'
+    noteType = 8
     beatNums = ['+']
     def toMillisecs(self):
         return 250
@@ -871,7 +918,7 @@ class QuarterNote(Note):
     '''
     an object inherited from Note, of specific duration (quarter length)
     '''
-    noteType = 'quarterNote'
+    noteType = 4
     beatNums = ['1']
     def toMillisecs(self):
         '''
@@ -909,7 +956,7 @@ class HalfNote(Note):
     '''
     an object inherited from Note, of specific duration (half length)
     '''
-    noteType = 'halfNote'
+    noteType = 2
     beatNums = ['1', '2']
     def toMillisecs(self):
         return 1000
@@ -940,7 +987,7 @@ class WholeNote(Note):
     '''
     an object inherited from Note, of specific duration (whole length)
     '''
-    noteType = 'wholeNote'
+    noteType = 1
     beatNums = ['1', '2', '3', '4']
     def toMillisecs(self):
         return 2000
@@ -983,7 +1030,8 @@ class PianoKeyboard():
         # if False, use flat notation (b)
         self.whiteKeys = True # display white keys with buttons?
 
-        self.colors = NOTE_COLOR_SCHEME
+        self.colors = NOTE_COLOR_SCHEME #provide this as an instance
+        # variable so future users may edit it
 
     def draw(self, width, height, key_callback):
         '''
@@ -1003,10 +1051,6 @@ class PianoKeyboard():
         '''
         define colored rectangles to lay on top of piano keys for student to click on
 
-        Translators: note that you must write the translated note name matching the
-        given note name in the English notation
-         For example, in French the correct translations would be:
-        A (la), B (si), C (do), D (ré), E (mi), F (fa) , G (sol)
         '''
 
         self.key_callback = key_callback
@@ -1017,21 +1061,21 @@ class PianoKeyboard():
         seperationWidth = w * 1.37
 
         if self.whiteKeys:
-            self.drawKey(x, y, w, h, self.colors['C'], _("C"))
+            self.drawKey(x, y, w, h, self.colors[1], 1)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['D'], _("D"))
+            self.drawKey(x, y, w, h, self.colors[2], 2)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['E'], _("E"))
+            self.drawKey(x, y, w, h, self.colors[3], 3)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['F'], _("F"))
+            self.drawKey(x, y, w, h, self.colors[4], 4)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['G'], _("G"))
+            self.drawKey(x, y, w, h, self.colors[5], 5)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['A'], _("A"))
+            self.drawKey(x, y, w, h, self.colors[6], 6)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['B'], _("B"))
+            self.drawKey(x, y, w, h, self.colors[7], 7)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['C'], _("C2"))
+            self.drawKey(x, y, w, h, self.colors[8], 8)
             x += seperationWidth
 
         if self.blackKeys:
@@ -1041,23 +1085,18 @@ class PianoKeyboard():
             x = self.x + width * .089
             seperationWidth = w * 1.780
 
-            self.drawKey(x, y, w, h, self.colors['1'],
-                         (_("C sharp") if self.sharpNotation else _("D flat")))
+            self.drawKey(x, y, w, h, self.colors[-1], -1)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['2'],
-                         (_("D sharp") if self.sharpNotation else _("E flat")))
+            self.drawKey(x, y, w, h, self.colors[-2], -2)
             x += seperationWidth * 2
-            self.drawKey(x, y, w, h, self.colors['3'],
-                         (_("F sharp") if self.sharpNotation else _("G flat")))
+            self.drawKey(x, y, w, h, self.colors[-3], -3)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['4'],
-                         (_("G sharp") if self.sharpNotation else _("A flat")))
+            self.drawKey(x, y, w, h, self.colors[-4], -4)
             x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors['5'],
-                         (_("A sharp") if self.sharpNotation else _("B flat")))
+            self.drawKey(x, y, w, h, self.colors[-5], -5)
 
 
-    def drawKey(self, x, y, width, height, color, name):
+    def drawKey(self, x, y, width, height, color, numID):
         '''
         This function displays the clickable part of the key
         '''
@@ -1065,7 +1104,30 @@ class PianoKeyboard():
                               width=width, height=height,
                               stroke_color="black", fill_color=color,
                               line_width=1.0)
-        item.name = name
+        item.numID = numID
+
+        if numID < 0:
+            size = "11000"
+            offset = 10
+        else:
+            size = "15000"
+            offset = 13
+
+        keyText = goocanvas.Text(
+         parent=self.rootitem,
+         x=x + offset,
+         y=y + 18,
+         width=10,
+         text='<span font_family="URW Gothic L" size="' + size + '" weight="bold">' + getKeyNameFromID(numID, self.sharpNotation) + '</span>',
+         fill_color="black",
+         anchor=gtk.ANCHOR_CENTER,
+         alignment=pango.ALIGN_CENTER,
+         use_markup=True,
+         pointer_events="GOO_CANVAS_EVENTS_NONE"
+         )
+
+        gcompris.utils.item_focus_init(keyText, item)
+
         '''
         connect the piano keyboard rectangles to a button press event,
         the method keyboard_click
@@ -1075,25 +1137,6 @@ class PianoKeyboard():
         return item
 
 
-def writeText(self, text, x, y):
-    goocanvas.Text(
-         parent=self.rootitem,
-         x=x,
-         y=y,
-         width=175,
-         text='<span font_family="URW Gothic L" size="large" \
-         weight="bold">' + text + '</span>',
-         fill_color="black",
-         anchor=gtk.ANCHOR_CENTER,
-         alignment=pango.ALIGN_CENTER,
-         use_markup=True
-         )
-
-def drawFillRect(self, x, y, w, h):
-    goocanvas.Rect(parent=self.rootitem,
-                x=x, y=y, width=w, height=h,
-                stroke_color="black", fill_color='gray',
-                line_width=3.0)
 
 
 def drawBasicPlayHomePagePart1(self):
@@ -1113,11 +1156,9 @@ def drawBasicPlayHomePagePart1(self):
     if hasattr(self, 'staff'):
         self.staff.clear()
 
-    drawFillRect(self, 176, 15, 90, 30)
-    writeText(self, _('Play'), 220, 30)
+    textBox(_('Play'), 220, 30, self, fill_color='gray')
 
-    drawFillRect(self, 506, 15, 90, 30)
-    writeText(self, _('Okay'), 550, 30)
+    textBox(_('Okay'), 550, 30, self, fill_color='gray')
 
 def drawBasicPlayHomePagePart2(self):
     # PLAY BUTTON
@@ -1142,8 +1183,7 @@ def drawBasicPlayHomePagePart2(self):
     gcompris.utils.item_focus_init(self.okButton, None)
 
     # ERASE BUTTON
-    drawFillRect(self, 630, 135, 142, 30)
-    writeText(self, _("Erase Attempt"), 700, 150)
+    textBox(_("Erase Attempt"), 700, 150, self, fill_color='gray')
 
     self.eraseButton = goocanvas.Image(
             parent=self.rootitem,
@@ -1206,6 +1246,7 @@ def displayYouWin(self, nextMethod):
     height=300,
     width=150
     )
+    self.responsePic.raise_(None)
     self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
     self.timers.append(gobject.timeout_add(910, nextMethod))
 def displayIncorrectAnswer(self, nextMethod):
@@ -1223,5 +1264,62 @@ def displayIncorrectAnswer(self, nextMethod):
     height=300,
     width=150
     )
+    self.responsePic.raise_(None)
     self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
     self.timers.append(gobject.timeout_add(910, nextMethod))
+
+
+def textButton(x, y, text, self, color='gray', width=100000):
+    self.textbox = goocanvas.Text(
+        parent=self.rootitem,
+        x=x, y=y,
+        width=width,
+        text=text,
+        fill_color="white", anchor=gtk.ANCHOR_CENTER,
+        alignment=pango.ALIGN_CENTER,
+        pointer_events="GOO_CANVAS_EVENTS_NONE"
+        )
+    TG = 15
+    bounds = self.textbox.get_bounds()
+
+    img = goocanvas.Image(
+            parent=self.rootitem,
+            x=bounds.x1 - TG,
+            y=bounds.y1 - TG,
+            height=bounds.y2 - bounds.y1 + TG * 2,
+            width=bounds.x2 - bounds.x1 + TG * 2,
+            pixbuf=gcompris.utils.load_pixmap('piano_composition/buttons/' + color + '.png')
+            )
+
+    gcompris.utils.item_focus_init(img, None)
+    self.textbox.raise_(img)
+    return img
+
+
+def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, noRect=False):
+    self.text = goocanvas.Text(
+        parent=self.rootitem, x=x, y=y, width=width,
+        text=text,
+        fill_color="black", anchor=gtk.ANCHOR_CENTER,
+        alignment=pango.ALIGN_CENTER,
+
+        )
+    TG = 10
+    bounds = self.text.get_bounds()
+    if not noRect:
+        rect = goocanvas.Rect(parent=self.rootitem,
+                              x=bounds.x1 - TG,
+                              y=bounds.y1 - TG,
+                              width=bounds.x2 - bounds.x1 + TG * 2,
+                              height=bounds.y2 - bounds.y1 + TG * 2,
+                              line_width=3.0)
+        if fill_color:
+            rect.props.fill_color = fill_color
+        if stroke_color:
+            rect.props.stroke_color = stroke_color
+        self.text.raise_(rect)
+
+
+
+
+

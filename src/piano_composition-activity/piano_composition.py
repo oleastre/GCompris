@@ -92,6 +92,77 @@ class Gcompris_piano_composition:
 
         self.display_level(self.gcomprisBoard.level)
 
+    def displayMelodySelection(self):
+        goocanvas.Text(parent=self.rootitem,
+         x=290,
+         y=30,
+         text='<span font_family="Arial" size="15000" \
+         weight="bold">' + _('Select A Melody to Load') + '</span>',
+         fill_color="black",
+         use_markup=True,
+         pointer_events="GOO_CANVAS_EVENTS_NONE"
+         )
+
+        file = open(gcompris.DATA_DIR + '/piano_composition/melodies.txt' , 'r')
+        songList = []
+        lineCnt = 1
+        newSong = {}
+        for line in file:
+            if line == '\n':
+                newSong = {}
+                lineCnt = 1
+                continue
+            if lineCnt == 1:
+                newSong['title'] = line.strip()
+                lineCnt += 1
+            elif lineCnt == 2:
+                newSong['origin'] = line.strip()
+                lineCnt += 1
+            else:
+                newSong['melody'] = line.strip()
+                songList.append(newSong)
+        self.songList = songList
+
+        def displayTitle(song, x, y):
+            self.text = goocanvas.Text(
+                parent=self.rootitem,
+                x=x, y=y,
+                text=song['title'], # not to be translated
+                fill_color="black"
+                )
+
+            goocanvas.Text(parent=self.rootitem,
+                 x=x + 30,
+                 y=y + 23,
+                 width=175,
+                 text='<span font_family="URW Gothic L" size="7000" \
+                 weight="bold">' + _(song['origin']) + '</span>',
+                 fill_color="black",
+                 use_markup=True,
+                 pointer_events="GOO_CANVAS_EVENTS_NONE"
+                 )
+
+            self.text.connect("button_press_event", self.melodySelected, song['melody'])
+            gcompris.utils.item_focus_init(self.text, None)
+
+
+        x = 75
+        y = 75
+        for song in self.songList:
+            displayTitle(song, x, y)
+            if y > 400:
+                y = 75
+                x += 300
+            else:
+                y += 50
+
+           # songList.append(line)
+           # print line
+    def melodySelected(self, widget, target, event, melodyText):
+        self.display_level(6)
+        self.staff.stringToNotation(melodyText)
+
+
     def display_level(self, level):
         '''
         displays level contents.
@@ -108,6 +179,9 @@ class Gcompris_piano_composition:
 
         self.rootitem = goocanvas.Group(parent=
                                        self.gcomprisBoard.canvas.get_root_item())
+        if level == 7:
+            self.displayMelodySelection()
+            return
 
         clefDescription = keyboardDescription = True
         if level == 1:
@@ -131,111 +205,61 @@ class Gcompris_piano_composition:
 
         # CLEF DESCRIPTION
         if clefDescription:
-            goocanvas.Rect(parent=self.rootitem, x=380, y=90, width=240,
-                           height=50,
-                stroke_color="purple", line_width=3.0)
-
-            self.clefDesciption = goocanvas.Text(
-                parent=self.rootitem, x=500, y=115, width=250,
-                text=clefText, anchor=gtk.ANCHOR_CENTER,
-                alignment=pango.ALIGN_CENTER
-                )
-
-        # OUTLINE FOR NOTE NAME TEXT
-        goocanvas.Rect(parent=self.rootitem, x=60, y=40, width=120,
-                       height=80,
-            stroke_color="purple", line_width=3.0)
-
+            textBox(clefText, 570, 70, self, 240, stroke_color='purple')
 
         # KEYBOARD DESCRIPTION
+
         if keyboardDescription:
-            goocanvas.Rect(parent=self.rootitem, x=87, y=385, width=230,
-                           height=65,
-                stroke_color="purple", line_width=3.0)
+            textBox(keyboardText, 200, 430, self, 225, stroke_color='purple')
 
-            self.KeyboardDescription = goocanvas.Text(
-                parent=self.rootitem, x=200, y=415, width=225,
-                text=keyboardText,
-                fill_color="black", anchor=gtk.ANCHOR_CENTER,
-                alignment=pango.ALIGN_CENTER
-                )
 
-#        self.colorCodeNotesButton = goocanvas.Text(
-#          parent=self.rootitem,
-#          x=345,
-#          y=120,
-#          width=75,
-#          text=_("Color code notes?"),
-#          fill_color="black",
-#          anchor=gtk.ANCHOR_CENTER,
-#          alignment=pango.ALIGN_CENTER
-#          )
+        self.eraseAllButton = textButton(100, 70, _("Erase All Notes"), self, 'purple', 80)
 
-        self.eraseAllButton = goocanvas.Text(
-          parent=self.rootitem,
-          x=325.0,
-          y=50,
-          width=100,
-          text=_("Erase All Notes"),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
+        self.eraseNotesButton = textButton(220, 70, _("Erase Last Note"), self, 'teal', 100)
 
-        self.eraseNotesButton = goocanvas.Text(
-          parent=self.rootitem,
-          x=425.0,
-          y=50,
-          width=100,
-          text=_("Erase Last Note"),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
-
-        self.playCompositionButton = goocanvas.Text(
-          parent=self.rootitem,
-          x=550,
-          y=50,
-          width=100,
-          text=_("Play Composition"),
-          fill_color="black",
-          anchor=gtk.ANCHOR_CENTER,
-          alignment=pango.ALIGN_CENTER
-          )
+        self.playCompositionButton = textButton(350, 70, _("Play Composition"), self, 'green', 100)
 
 
         if (level > 2):
 
-            self.changeClefButton = goocanvas.Text(
-              parent=self.rootitem,
-              x=230,
-              y=56,
-              width=100,
-              text=_("Change Staff\nClef"),
-              fill_color="black",
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER
-              )
+            self.changeClefButton = textButton(100, 140, _("Change Staff Clef"), self, 'gray', 100)
 
         if (level >= 3):
-            goocanvas.Text(
+            self.textbox = goocanvas.Text(
+                parent=self.rootitem,
+                x=210, y=135,
+                width=100,
+                text=_("Change Note Type:"),
+                fill_color="black", anchor=gtk.ANCHOR_CENTER,
+                alignment=pango.ALIGN_CENTER
+                )
+
+            x = 280
+            y = 110
+            self.eighthNoteSelectedButton = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/quarterNote.png'),
+                x=x,
+                y=y,
+                height=45,
+                width=20
+                )
+
+            goocanvas.Image(
               parent=self.rootitem,
-              x=680,
-              y=50,
-              width=100,
-              text=_("Change Note Type"),
-              fill_color="black",
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER
+              pixbuf=gcompris.utils.load_pixmap("piano_composition/flag.png"),
+              x=x + 17,
+              y=y + 5 ,
+              height=33,
+              width=10
               )
 
 
             self.quarterNoteSelectedButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/quarterNote.png'),
-                x=630,
-                y=80,
+                x=315,
+                y=110,
                 height=45,
                 width=20
                 )
@@ -243,8 +267,8 @@ class Gcompris_piano_composition:
             self.halfNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/halfNote.png'),
-                x=660,
-                y=80,
+                x=340,
+                y=110,
                 height=45,
                 width=20
                 )
@@ -252,8 +276,8 @@ class Gcompris_piano_composition:
             self.wholeNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/wholeNote.png'),
-                x=690,
-                y=80,
+                x=370,
+                y=110,
                 height=45,
                 width=20
                 )
@@ -262,8 +286,8 @@ class Gcompris_piano_composition:
             self.loadButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/load.png'),
-                x=200,
-                y=100,
+                x=720,
+                y=90,
                 height=40,
                 width=40
                 )
@@ -271,11 +295,12 @@ class Gcompris_piano_composition:
             self.saveButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/save.png'),
-                x=260,
-                y=100,
+                x=720,
+                y=40,
                 height=40,
                 width=40
                 )
+            self.loadSongsButton = textButton(200, 430, _("Load Music"), self, 'red', 100)
 
         '''
         create staff instance to manage music data
@@ -284,10 +309,10 @@ class Gcompris_piano_composition:
 
         if level == 2:
             self.staff = BassStaff(380, 170, self.rootitem)
-            self.staff.drawStaff(text='Click a colored box on the keyboard')
+            self.staff.drawStaff()
         else:
             self.staff = TrebleStaff(380, 170, self.rootitem)
-            self.staff.drawStaff(text='Click a colored box on the keyboard')
+            self.staff.drawStaff()
 
 
         '''
@@ -310,6 +335,9 @@ class Gcompris_piano_composition:
         gcompris.utils.item_focus_init(self.playCompositionButton, None)
 
         if level >= 3:
+            self.eighthNoteSelectedButton.connect("button_press_event", self.staff.updateToEighth)
+            gcompris.utils.item_focus_init(self.eighthNoteSelectedButton, None)
+
             self.quarterNoteSelectedButton.connect("button_press_event", self.staff.updateToQuarter)
             gcompris.utils.item_focus_init(self.quarterNoteSelectedButton, None)
 
@@ -320,7 +348,7 @@ class Gcompris_piano_composition:
             gcompris.utils.item_focus_init(self.wholeNoteSelected, None)
 
             # draw focus rectangle around quarter note duration, the default
-            self.staff.drawFocusRect(248, -90)
+            self.staff.drawFocusRect(-70, -60)
 
         if level == 6:
             self.saveButton.connect("button_press_event", self.save_file_event)
@@ -329,25 +357,32 @@ class Gcompris_piano_composition:
             self.loadButton.connect("button_press_event", self.load_file_event)
             gcompris.utils.item_focus_init(self.loadButton, None)
 
+            self.loadSongsButton.connect("button_press_event", self.load_songs_event)
+            gcompris.utils.item_focus_init(self.loadSongsButton, None)
         '''
         create piano keyboard for use on every level
         optionally specify to display the "black keys"
         '''
-        k = PianoKeyboard(50, 160, self.rootitem)
+        self.keyboard = PianoKeyboard(50, 180, self.rootitem)
         if level == 5:
-            k.sharpNotation = False
-            k.blackKeys = True
+            self.keyboard.sharpNotation = False
+            self.keyboard.blackKeys = True
         elif level == 4 or level == 6:
-            k.blackKeys = True
-            k.sharpNotation = True
+            self.keyboard.blackKeys = True
+            self.keyboard.sharpNotation = True
 
-        k.draw(300, 200, self.keyboard_click)
+        self.keyboard.draw(300, 200, self.keyboard_click)
 
         Prop = gcompris.get_properties()
         if not (Prop.fx):
             gcompris.utils.dialog(_("Error: This activity cannot be \
 played with the\nsound effects disabled.\nGo to the configuration \
 dialogue to\nenable the sound."), stop_board)
+
+    def load_songs_event(self, widget, target, event):
+        self.set_level(7)
+
+
 
     def color_code_notes(self, widget, target, event):
         if not ready(self):
@@ -366,7 +401,7 @@ dialogue to\nenable the sound."), stop_board)
         calls the general_save function, passes self.staff
         '''
         gcompris.file_selector_save(self.gcomprisBoard,
-                                   'comp', '.gcmusic',
+                                   'comp', '.txt',
                                    general_save, self.staff)
     def load_file_event(self, widget, target, event):
         '''
@@ -389,12 +424,14 @@ dialogue to\nenable the sound."), stop_board)
         exists in the piece
         '''
         self.staff.clear()
-        if self.staff.name == "trebleClef":
+        if hasattr(self.staff, 'newClef'):
+            self.staff.newClef.clear()
+        if self.staff.staffName == "trebleClef":
             self.staff = BassStaff(380, 170, self.rootitem)
-            self.staff.drawStaff(text='Click a colored box on the keyboard')
+            self.staff.drawStaff()
         else:
             self.staff = TrebleStaff(380, 170, self.rootitem,)
-            self.staff.drawStaff(text='Click a colored box on the keyboard')
+            self.staff.drawStaff()
 
         #re-establish link to root
         self.eraseNotesButton.connect("button_press_event", self.staff.eraseOneNote)
@@ -405,6 +442,9 @@ dialogue to\nenable the sound."), stop_board)
 
         self.playCompositionButton.connect("button_press_event", self.staff.playComposition)
         gcompris.utils.item_focus_init(self.playCompositionButton, None)
+
+        self.eighthNoteSelectedButton.connect("button_press_event", self.staff.updateToEighth)
+        gcompris.utils.item_focus_init(self.eighthNoteSelectedButton, None)
 
         self.quarterNoteSelectedButton.connect("button_press_event", self.staff.updateToQuarter)
         gcompris.utils.item_focus_init(self.quarterNoteSelectedButton, None)
@@ -424,14 +464,15 @@ dialogue to\nenable the sound."), stop_board)
         if not ready(self):
             return False
 
-        if self.staff.currentNoteType == 'quarterNote':
-            n = QuarterNote(target.name, self.staff.name, self.staff.rootitem)
-        elif self.staff.currentNoteType == 'halfNote':
-            n = HalfNote(target.name, self.staff.name, self.staff.rootitem)
-        elif self.staff.currentNoteType == 'wholeNote':
-            n = WholeNote(target.name, self.staff.name, self.staff.rootitem)
+        if self.staff.currentNoteType == 4:
+            n = QuarterNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+        elif self.staff.currentNoteType == 2:
+            n = HalfNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+        elif self.staff.currentNoteType == 1:
+            n = WholeNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+        elif self.staff.currentNoteType == 8:
+            n = EighthNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
 
-        self.staff.writeText('This is the ' + n.niceName + ' key')
         self.staff.drawNote(n)
         n.play()
         n.enablePlayOnClick()
