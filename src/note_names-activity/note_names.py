@@ -182,34 +182,6 @@ They also form the C Major Scale. Notice that the note positions are different t
             gcompris.utils.item_focus_init(item, None)
             self.drawNoteButtons()
 
-
-
-#            self.colorTextToggle = goocanvas.Text(
-#              parent=self.rootitem,
-#              x=227,
-#              y=390,
-#              width=120,
-#              text=_("Ready for a challenge? Color all buttons black!"),
-#              fill_color="black",
-#              anchor=gtk.ANCHOR_CENTER,
-#              alignment=pango.ALIGN_CENTER
-#              )
-#            self.colorTextToggle.connect("button_press_event", self.color_button_toggle)
-#            gcompris.utils.item_focus_init(self.colorTextToggle, None)
-#
-#            self.soundToggle = goocanvas.Text(
-#              parent=self.rootitem,
-#              x=100,
-#              y=390,
-#              width=100,
-#              text=_("Ready for a challenge? Turn off pitch sound"),
-#              fill_color="black",
-#              anchor=gtk.ANCHOR_CENTER,
-#              alignment=pango.ALIGN_CENTER
-#              )
-#            self.soundToggle.connect("button_press_event", self.turn_off_pitch_sound)
-#            gcompris.utils.item_focus_init(self.soundToggle, None)
-
         if level in [2, 3, 4, 12, 13, 14]:
             instructionText = _("Click on the note name to match the pitch. Then click ok to check.")
         elif level in [5, 6, 7, 15, 16, 17]:
@@ -263,14 +235,14 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         if self.gcomprisBoard.level <= 10:
             self.staff = TrebleStaff(380, 160, self.rootitem, numStaves=1)
-            self.staff.endx = 150
+            self.staff.endx = 110
             self.staff.noteSpacingX = 36
             self.staff.drawStaff()
             self.staff.rootitem.scale(2.0, 2.0)
             self.staff.rootitem.translate(-350, -75)
         else:
             self.staff = BassStaff(380, 160, self.rootitem, numStaves=1)
-            self.staff.endx = 150
+            self.staff.endx = 110
             self.staff.noteSpacingX = 36
             self.staff.drawStaff()
             self.staff.rootitem.scale(2.0, 2.0)
@@ -308,21 +280,22 @@ They also form the C Major Scale. Notice that the note positions are different t
         '''
         if self.pitchSoundEnabled:
             self.pitchSoundEnabled = False
-            #self.soundToggle.props.text = _("Click here to hear the pitches.")
             self.currentNote.disablePlayOnClick()
         else:
             self.pitchSoundEnabled = True
-            #self.soundToggle.props.text = _("Ready for a challenge? Turn off pitch sound")
             self.currentNote.enablePlayOnClick()
 
     def drawRandomNote(self, staffType):
         '''
         draw a random note, selected from the pitchPossibilities, and save as self.currentNote
         '''
+
         if not self._okayToRepeat:
             if not ready(self):
                 return
+
         newNoteID = self.pitchPossibilities[randint(0, len(self.pitchPossibilities) - 1)]
+
         if hasattr(self, 'currentNote') and \
         self.currentNote.numID == newNoteID: #don't repeat the same note twice
             self._okayToRepeat = True
@@ -336,6 +309,7 @@ They also form the C Major Scale. Notice that the note positions are different t
             note.play()
             note.enablePlayOnClick()
         self.currentNote = note
+
     def play_scale_game(self, widget=None, target=None, event=None):
         '''
         button to move to the next level and have kids play the game. Also
@@ -367,59 +341,68 @@ They also form the C Major Scale. Notice that the note positions are different t
             if self.colorButtons:
                 color = NOTE_COLOR_SCHEME[numID]
             else:
-                color = 'black'
+                color = 'white'
             text = getKeyNameFromID(numID, self.sharpNotation)
             vars(self)[str(numID)] = goocanvas.Text(
               parent=self.noteButtonsRootItem,
               x=x,
               y=y,
               text=text,
-              fill_color=color,
+              fill_color='black',
               anchor=gtk.ANCHOR_CENTER,
               alignment=pango.ALIGN_CENTER,
+              pointer_events="GOO_CANVAS_EVENTS_NONE"
               )
+
+            rect = goocanvas.Rect(parent=self.rootitem,
+                              x=x - 12.5,
+                              y=y - 10,
+                              width=25,
+                              height=20,
+                              line_width=.5,
+                              fill_color=color)
+
             vars(self)[str(numID)].scale(2.0, 2.0)
             vars(self)[str(numID)].translate(-250, -150)
-            vars(self)[str(numID)].connect("button_press_event", play_sound_on_click, numID)
-            vars(self)[str(numID)].set_data('numID', numID)
-
+            rect.scale(2, 2)
+            rect.translate(-250, -150)
+            rect.connect("button_press_event", play_sound_on_click, numID)
+            rect.set_data('numID', numID)
+            gcompris.utils.item_focus_init(rect, None)
             gcompris.utils.item_focus_init(vars(self)[str(numID)], None)
 
-        x = 450
-        y = 200
+        x = 420
+        y = 220
         random.shuffle(self.pitchPossibilities)
         for numID in self.pitchPossibilities:
             if numID != 8:
                 drawNoteButton(x, y, numID, self.play_sound_on_click)
-                y += 20
-            if y > 330:
-                y = 200
-                x = x + 50
+                y += 30
+                if y > 320:
+                    y = 220
+                    x = x + 40
 
     def play_sound_on_click(self, widget, target, event, numID):
         '''
-        plays the note sound when the mouse clikcs on the  over the note name
+        plays the note sound when the mouse clicks on the note name
         '''
         self.selectedNoteObject = widget
 
         if self.pitchSoundEnabled:
             if not ready(self) or self.master_is_not_ready:
                 return
+            if self.currentNote.numID == 8:
+                numID = 8
             HalfNote(numID, self.staff.staffName, self.staff.rootitem).play()
         if hasattr(self, 'focusRect'):
             self.focusRect.remove()
-        if numID < 0:
-            width = 29
-            xoff = -7
-        else:
-            width = 15
-            xoff = 0
+
         self.focusRect = goocanvas.Rect(parent=self.rootitem,
-                                        x=self.selectedNoteObject.props.x + xoff,
-                                        y=self.selectedNoteObject.props.y,
-                                        width=width, height=20,
+                                        x=self.selectedNoteObject.props.x + 6,
+                                        y=self.selectedNoteObject.props.y + 8.5,
+                                        width=28, height=23,
                                         radius_x=5, radius_y=5,
-                                        stroke_color="black", line_width=2.0)
+                                        stroke_color="black", line_width=1.0)
         self.focusRect.translate(-515, -320)
         self.focusRect.scale(2.0, 2.0)
     def readyToSoundAgain(self):
@@ -435,7 +418,9 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         self.master_is_not_ready = True
         self.timers.append(gobject.timeout_add(2000, self.readyToSoundAgain))
-        if self.selectedNoteObject.get_data('numID') == self.currentNote.numID:
+        g = self.selectedNoteObject.get_data('numID')
+        c = self.currentNote.numID
+        if g == c or (c == 8 and g == 1):
             displayYouWin(self, self.prepareGame)
         else:
             displayIncorrectAnswer(self, self.clearPic)

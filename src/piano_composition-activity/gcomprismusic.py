@@ -267,15 +267,23 @@ class Staff():
             color = NOTE_COLOR_SCHEME[note.numID]
 
         if note in self.noteList:
-            goocanvas.Text(
+            text = goocanvas.Text(
                   parent=self.rootitem,
                   x=note.x,
-                  y=self.staffLineSpacing * 6,
+                  y=self.staffLineSpacing * 6 + 3,
                   text=text,
-                  fill_color=color,
+                  fill_color='black',
                   anchor=gtk.ANCHOR_CENTER,
                   alignment=pango.ALIGN_CENTER
                   )
+            rect = goocanvas.Rect(parent=self.rootitem,
+                      x=note.x - 10,
+                      y=self.staffLineSpacing * 6 - 8,
+                      width=20,
+                      height=20,
+                      line_width=.5,
+                      fill_color=color)
+            text.raise_(rect)
 
     def getNoteXCoordinate(self):
         '''
@@ -363,7 +371,7 @@ class Staff():
         if hasattr(self, 'noteText'):
             self.noteText.remove()
 
-    def play_it(self):
+    def play_it(self, playingLineOnly=False):
         '''
         called to play one note. Checks to see if all notes have been played
         if not, establishes a timer for the next note depending on that note's
@@ -382,7 +390,7 @@ class Staff():
         if hasattr(self, 'verticalPlayLine'):
             self.verticalPlayLine.remove()
 
-        if self.drawPlayingLine:
+        if self.drawPlayingLine or playingLineOnly:
             self.verticalPlayLine = goocanvas.polyline_new_line(self.rootitem,
                                 note.x, note.y, note.x, note.y - 50,
                                 stroke_color_rgba=0x121212D0, line_width=2)
@@ -390,11 +398,12 @@ class Staff():
             self.verticalPlayLine.animate(self.noteSpacingX, 0, 1.0, 0.0, \
                 absolute=False, duration=note.toMillisecs(), step_time=50, type=goocanvas.ANIMATE_FREEZE)
 
-        note.play()
-        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
+        if not playingLineOnly:
+            note.play()
+        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it, playingLineOnly))
         self.currentNoteIndex += 1
 
-    def playComposition(self, widget=None, target=None, event=None):
+    def playComposition(self, widget=None, target=None, event=None, playingLineOnly=False):
         '''
         plays entire composition. establish timers, one per note, called after
         different durations according to noteType
@@ -408,7 +417,7 @@ class Staff():
 
         self.timers = []
         self.currentNoteIndex = 0
-        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it))
+        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it, playingLineOnly))
 
 
     def sound_played(self, file):
@@ -846,6 +855,7 @@ class Note():
         enables the function that the note will be played when the user clicks
         on the note (not currently used)
         '''
+
         self.noteHead.connect("button_press_event", self.play)
         gcompris.utils.item_focus_init(self.noteHead, None)
         self.silent = False
@@ -1222,7 +1232,7 @@ def ready(self, timeouttime=200):
         return False
 
     if self.readyForNextClick == False:
-        return False
+        return
     else:
         self.clickTimers.append(gobject.timeout_add(timeouttime, clearClick))
         self.readyForNextClick = False
@@ -1320,6 +1330,32 @@ def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, 
         self.text.raise_(rect)
 
 
-
+def pianokeyBindings(keyval, self):
+    if keyval == 49:
+        self.keyboard_click(None, None, None, 1)
+    elif keyval == 50:
+        self.keyboard_click(None, None, None, 2)
+    elif keyval == 51:
+        self.keyboard_click(None, None, None, 3)
+    elif keyval == 52:
+        self.keyboard_click(None, None, None, 4)
+    elif keyval == 53:
+        self.keyboard_click(None, None, None, 5)
+    elif keyval == 54:
+        self.keyboard_click(None, None, None, 6)
+    elif keyval == 55:
+        self.keyboard_click(None, None, None, 7)
+    elif keyval == 56:
+        self.keyboard_click(None, None, None, 8)
+    elif keyval == gtk.keysyms.F1:
+        self.keyboard_click(None, None, None, -1)
+    elif keyval == gtk.keysyms.F2:
+        self.keyboard_click(None, None, None, -2)
+    elif keyval == gtk.keysyms.F3:
+        self.keyboard_click(None, None, None, -3)
+    elif keyval == gtk.keysyms.F4:
+        self.keyboard_click(None, None, None, -4)
+    elif keyval == gtk.keysyms.F5:
+        self.keyboard_click(None, None, None, -5)
 
 

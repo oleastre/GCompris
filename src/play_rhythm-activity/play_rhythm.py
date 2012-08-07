@@ -137,59 +137,66 @@ class Gcompris_play_rhythm:
 
         textBox(_('Click the Metronome to hear the tempo'), 90, 100, self, fill_color='gray', width=150)
         # METRONOME BUTTON
-        self.metornomeButton = goocanvas.Image(
+        self.metronomeButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('play_rhythm/metronome.png'),
                 x=40,
                 y=150,
                 )
-        self.metornomeButton.connect("button_press_event", self.play_metronome)
-        gcompris.utils.item_focus_init(self.metornomeButton, None)
+        self.metronomeButton.connect("button_press_event", self.play_metronome)
+        gcompris.utils.item_focus_init(self.metronomeButton, None)
         drawBasicPlayHomePagePart2(self)
         self.metronomePlaying = False
-        self.timers.append(gobject.timeout_add(500, self.staff.playComposition))
+
         self.playButton.connect("button_press_event", self.stopMetronome)
         self.okButton.connect("button_press_event", self.stopMetronome)
+
+
+    def setPlayingLine(self, on=True):
+        if on:
+            self.playingLine = True
+            self.runPlayingLine()
+        else:
+            self.playingLine = False
+            self.runPlayingLine()
+
+    def runPlayingLine(self):
+        if self.playingLine:
+            self.staff.playComposition(playingLineOnly=True)
+            self.timers.append(gobject.timeout_add(1000, self.runPlayingLine))
 
     def stopMetronome(self, widget=None, target=None, event=None):
         self.metronomePlaying = False
 
-    def play_metronome(self, widget=None, target=None, event=None):
+    def  play_metronome(self, widget=None, target=None, event=None):
         if not self.metronomePlaying:
             self.timers.append(gobject.timeout_add(500, self.playClick))
             self.metronomePlaying = True
+            self.setPlayingLine(False)
         else:
             self.timers = []
             self.metronomePlaying = False
             gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
-
+            self.setPlayingLine(True)
     def playClick(self):
         if self.metronomePlaying:
             gcompris.sound.play_ogg('play_rhythm/click.wav')
             self.timers.append(gobject.timeout_add(500, self.playClick))
 
-    def keyboard_click(self, widget, target, event):
-
-        if not ready(self):
-            return False
-        n = QuarterNote(target.name, 'trebleClef', self.staff.rootitem)
-        n.play()
-        self.kidsNoteList.append(target.name)
-
     def generateRhythm(self):
         level = self.gcomprisBoard.level
         if level == 1:
-            options = [['q', 'q', 'q'], ['h', 'h', 'h'], ['w', 'w', 'w'] ]
+            options = [[4, 4, 4], [2, 2, 2], [4, 4, 4] ]
         elif level == 2:
-            options = [ ['q', 'h'], ['h', 'q'], ['q', 'w'], ['w', 'q'], ['h', 'w'], ['w', 'h']]
+            options = [ [4, 2], [2, 4], [4, 4], [4, 4], [2, 4], [4, 2]]
         elif level == 3:
-            options = [ ['q', 'h', 'q'], ['q', 'w', 'q'], ['h', 'q', 'h'], ['w', 'q', 'w'], ['w', 'h', 'w'], ['h', 'w', 'h']]
+            options = [ [4, 2, 4], [4, 4, 4], [2, 4, 2], [4, 4, 4], [4, 2, 4], [2, 4, 2]]
         elif level == 4:
-            options = [ ['q', 'h', 'q', 'h'], ['h', 'q', 'q', 'q'], ['q', 'h', 'h', 'q'], ['q', 'h', 'q'], ['h', 'h', 'h'] ]
+            options = [ [4, 2, 4, 2], [2, 4, 4, 4], [4, 2, 2, 4], [4, 2, 4], [2, 2, 2] ]
         elif level == 5:
-            options = [ ['e', 'e', 'e', 'e'], ['q', 'q', 'q', 'q'], ['h', 'h', 'h', 'h'], ['w', 'w', 'w', 'w'] ]
+            options = [ [8, 8, 8, 8], [4, 4, 4, 4], [2, 2, 2, 2], [4, 4, 4, 4] ]
         elif level == 6:
-            options = [ ['q', 'e', 'e', 'q'], ['e', 'e', 'w', 'q'], ['q', 'w', 'e', 'q'], ['w', 'e', 'w', 'e']]
+            options = [ [4, 8, 8, 4], [8, 8, 4, 4], [4, 4, 8, 4], [4, 8, 4, 8]]
 
         newrhythm = options[randint(0, len(options) - 1)]
         if newrhythm == self.givenRhythm:
@@ -200,21 +207,26 @@ class Gcompris_play_rhythm:
 
     def show_rhythm(self):
         self.givenRhythm = self.generateRhythm()
+        self.remainingNotes = self.givenRhythm
         for item in self.givenRhythm:
-            if item == 'e':
+            if item == 8:
                 note = EighthNote(1, 'trebleClef', self.staff.rootitem)
-            elif item == 'q':
+            elif item == 4:
                 note = QuarterNote(1, 'trebleClef', self.staff.rootitem)
-            elif item == 'h':
+            elif item == 2:
                 note = HalfNote(1, 'trebleClef', self.staff.rootitem)
-            elif item == 'w':
+            elif item == 1:
                 note = WholeNote(1, 'trebleClef', self.staff.rootitem)
             self.staff.drawNote(note)
+        self.staff.playComposition()
+        self.playingLine = False
+        self.timers.append(gobject.timeout_add(1000, self.setPlayingLine, True))
 
-    def ok_event(self, widget, target, event):
+    def ok_event(self, widget=None, target=None, event=None):
         '''
         DOCS HERE
         '''
+        self.setPlayingLine(False)
         if not ready(self, 1000):
             return False
 
@@ -232,44 +244,62 @@ class Gcompris_play_rhythm:
             displayIncorrectAnswer(self, self.tryagain)
             return
         for rhythmItem, recordedHit in zip(self.givenRhythm[:-1], self.netOffsets[1:]):
-            if rhythmItem == 'e':
-                if not nearlyEqual(recordedHit, 0.25, 0.1):
+            if rhythmItem == 8:
+                if not nearlyEqual(recordedHit, 0.25, 0.3):
                     displayIncorrectAnswer(self, self.tryagain)
                     return
-            if rhythmItem == 'q':
-                if not nearlyEqual(recordedHit, 0.5, 0.1):
+            if rhythmItem == 4:
+                if not nearlyEqual(recordedHit, 0.5, 0.3):
                     displayIncorrectAnswer(self, self.tryagain)
                     return
-            if rhythmItem == 'h':
-                if not nearlyEqual(recordedHit, 1.0, 0.2):
+            if rhythmItem == 2:
+                if not nearlyEqual(recordedHit, 1.0, 0.3):
                     displayIncorrectAnswer(self, self.tryagain)
                     return
-            if rhythmItem == 'w':
+            if rhythmItem == 1:
                 if not nearlyEqual(recordedHit, 2.0, 0.3):
                     displayIncorrectAnswer(self, self.tryagain)
                     return
 
         displayYouWin(self, self.nextChallenge)
         self.metronomePlaying = False
-        self.timers.append(gobject.timeout_add(800, self.staff.playComposition))
 
+        self.remainingNotes = self.givenRhythm
     def tryagain(self):
+        self.timers = []
+        self.setPlayingLine(True)
         self.recordedHits = []
+        self.remainingNotes = self.givenRhythm
 
     def nextChallenge(self):
-
+        self.setPlayingLine(False)
+        self.timers = []
         self.recordedHits = []
         self.staff.eraseAllNotes()
         self.show_rhythm()
 
-    def erase_entry(self, widget, target, event):
+    def erase_entry(self, widget=None, target=None, event=None):
        # self.startTime = time.time()
         self.recordedHits = []
 
-    def record_click(self, x, y, z):
+    def record_click(self, widget=None, target=None, event=None):
+
         if not ready(self):
             return
-        gcompris.sound.play_ogg('piano_composition/treble_pitches/C.wav')
+        if not self.metronomePlaying:
+            if len(self.remainingNotes) >= 1:
+                gcompris.sound.play_ogg(gcompris.DATA_DIR +
+                                        '/piano_composition/treble_pitches/'
+                                        + str(self.remainingNotes[0]) + '/1.wav')
+                if len(self.remainingNotes) > 1:
+                    self.remainingNotes = self.remainingNotes[1:]
+                else:
+                    self.remainingNotes = []
+
+            else:
+                gcompris.sound.play_ogg(gcompris.DATA_DIR +
+                                         '/piano_composition/treble_pitches/1/1.wav')
+
         if self.recordedHits == []:
             self.startTime = time.time()
             self.recordedHits.append(0.0)
@@ -300,7 +330,20 @@ class Gcompris_play_rhythm:
 
     def key_press(self, keyval, commit_str, preedit_str):
         utf8char = gtk.gdk.keyval_to_unicode(keyval)
-        strn = u'%c' % utf8char
+
+        if keyval == gtk.keysyms.BackSpace:
+            if not ready(self, timeouttime=100): return False
+            self.erase_entry()
+        elif keyval == gtk.keysyms.Delete:
+            if not ready(self, timeouttime=100): return False
+            self.erase_entry()
+        elif keyval == gtk.keysyms.space:
+            self.record_click()
+        elif keyval == gtk.keysyms.Return:
+            self.ok_event()
+        elif keyval == gtk.keysyms.Tab:
+            if not ready(self, timeouttime=100): return False
+            self.staff.playComposition()
 
     def pause(self, pause):
         pass

@@ -70,7 +70,7 @@ class Gcompris_piano_composition:
         gcomprisBoard.disable_im_context = True
 
     def start(self):
-
+        self.first = True
         # write the navigation bar to bottom left corner
         gcompris.bar_set(gcompris.BAR_LEVEL)
         gcompris.bar_set_level(self.gcomprisBoard)
@@ -455,7 +455,7 @@ dialogue to\nenable the sound."), stop_board)
         self.wholeNoteSelected.connect("button_press_event", self.staff.updateToWhole)
         gcompris.utils.item_focus_init(self.wholeNoteSelected, None)
 
-    def keyboard_click(self, widget, target, event):
+    def keyboard_click(self, widget, target, event, numID=None):
         '''
         called whenever a key rectangle is pressed; a note object is created
         with a note name, text is output to canvas, the note sound is generated,
@@ -463,15 +463,16 @@ dialogue to\nenable the sound."), stop_board)
         '''
         if not ready(self):
             return False
-
+        if not numID:
+            numID = target.numID
         if self.staff.currentNoteType == 4:
-            n = QuarterNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+            n = QuarterNote(numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
         elif self.staff.currentNoteType == 2:
-            n = HalfNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+            n = HalfNote(numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
         elif self.staff.currentNoteType == 1:
-            n = WholeNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+            n = WholeNote(numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
         elif self.staff.currentNoteType == 8:
-            n = EighthNote(target.numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
+            n = EighthNote(numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
 
         self.staff.drawNote(n)
         n.play()
@@ -499,9 +500,23 @@ dialogue to\nenable the sound."), stop_board)
         pass
 
     def key_press(self, keyval, commit_str, preedit_str):
-        utf8char = gtk.gdk.keyval_to_unicode(keyval)
-        strn = u'%c' % utf8char
 
+        utf8char = gtk.gdk.keyval_to_unicode(keyval)
+        #if not ready(self, timeouttime=100): return False
+        if keyval == gtk.keysyms.BackSpace:
+            if not ready(self, timeouttime=100): return False
+            self.staff.eraseOneNote()
+        elif keyval == gtk.keysyms.Delete:
+            if not ready(self, timeouttime=100): return False
+            self.staff.eraseAllNotes()
+        elif keyval == gtk.keysyms.space:
+            if not ready(self, timeouttime=100): return False
+            self.staff.playComposition()
+        else:
+            if not self.first:
+                pianokeyBindings(keyval, self)
+            else:
+                self.first = False
     def pause(self, x):
         pass
 

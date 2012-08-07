@@ -71,7 +71,7 @@ class Gcompris_play_piano:
 
         self.timers = []
     def start(self):
-
+        self.first = True
         self.recordedHits = []
         self.saved_policy = gcompris.sound.policy_get()
         gcompris.sound.policy_set(gcompris.sound.PLAY_AND_INTERRUPT)
@@ -134,13 +134,16 @@ class Gcompris_play_piano:
 
         self.timers.append(gobject.timeout_add(500, self.staff.playComposition))
 
-    def keyboard_click(self, widget, target, event):
+    def keyboard_click(self, widget=None, target=None, event=None, numID=None):
 
-        if not ready(self):
-            return False
-        n = QuarterNote(target.numID, 'trebleClef', self.staff.rootitem)
+#        if not ready(self):
+#            return False
+        if not numID:
+            numID = target.numID
+
+        n = QuarterNote(numID, 'trebleClef', self.staff.rootitem)
         n.play()
-        self.kidsNoteList.append(target.numID)
+        self.kidsNoteList.append(numID)
 
     def generateMelody(self):
         level = self.gcomprisBoard.level
@@ -174,7 +177,7 @@ class Gcompris_play_piano:
             note = QuarterNote(item, 'trebleClef', self.staff.rootitem)
             self.staff.drawNote(note)
 
-    def ok_event(self, widget, target, event):
+    def ok_event(self, widget=None, target=None, event=None):
         '''
         DOCS HERE
         '''
@@ -220,9 +223,26 @@ class Gcompris_play_piano:
         pass
 
     def key_press(self, keyval, commit_str, preedit_str):
-        utf8char = gtk.gdk.keyval_to_unicode(keyval)
-        strn = u'%c' % utf8char
 
+        utf8char = gtk.gdk.keyval_to_unicode(keyval)
+
+        if keyval == gtk.keysyms.BackSpace:
+
+            self.erase_entry()
+        elif keyval == gtk.keysyms.Delete:
+            if not ready(self, timeouttime=100): return False
+            self.erase_entry()
+        elif keyval == gtk.keysyms.Return:
+            self.ok_event()
+        elif keyval == gtk.keysyms.space:
+            if not ready(self, timeouttime=50): return False
+            self.staff.playComposition()
+        else:
+            if not ready(self, timeouttime=50): return False
+            if not self.first:
+                pianokeyBindings(keyval, self)
+            else:
+                self.first = False
     def pause(self, pause):
         pass
 
