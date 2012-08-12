@@ -41,8 +41,39 @@ topics pertaining to a certain grand theme. For example, themes might include
 music, landmarks, traditions, languages, etc. around the world, body parts,
 types of fruit, etc.
 
+Here are the steps:
+1. create a new activity in GCompris: open the terminal, cd GCompris, cd src, sh createit.sh explore_name_of_activity
+2. open init_path.sh in your newly created activity
+3. change pythonplugindir to $path/../explore-activity (entire new line should read pythonplugindir=$path/../explore-activity)
+4. delete explore_farm_animals.py from the folder, your activity won't need that
+5. create a resources directory in the folder, add a folder inside that with the name of the activity and the Makefile.am
+(if you're unsure of this step, look at other previously made explore activities such as explore_world_music
+6. add the backround picture you'd like to use to this resources/name_of_activity subfolder
+7. open up explore.py in the explore-activity folder, and find the boolean variable at the top
+called RECORD_LOCATIONS. Set to True
+8. create a file named content.desktop.in in the explore resourses directory,
+and enter the following text:
+[common]
+background = name_of_background_file.jpg (or .png)
+
+9. open name_of_your_activity.xml and change the type tag to type="python:explore"
+9. run your activity
+10. *hopefully* you see your backround picture! If so, continue, if not, troubleshoot
+or send an email to bethmhadley@gmail.com and she'll help you
+11. if your background picture isn't the right size, resize it using a tool like gimp
+typical width resolution is between 700 and 800. if the picture isn't centered,
+you can center it by putting the following lines into the common tag in content.desktop.in
+backgroundx = (some number here, play around until it looks good. start with 20)
+backgroundy = (some number here, play around until it looks good. start with 20)
+12. click on the locations in your backround picture that you'd like to use as features
+make a list to remind yourself which feature corresponds to which number
+13. close the program by clicking the red exit button
+14. immediately open explore.py and change the RECORD_LOCATIONS variable to False
+so that your data isn't overwritten
+15. fill out content.desktop.in
+
 Customizing this activity for a specific theme is easy. You must first select the
-theme you'd like to write about, then choose a good background picture. THis will
+theme you'd like to write about, then choose a good background picture. This will
 be used as the home screen from which players may click on specific locations to
 learn more about that topic, and answer a question about the topic. The game is won
 when the player correctly answers all questions about all topics.
@@ -69,11 +100,12 @@ image = image filepath here
 music = music file name here
 _question = enter question about topic here
 _answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
-
+game1text =
+game2text =
 This is automatically generated with the section number, and correct x and y corrdinates.
 You then must enter the correct content. Note: ALL FILEPATHS are relative to the resources/name_of_activity
 file directory, so if you wish to specify an image, for example, located in this directory rather than enter
-/name_of_actiivty/name_of_piction.png, simply enter name_of_picture.png
+/name_of_activity/name_of_picture.png, simply enter name_of_picture.png
 
 title: Enter the name of the location
 
@@ -96,6 +128,12 @@ answeroptions: the list of optional answers to your question (like multiple-choi
 list the correct answer first, followed by any number of incorrect choices. During runtime,
 the options will be sorted alphabetically so the correct answer won't always be first.
 Example: France, Italy, USA, China
+
+game1text: text to be displayed on the map for the first game
+
+game2text: same as above, but for second game (matching sounds to places)
+if this level is not applicable to the game, delete this entry and the
+second level won't be available
 
 Be sure all the image and music files you specified are in the resources folder
 of your new activity. If you do not wish to include an entry (no music for example)
@@ -120,6 +158,10 @@ import random
 # set to True if you'd like to record selected locations to make a new activity
 # BEWARE: setting this to true will delete all your previous records!
 RECORD_LOCATIONS = False
+
+
+
+
 ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
 class Gcompris_explore:
 
@@ -129,7 +171,7 @@ class Gcompris_explore:
         # to know from the core
         self.gcomprisBoard = gcomprisBoard
         self.gcomprisBoard.level = 1
-        self.gcomprisBoard.maxlevel = 2
+        self.gcomprisBoard.maxlevel = 1
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
         self.activityDataFilePath = '/' + self.gcomprisBoard.name + '/'
@@ -166,8 +208,10 @@ class Gcompris_explore:
 
         self.display_level(self.gcomprisBoard.level)
 
+
     def display_level(self, x=None, y=None, z=None):
         level = self.gcomprisBoard.level
+
         gcompris.bar_set(gcompris.BAR_LEVEL)
         gcompris.bar_set_level(self.gcomprisBoard)
         gcompris.bar_location(20, -1, 0.6)
@@ -185,18 +229,30 @@ class Gcompris_explore:
         if not hasattr(self, 'data'):
             self.read_data() # read in the data from content.desktop.in file
 
+        if hasattr(self, 'game2text'):
+            self.gcomprisBoard.maxlevel = 2
+
+        if not hasattr(self, 'backgroundx'):
+            x = 10
+        else:
+            x = int(self.backgroundx)
+        if not hasattr(self, 'backgroundy'):
+            y = 10
+        else:
+            y = int(self.backgroundy)
         self.map = goocanvas.Image(
             parent=self.rootitem,
-            x=16, y=20,
+            x=x, y=y,
             pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + self.background)
             )
-
+        self.map.raise_(None)
         if RECORD_LOCATIONS:
-            self.recordLocationForDeveloper()
+            self.recordLocationsForDeveloper()
         else:
             if self.loadBasicHomePage() == False:
                 return
             self.drawLocations()
+
 
             if level == 1:
                 self.writeText(self.game1text)
@@ -204,8 +260,10 @@ class Gcompris_explore:
                 self.writeText(self.game2text)
                 self.playRandomSong()
 
+
+
     def writeText(self, txt):
-        goocanvas.Text(
+        t = goocanvas.Text(
           parent=self.rootitem,
           x=100,
           y=230,
@@ -216,6 +274,19 @@ class Gcompris_explore:
           alignment=pango.ALIGN_CENTER,
           use_markup=True
           )
+
+        TG = 10
+        bounds = t.get_bounds()
+
+        rect = goocanvas.Rect(parent=self.rootitem,
+                              x=bounds.x1 - TG,
+                              y=bounds.y1 - TG,
+                              width=bounds.x2 - bounds.x1 + TG * 2,
+                              height=bounds.y2 - bounds.y1 + TG * 2,
+                              line_width=3.0)
+        rect.props.fill_color = 'gray'
+        rect.props.stroke_color = 'black'
+        t.raise_(rect)
 
     def playRandomSong(self):
         if self.soundClips:
@@ -284,7 +355,7 @@ class Gcompris_explore:
             # show congratulations image!
             goocanvas.Image(
             parent=self.rootitem,
-            x=100, y= -30,
+            x=200, y=30,
             pixbuf=gcompris.utils.load_pixmap(self.gameWonPic)
             )
             # reset the game
@@ -499,7 +570,7 @@ class Gcompris_explore:
 # such as finditDataSetObject and finditDataSet.When I was first developing
 # this activity my data file was so simple that no special class was really
 # necessary, but now that it has gotten a bit more complicated
-# I can see the advantage to writing a class. This is on my to-do list next...
+# I can see the advantage to writing a class. 
 
     def recordLocationsForDeveloper(self):
         for section in self.data.sections():
@@ -605,6 +676,10 @@ comma-seperated list, of answer options here, The correct answer should, be list
                 try: self.game1text = self.data.get('common', 'game1text')
                 except:pass
                 try: self.game2text = self.data.get('common', 'game2text')
+                except:pass
+                try: self.backgroundx = self.data.get('common', 'backgroundx')
+                except:pass
+                try: self.backgroundy = self.data.get('common', 'backgroundy')
                 except:pass
             else:
                 try:

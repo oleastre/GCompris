@@ -498,3 +498,7 @@ src/play_rhythm-activity/play_rhythm.xml.in
 src/play_rhythm-activity/play_rhythm.py
 src/piano_composition-activity/piano_composition.xml.in
 src/piano_composition-activity/piano_composition.py
+src/explore_farm_animals-activity/explore_farm_animals.xml.in
+src/explore_farm_animals-activity/explore_farm_animals.py
+src/explore_farm_animals-activity/explore_farm_animals.xml.in
+src/explore_farm_animals-activity/explore_farm_animals.py

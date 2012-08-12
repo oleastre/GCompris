@@ -518,7 +518,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(LIBS)
 
 dnl Autoconf output
-AC_OUTPUT([ src/piano_player-activity/Makefile src/name_identification-activity-activity/Makefile src/note_names-activity/Makefile src/world_music-activity/Makefile src/explore_world_template-activity/Makefile src/world_explore_template-activity/Makefile src/intro_gravity-activity/Makefile src/explore_world_music-activity/Makefile src/explore-activity/Makefile src/explore-activity/Makefile src/explore_world_animals-activity/Makefile src/new-activity/Makefile src/explore_world_animals-activity/Makefile src/explore_world_animals-activity/Makefile src/play_piano-activity/Makefile src/play_rhythm-activity/Makefile src/piano_composition-activity/Makefile
+AC_OUTPUT([ src/piano_player-activity/Makefile src/name_identification-activity-activity/Makefile src/note_names-activity/Makefile src/world_music-activity/Makefile src/explore_world_template-activity/Makefile src/world_explore_template-activity/Makefile src/intro_gravity-activity/Makefile src/explore_world_music-activity/Makefile src/explore-activity/Makefile src/explore-activity/Makefile src/explore_world_animals-activity/Makefile src/new-activity/Makefile src/explore_world_animals-activity/Makefile src/explore_world_animals-activity/Makefile src/play_piano-activity/Makefile src/play_rhythm-activity/Makefile src/piano_composition-activity/Makefile src/explore_farm_animals-activity/Makefile src/explore_farm_animals-activity/Makefile
 Makefile
 Makefile.mingw
 autopackage/Makefile

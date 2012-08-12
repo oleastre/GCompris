@@ -463,8 +463,11 @@ dialogue to\nenable the sound."), stop_board)
         '''
         if not ready(self):
             return False
+
         if not numID:
             numID = target.numID
+        if numID < 0 and self.gcomprisBoard.level < 4:
+            return
         if self.staff.currentNoteType == 4:
             n = QuarterNote(numID, self.staff.staffName, self.staff.rootitem, self.keyboard.sharpNotation)
         elif self.staff.currentNoteType == 2:

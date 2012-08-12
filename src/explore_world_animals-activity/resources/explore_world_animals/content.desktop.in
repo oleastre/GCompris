@@ -3,6 +3,7 @@ background = world.png
 credits = http://aliciac.hubpages.com, http://www.public-domain-image.com, http://www.publicdomainpictures.net
 creator = Christina Hadley (with help from Beth Hadley)
 locationpic = tux.png
+game1text = Click on tux to discover which animal lives there!
 
 [1]
 x = 273

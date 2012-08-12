@@ -19,7 +19,28 @@
         Level 3: option to choose between treble and bass clef, additional function includes option to select note duration (quarter, half, and whole notes)
         Level 4: addition of black keys (sharp keys)
         Level 5: flat notation used for black keys
-        Level 6: all features available, with the additional feature to load and save your composition</manual>
+        Level 6: all features available, with the additional feature to load and save your composition
+        
+        The following keyboard bindings work in this activity:
+		backspace: erase one note
+		delete: erase all notes
+		space bar: play composition
+		number keys:
+			1: C
+			2: D
+			3: E
+			4: F
+			5: G
+			6: E
+			7: F
+			8: C (higher octave)
+			etc.
+			F1: C# / Db
+			F2: D# / Eb
+			F3: F# / Gb
+			F4: G# / Ab
+			F5: A# / Bb     
+			</manual>   
         <credit>
         Thank you to Bruno Coudoin for his mentorship.
         Thank you to Olivier Samyn for his contribution to improving the note design and coloring.
