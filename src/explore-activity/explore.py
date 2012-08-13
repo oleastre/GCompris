@@ -400,6 +400,8 @@ class Gcompris_explore:
         check to see if the student pressed the correct answer. If so, increment
         score1. Display appropriate face (happy or sad) for 800 ms.
         '''
+        if not ready(self, timeouttime=1500): # precents kids from double clicking too quickly
+            return
         if target.props.text == self.correctAnswer:
             if not (sectionNum in self.sectionsAnsweredCorrectlyGame1):
                 self.score1 += 1
@@ -424,7 +426,7 @@ class Gcompris_explore:
         check to see if the location the student chose corresponds to the
         currently playing sound clip. increment score accordingly
         '''
-        if not ready(self, timeouttime=2000):
+        if not ready(self, timeouttime=2000): # precents kids from double clicking too quickly
             return
         if target.get_data('sectionNum') == self.currentMusicSelection[1] and \
             self.currentMusicSelection in self.soundClipsRemaining:

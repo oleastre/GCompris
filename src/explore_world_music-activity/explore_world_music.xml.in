@@ -6,15 +6,25 @@
         section="/experimental"
         icon="explore_world_music.svg"
         difficulty="1"
-        author="your name here"
+        author="Beth Hadley"
         boarddir=""
         >
-        <_title>set a title for explore_world_music</_title>
-        <_description>set a description for explore_world_music</_description>
-        <_prerequisite>set a prerequisite for explore_world_music</_prerequisite>
-        <_goal>set a goal for explore_world_music</_goal>
-        <_manual>set a manual for explore_world_music</_manual>
-        <_credit>set a credit for explore_world_music</_credit>
+        <title>Explore World Music</title>
+        <description>Learn about the music of the world</description>
+        <prerequisite>None</prerequisite>
+        <goal>Develop a better understanding of the variety of music present in the world</goal>
+        <manual>There are two levels in this activity.
+        In the first level, when you click on a suitcase, a new screen will appear
+        that displays the name of the location you have selected, a brief description
+        of the music there, and a picture. There is a multiple choice quesiton in the lower
+        right that you must answer. After answering it correctly, return to the home screen
+        and select another location. You win the level when you have answered all questions correctly.
+        
+        The second level is a matching game. You will hear a clip of music, and you
+        must select the location that corresponds to that music. Click the play button
+        if you'd like to hear the music again. You win the level when you have correctly
+        matched all sound clips.</manual>
+        <credit>Thanks to Bruno Coudoin for his mentorship. Media: http://commons.wikimedia.org/wiki, http://archive.org</credit>
   </Board>
   <Data directory=""/>
 </GCompris>
