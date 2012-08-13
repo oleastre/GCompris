@@ -6,15 +6,28 @@
         section="/experimental"
         icon="explore_farm_animals.svg"
         difficulty="1"
-        author="your name here"
+        author="Beth Hadley"
         boarddir=""
         >
-        <_title>set a title for explore_farm_animals</_title>
-        <_description>set a description for explore_farm_animals</_description>
-        <_prerequisite>set a prerequisite for explore_farm_animals</_prerequisite>
-        <_goal>set a goal for explore_farm_animals</_goal>
-        <_manual>set a manual for explore_farm_animals</_manual>
-        <_credit>set a credit for explore_farm_animals</_credit>
+        <title>Explore Farm Animals</title>
+        <description>Learn about farm aimals, what sounds they make, and interesting facts!</description>
+        <prerequisite>None</prerequisite>
+        <goal>Learn to associate animal sounds with the animal name and what the animal looks like</goal>
+        <manual>There are two levels in this game. 
+        
+        In level one, players should clikc on the question marks. A new screen will 
+        appear with the animal name, a short description about hte animal, and a picture
+        of the animal. There will be a multiple choice question in the bottom right. Select
+        the correct answer from the choices. If you get it correct, you receive a point. When you
+        have answered the question correctly, return to the main page and click on a different animal.
+        The level is won when all questions have been answered correctly.
+        
+        In level two, a random animal sound is played and you must choose which animal
+        makes that sound. Click on the question mark that corresponds to the animal you
+        hear. If you'd like to hear the animal sound repeated, click on the play button.
+        When you have matched all animals correctly, you win!
+        </manual>
+        <credit>Bruno Coudoin for his mentorship and providing me with the idea for this activity.</credit>
   </Board>
   <Data directory=""/>
 </GCompris>

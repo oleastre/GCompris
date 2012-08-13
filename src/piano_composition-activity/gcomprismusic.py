@@ -1222,6 +1222,7 @@ def ready(self, timeouttime=200):
         if not ready(self):
             return False
     '''
+    print 'here'
     if not hasattr(self, 'clickTimers'):
         self.clickTimers = []
         self.readyForNextClick = True

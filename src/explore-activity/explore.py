@@ -18,126 +18,8 @@
 # world_explore_template
 
 '''
-TO-DO:
-    - make a class out of the content file reader & writer
-    - write credits from content.desktop.in to xml file
-    - raise warning before overwriting content.desktop.in
-
-Done:
-    - completed two locations as samples (Australia and Africa)
-    - make music playing/pausing/etc smooth...right now the music stops spontaneously
-    - use template to make music around the world activity
-    - replace boring icons with exciting images
-    - replaced .wav files with .ogg mono files
-    - fixed resource link errors...
-'''
-
-'''
 HOW-TO USE THIS TEMPLATE:
-
-This activity is intended to be used to easily make future
-activities of similar format. The activity features an exploration of interesting
-topics pertaining to a certain grand theme. For example, themes might include
-music, landmarks, traditions, languages, etc. around the world, body parts,
-types of fruit, etc.
-
-Here are the steps:
-1. create a new activity in GCompris: open the terminal, cd GCompris, cd src, sh createit.sh explore_name_of_activity
-2. open init_path.sh in your newly created activity
-3. change pythonplugindir to $path/../explore-activity (entire new line should read pythonplugindir=$path/../explore-activity)
-4. delete explore_farm_animals.py from the folder, your activity won't need that
-5. create a resources directory in the folder, add a folder inside that with the name of the activity and the Makefile.am
-(if you're unsure of this step, look at other previously made explore activities such as explore_world_music
-6. add the backround picture you'd like to use to this resources/name_of_activity subfolder
-7. open up explore.py in the explore-activity folder, and find the boolean variable at the top
-called RECORD_LOCATIONS. Set to True
-8. create a file named content.desktop.in in the explore resourses directory,
-and enter the following text:
-[common]
-background = name_of_background_file.jpg (or .png)
-
-9. open name_of_your_activity.xml and change the type tag to type="python:explore"
-9. run your activity
-10. *hopefully* you see your backround picture! If so, continue, if not, troubleshoot
-or send an email to bethmhadley@gmail.com and she'll help you
-11. if your background picture isn't the right size, resize it using a tool like gimp
-typical width resolution is between 700 and 800. if the picture isn't centered,
-you can center it by putting the following lines into the common tag in content.desktop.in
-backgroundx = (some number here, play around until it looks good. start with 20)
-backgroundy = (some number here, play around until it looks good. start with 20)
-12. click on the locations in your backround picture that you'd like to use as features
-make a list to remind yourself which feature corresponds to which number
-13. close the program by clicking the red exit button
-14. immediately open explore.py and change the RECORD_LOCATIONS variable to False
-so that your data isn't overwritten
-15. fill out content.desktop.in
-
-Customizing this activity for a specific theme is easy. You must first select the
-theme you'd like to write about, then choose a good background picture. This will
-be used as the home screen from which players may click on specific locations to
-learn more about that topic, and answer a question about the topic. The game is won
-when the player correctly answers all questions about all topics.
-
-All data is read directly from a text file, so you must only modify the text file (entitled content.desktop.in)
-However, to create the locations on the background image that you'd like to discuss in your activity,
-you must, run your activity with RECORD_LOCATIONS = True. This will open the map,
-and you can click locations on the map. Notice the numbers that appear when you
-click. These numbers correspond to the section in the text file that you will
-enter content regarding that location, so it is best to keep a record of which
-locations you choose on the map correspond to which numbers.
-
-Once you've entered all locations, quit the gcompris program and be sure to set
-RECORD_LOCATIONS = False. Next, find content.desktop.in in the resources folder and modify
-the content. Each section corresponds to a location on your map. For example,
-section 1 looks like this:
-
-[1]
-x = 270
-y = 245
-_title = Location Title Here
-_text = location text here
-image = image filepath here
-music = music file name here
-_question = enter question about topic here
-_answeroptions = provide comma-seperated list, of answer options here, The correct answer should, be listed FIRST.
-game1text =
-game2text =
-This is automatically generated with the section number, and correct x and y corrdinates.
-You then must enter the correct content. Note: ALL FILEPATHS are relative to the resources/name_of_activity
-file directory, so if you wish to specify an image, for example, located in this directory rather than enter
-/name_of_activity/name_of_picture.png, simply enter name_of_picture.png
-
-title: Enter the name of the location
-
-text: Enter whatever textual information you'd like to appear on the page, Remember,
-these are young kids so shorter sentences are probably better!
-
-image: Enter the file location of a picture you'd like to appear on the page. Be sure
-to save the picture in the resources folder of your new activity. The size of the picture will not be
-scaled in any way, so save the picture at the size you'd like it to appear in
-the activity. (example: default.png) You should use png or svg files.
-
-music: Enter the file location of a mono .ogg file you'd like to play for the lcoation.
-You must use .ogg files. Use audacity to convert .wav and .mp3 files to .ogg
-
-question: Enter a quesiton you'd like to ask the students about the topic to
-test their understanding. This provides some challenge in the game and an incentive
-to visit all the locations. Example: Where is the Eiffel Tower?
-
-answeroptions: the list of optional answers to your question (like multiple-choice).
-list the correct answer first, followed by any number of incorrect choices. During runtime,
-the options will be sorted alphabetically so the correct answer won't always be first.
-Example: France, Italy, USA, China
-
-game1text: text to be displayed on the map for the first game
-
-game2text: same as above, but for second game (matching sounds to places)
-if this level is not applicable to the game, delete this entry and the
-second level won't be available
-
-Be sure all the image and music files you specified are in the resources folder
-of your new activity. If you do not wish to include an entry (no music for example)
-just leave that line blank.
+Please visit http://gcompris.net/wiki/Adding_an_explore_activity#Instructions_to_Develop_an_Explore_Activity
 '''
 
 import gobject
@@ -155,40 +37,37 @@ from gcompris import gcompris_gettext as _
 from random import randint
 import random
 
+# -----------------------------------------------------------------------------
 # set to True if you'd like to record selected locations to make a new activity
 # BEWARE: setting this to true will delete all your previous records!
 RECORD_LOCATIONS = False
-
-
-
+# -----------------------------------------------------------------------------
 
 ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
 class Gcompris_explore:
 
-
     def __init__(self, gcomprisBoard):
-        # Save the gcomprisBoard, it defines everything we need
-        # to know from the core
+
         self.gcomprisBoard = gcomprisBoard
         self.gcomprisBoard.level = 1
         self.gcomprisBoard.maxlevel = 1
+
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
         self.activityDataFilePath = '/' + self.gcomprisBoard.name + '/'
 
         self.numLocations = 0 # the total number of locations in this activity
 
-        # content.desktop.in
         self.timers = []
-        self.score1 = 0 # the number of locations the student has selected the
-        self.score2 = 0
-        # correct answer for (max score1 == self.numLocations)
-        self.sectionsAnsweredCorrectlyGame1 = [] # list of section numbers that
-        self.sectionsAnsweredCorrectlyGame2 = []
-        # the student has successfully answered
 
-        self.soundClips = [] # list of sound clips extracted from content.desktop.in
-        self.allClips = []
+        self.score1 = 0
+        self.score2 = 0
+
+        self.sectionsAnsweredCorrectlyGame1 = []
+        self.sectionsAnsweredCorrectlyGame2 = []
+
+        self.soundClipsRemaining = [] # list of sound clips still to be played during level 2
+        self.allSoundClips = [] # list of sound clips extracted from content.desktop.in
 
     def start(self):
         '''
@@ -196,42 +75,44 @@ class Gcompris_explore:
         This method is re-called whenever 'Go Back To Map' button is pressed
         by any of the location pages.
         '''
-        # Set the buttons we want in the bar
-        gcompris.bar_set(gcompris.BAR_LEVEL)
 
         gcompris.set_default_background(self.gcomprisBoard.canvas.get_root_item())
 
-        # are these the correct commands to suspend sound?
+        # suspend system sound
         self.saved_policy = gcompris.sound.policy_get()
         gcompris.sound.policy_set(gcompris.sound.PLAY_AND_INTERRUPT)
         gcompris.sound.pause()
 
         self.display_level(self.gcomprisBoard.level)
 
-
     def display_level(self, x=None, y=None, z=None):
         level = self.gcomprisBoard.level
 
+        # set the game bar in the bottom left
         gcompris.bar_set(gcompris.BAR_LEVEL)
         gcompris.bar_set_level(self.gcomprisBoard)
         gcompris.bar_location(20, -1, 0.6)
 
+        # silence any currently playing music
         gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
-        # Create our rootitem.
+
+        # Create a rootitem.
         if hasattr(self, 'rootitem'):
             self.rootitem.remove()
         self.rootitem = goocanvas.Group(parent=
                                         self.gcomprisBoard.canvas.get_root_item())
 
         # -------------------------------------------------------------
-        # Load Map
+        # Load Background Image
         # -------------------------------------------------------------
         if not hasattr(self, 'data'):
             self.read_data() # read in the data from content.desktop.in file
 
+        # only allow second level if content file has the tag 'game2text'
         if hasattr(self, 'game2text'):
             self.gcomprisBoard.maxlevel = 2
 
+        # set x and y positions for the background image
         if not hasattr(self, 'backgroundx'):
             x = 10
         else:
@@ -240,33 +121,49 @@ class Gcompris_explore:
             y = 10
         else:
             y = int(self.backgroundy)
+
         self.map = goocanvas.Image(
             parent=self.rootitem,
             x=x, y=y,
             pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + self.background)
             )
-        self.map.raise_(None)
+
         if RECORD_LOCATIONS:
             self.recordLocationsForDeveloper()
         else:
+            # prepare game for play
             if self.loadBasicHomePage() == False:
                 return
             self.drawLocations()
-
 
             if level == 1:
                 self.writeText(self.game1text)
             if level == 2:
                 self.writeText(self.game2text)
+                # PLAY BUTTON
+                self.playButton = goocanvas.Image(
+                        parent=self.rootitem,
+                        pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'playbutton.png'),
+                        x=65,
+                        y=100,
+                        )
+                self.playButton.connect("button_press_event", self.playCurrentMusicSelection)
+                self.writeText(_('Click to play sound'), 100, 70)
+                gcompris.utils.item_focus_init(self.playButton, None)
                 self.playRandomSong()
 
-
-
-    def writeText(self, txt):
+    def writeText(self, txt, x=None, y=None):
+        '''
+        write text box with background rectangle to game
+        '''
+        if x == None:
+            x = 100
+        if y == None:
+            y = 250
         t = goocanvas.Text(
           parent=self.rootitem,
-          x=100,
-          y=230,
+          x=x,
+          y=y,
           width=150,
           text='<span font_family="URW Gothic L" size="medium" \
           weight="bold" style="italic">' + txt + '</span>',
@@ -288,12 +185,10 @@ class Gcompris_explore:
         rect.props.stroke_color = 'black'
         t.raise_(rect)
 
-    def playRandomSong(self):
-        if self.soundClips:
-            self.currentMusicSelection = self.soundClips[randint(0, len(self.soundClips) - 1)]
-            self.timers.append(gobject.timeout_add(500, gcompris.sound.play_ogg, (self.activityDataFilePath + self.currentMusicSelection[0])))
-
     def loadBasicHomePage(self):
+        '''
+        load the home page with the background image and locations with progress bar
+        '''
         txt2 = _('Explore Status:')
         goocanvas.Text(
           parent=self.rootitem,
@@ -330,6 +225,7 @@ class Gcompris_explore:
             fill_color="#32CD32",
             line_width=3.0)
 
+            # add a little decoration
             goocanvas.Image(
             parent=self.rootitem,
             x=x + (barwidth / 2.0) - 15,
@@ -347,19 +243,19 @@ class Gcompris_explore:
             else:
                 self.score2 = 0
                 self.sectionsAnsweredCorrectlyGame2 = []
-                self.soundClips = self.allClips
-
+                self.soundClipsRemaining = self.allSoundClips[:]
             self.timers = []
 
             gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
+
             # show congratulations image!
             goocanvas.Image(
             parent=self.rootitem,
             x=200, y=30,
             pixbuf=gcompris.utils.load_pixmap(self.gameWonPic)
             )
-            # reset the game
 
+            # reset the game
             self.timers.append(gobject.timeout_add(3000, self.display_level))
             return False
         return True
@@ -367,7 +263,7 @@ class Gcompris_explore:
 
     def drawLocations(self):
         '''
-        draw ellipses on the map, one for each section in content.desktop.in at the
+        draw image on the map, one for each section in content.desktop.in at the
         location specified in the file by 'x' and 'y'. If the student
         has already visited the location and correctly answered the quetsion,
         thellipse will be colored green. Otherwise, the ellipse is red.
@@ -399,6 +295,7 @@ class Gcompris_explore:
             method called when student clicks on one of the ellipses.
             method loads the location page, including the text, picture, music, and question.
             '''
+
             self.rootitem.remove()
             self.rootitem = goocanvas.Group(parent=
                                             self.gcomprisBoard.canvas.get_root_item())
@@ -498,29 +395,6 @@ class Gcompris_explore:
             except: pass
 
 
-    def checkAnswerGame2(self, widget=None, target=None, event=None):
-        if target.get_data('sectionNum') == self.currentMusicSelection[1]:
-            self.score2 += 1
-            self.sectionsAnsweredCorrectlyGame2.append(target.get_data('sectionNum'))
-            pic = ExploreActivityResourcesFilepath + 'happyFace.png'
-            self.soundClips.remove(self.currentMusicSelection)
-            self.timers.append(gobject.timeout_add(810, self.display_level))
-
-        else:
-            pic = ExploreActivityResourcesFilepath + 'sadFace.png'
-
-        if hasattr(self, 'responsePic'):
-            self.responsePic.remove()
-
-        self.responsePic = goocanvas.Image(
-        parent=self.rootitem,
-        pixbuf=gcompris.utils.load_pixmap(pic),
-        x=200,
-        y=50
-        )
-        self.timers.append(gobject.timeout_add(800, self.clearPic))
-
-
     def checkAnswerGame1(self, sectionNum, widget=None, target=None, event=None):
         '''
         check to see if the student pressed the correct answer. If so, increment
@@ -545,6 +419,47 @@ class Gcompris_explore:
         )
         self.timers.append(gobject.timeout_add(800, self.clearPic))
 
+    def checkAnswerGame2(self, widget=None, target=None, event=None):
+        '''
+        check to see if the location the student chose corresponds to the
+        currently playing sound clip. increment score accordingly
+        '''
+        if not ready(self, timeouttime=2000):
+            return
+        if target.get_data('sectionNum') == self.currentMusicSelection[1] and \
+            self.currentMusicSelection in self.soundClipsRemaining:
+            self.score2 += 1
+            self.sectionsAnsweredCorrectlyGame2.append(target.get_data('sectionNum'))
+            pic = ExploreActivityResourcesFilepath + 'happyFace.png'
+            self.soundClipsRemaining.remove(self.currentMusicSelection)
+            self.timers.append(gobject.timeout_add(810, self.display_level))
+
+        else:
+            pic = ExploreActivityResourcesFilepath + 'sadFace.png'
+
+        if hasattr(self, 'responsePic'):
+            self.responsePic.remove()
+
+        self.responsePic = goocanvas.Image(
+        parent=self.rootitem,
+        pixbuf=gcompris.utils.load_pixmap(pic),
+        x=200,
+        y=50
+        )
+        self.timers.append(gobject.timeout_add(800, self.clearPic))
+
+    def playRandomSong(self):
+        '''
+        play a random sound clip for use in the second level
+        '''
+        if self.soundClipsRemaining:
+            self.currentMusicSelection = \
+            self.soundClipsRemaining[randint(0, len(self.soundClipsRemaining) - 1)]
+            self.timers.append(gobject.timeout_add(800, self.playCurrentMusicSelection))
+
+    def playCurrentMusicSelection(self, x=None, y=None, z=None):
+        gcompris.sound.play_ogg(self.activityDataFilePath +
+                                                    self.currentMusicSelection[0])
     def clearPic(self):
         '''
         remove happy/sad face
@@ -565,14 +480,14 @@ class Gcompris_explore:
 # METHODS TO DEAL WITH INPUT & OUTPUT OF CONTENT FILE
 # --------------------------------------------------------------------------
 
-# I noticed in the find_it activity that there are some nice classes 
-# to handle importing and exporting data from the content.desktop.in file
-# such as finditDataSetObject and finditDataSet.When I was first developing
-# this activity my data file was so simple that no special class was really
-# necessary, but now that it has gotten a bit more complicated
-# I can see the advantage to writing a class. 
+# FYI: t first I didn't see any need to make a class to handle the data, but in 
+# retrospect having a data object would have been much cleaner.
 
     def recordLocationsForDeveloper(self):
+        '''
+        prepare to record the locations by connecting the entire
+        background image with the record_location method
+        '''
         for section in self.data.sections():
             if section != 'common':
                 self.data.remove_section(section)
@@ -586,8 +501,6 @@ class Gcompris_explore:
         Method called if RECORD_LOCATIONS = True and developer clicks map. Merhod
         record the location of the click, and writes a template of the section
         to content.desktop.in to be filled in later by the developer.
-
-         (soon to be integrated into new data class)
         '''
         self.numLocations += 1
         self.data.add_section(str(self.numLocations))
@@ -628,8 +541,6 @@ comma-seperated list, of answer options here, The correct answer should, be list
         '''
         method to read in the data from content.desktop.in. Saves this data as
         self.data for reference later.
-
-         (soon to be integrated into new data class)
         '''
         #self.data = ConfigParser.RawConfigParser() # the data that is parsed from
         config = ConfigParser.RawConfigParser()
@@ -654,8 +565,6 @@ comma-seperated list, of answer options here, The correct answer should, be list
     def parseData(self):
         '''
         extract the data from the content file
-
-        (soon to be integrated into new data class)
         '''
         self.sectionNames = []
         for section in self.data.sections():
@@ -683,13 +592,15 @@ comma-seperated list, of answer options here, The correct answer should, be list
                 except:pass
             else:
                 try:
-                    self.soundClips.append((self.data.get(section, 'music'), section))
-                    self.allClips.append((self.data.get(section, 'music'), section))
+                    self.soundClipsRemaining.append((self.data.get(section, 'music'), section))
+                    self.allSoundClips.append((self.data.get(section, 'music'), section))
                 except: pass
                 self.sectionNames.append(section)
     def end(self):
+        '''
+        write locations and common template to content.desktop.in
+        '''
         if RECORD_LOCATIONS:
-            # write locations and template to content.desktop.in
             try: self.data.set('common', 'credits', _('enter a list of credits and links to resources you used here'))
             except: pass
             try: self.data.set('common', 'creator', _('enter your name here!'))
@@ -729,3 +640,29 @@ comma-seperated list, of answer options here, The correct answer should, be list
 
     def pause(self, pause):
         pass
+
+def ready(self, timeouttime=200):
+    '''
+    copied from gcomprismusic.py because I didn't want to try to import this module
+    function to help prevent "double-clicks". If your function call is
+    suffering from accidental system double-clicks, import this module
+    and write these lines at the top of your method:
+
+        if not ready(self):
+            return False
+    '''
+    if not hasattr(self, 'clickTimers'):
+        self.clickTimers = []
+        self.readyForNextClick = True
+        return True
+
+    def clearClick():
+        self.readyForNextClick = True
+        return False
+
+    if self.readyForNextClick == False:
+        return
+    else:
+        self.clickTimers.append(gobject.timeout_add(timeouttime, clearClick))
+        self.readyForNextClick = False
+        return True

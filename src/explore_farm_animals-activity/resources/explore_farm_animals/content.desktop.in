@@ -78,6 +78,7 @@ image = owl.jpg
 music = owl.ogg
 _question = How many mice can a barn owl eat in one year?
 _answeroptions = 1000, 500, 2000, 360
+
 [9]
 x = 705
 y = 270
@@ -97,4 +98,3 @@ image = rooster.jpg
 music = rooster.ogg
 _question = The rooster is what type of chicken?
 _answeroptions = male, female, egg-laying, young
-
