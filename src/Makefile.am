@@ -105,6 +105,7 @@ SUBDIRS = \
 	money_back_cents-activity \
 	money_cents-activity \
 	mosaic-activity \
+	note_names-activity \
 	paintings-activity \
 	paratrooper-activity \
 	penalty-activity \

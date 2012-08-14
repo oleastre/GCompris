@@ -795,6 +795,7 @@ src/money_cents-activity/Makefile
 src/mosaic-activity/Makefile
 src/mosaic-activity/resources/Makefile
 src/mosaic-activity/resources/mosaic/Makefile
+src/note_names-activity/Makefile
 src/paintings-activity/Makefile
 src/paintings-activity/resources/Makefile
 src/paintings-activity/resources/paintings/Makefile
