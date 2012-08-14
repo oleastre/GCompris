@@ -31,8 +31,7 @@ img_DATA = \
 	portugal.png \
 	romania.png \
 	russia.png \
-	serbia.png \
-	montenegro.png \
+	serbia_montenegro.png \
 	slovakia.png \
 	slovenia.png \
 	spain.png \
