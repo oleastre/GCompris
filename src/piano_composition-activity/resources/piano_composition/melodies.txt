@@ -1,15 +1,24 @@
 Twinkle Twinkle Little Star
 English Lullaby
-trebleClef 1,4 1,4 5,4 5,4 6,4 6,4 5,2 4,4 4,4 3,4 3,4 2,4 2,4 1,2
+Twinkle, twinkle, little star, How I wonder what you are; Up above the world so high, Like a diamond in the sky.
+trebleClef C4 C4 G4 G4 A4 A4 G2 F4 F4 E4 E4 D4 D4 C2
 
 Yankee Doodle
 Patriotic, America
-trebleClef 5,8 5,8 6,8 7,8 5,8 7,8 6,4 5,8 5,8 6,8 7,8 5,4 -3,4 5,8 5,8 6,8 7,8 8,8 7,8 6,8 5,8 -3,8 2,8 3,8 -3,8 5,4 5,4
+Yankee Doodle went to town,Riding on a pony;He stuck a feather in his hat,And called it macaroni
+trebleClef G8 G8 A8 B8 G8 B8 A4 G8 G8 A8 B8 G4 F#4 G8 G8 A8 B8 2C8 B8 A8 G8 F#8 D8 E8 F#8 G4 G4
 
 Simple Gifts
 Shaker Tune, America
-trebleClef 1,8 1,8 4,4 4,8 5,8 6,8 4,8 6,8 -5,8 8,4 8,8 -5,8 6,4 5,8 4,8 5,4 1,4 5,4 4,4 5,8 6,8 5,8 3,8 1,2
+Tis the gift to be simple, 'tis the gift to be free, 'Tis the gift to come down where we ought to be, And when we find ourselves in the place just right,'Twill be in the valley of love and delight.
+trebleClef C8 C8 F4 F8 G8 A8 F8 A8 A#8 2C4 2C8 A#8 A4 G8 F8 G4 C4 G4 F4 G8 A8 G8 E8 C2
 
 Old MacDonald Had a Farm
 nursery rhyme, America
-bassClef 5,4 5,4 5,4 2,4 3,4 3,4 2,2 7,4 7,4 6,4 6,4 5,2 2,2 5,4 5,4 5,4 2,4 3,4 3,4 2,2 7,4 7,4 6,4 6,4 5,1
+Old MacDonald had a farm, EE-I-EE-I-O, And on that farm he had a [animal name], EE-I-EE-I-O
+bassClef G4 G4 G4 D4 E4 E4 D2 B4 B4 A4 A4 G2 D2 G4 G4 G4 D4 E4 E4 D2 B4 B4 A4 A4 G1
+
+A Balancing Elephant
+Mexico
+An elephant was swinging on a spiderweb; he saw that it held just fine, so he went to invite another elephant
+trebleClef g4 g8 g8 e4 e4 g4 g8 g8 e4 e4 g4 g8 g8 a8 g8 f8 e8 f2 d2 f4 f8 f8 d4 d4 f4 f8 f8 d4 d4 f4 f8 f8 g8 f8 e8 d8 e2 c2

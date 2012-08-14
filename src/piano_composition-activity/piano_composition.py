@@ -118,6 +118,9 @@ class Gcompris_piano_composition:
             elif lineCnt == 2:
                 newSong['origin'] = line.strip()
                 lineCnt += 1
+            elif lineCnt == 3:
+                newSong['lyrics'] = line.strip()
+                lineCnt += 1
             else:
                 newSong['melody'] = line.strip()
                 songList.append(newSong)
@@ -308,10 +311,10 @@ class Gcompris_piano_composition:
         '''
 
         if level == 2:
-            self.staff = BassStaff(380, 170, self.rootitem)
+            self.staff = BassStaff(370, 170, self.rootitem, 3)
             self.staff.drawStaff()
         else:
-            self.staff = TrebleStaff(380, 170, self.rootitem)
+            self.staff = TrebleStaff(370, 170, self.rootitem, 3)
             self.staff.drawStaff()
 
 
@@ -348,7 +351,7 @@ class Gcompris_piano_composition:
             gcompris.utils.item_focus_init(self.wholeNoteSelected, None)
 
             # draw focus rectangle around quarter note duration, the default
-            self.staff.drawFocusRect(-70, -60)
+            self.staff.drawFocusRect(-60, -60)
 
         if level == 6:
             self.saveButton.connect("button_press_event", self.save_file_event)
@@ -427,10 +430,10 @@ dialogue to\nenable the sound."), stop_board)
         if hasattr(self.staff, 'newClef'):
             self.staff.newClef.clear()
         if self.staff.staffName == "trebleClef":
-            self.staff = BassStaff(380, 170, self.rootitem)
+            self.staff = BassStaff(370, 170, self.rootitem, 3)
             self.staff.drawStaff()
         else:
-            self.staff = TrebleStaff(380, 170, self.rootitem,)
+            self.staff = TrebleStaff(370, 170, self.rootitem, 3)
             self.staff.drawStaff()
 
         #re-establish link to root
@@ -528,6 +531,8 @@ dialogue to\nenable the sound."), stop_board)
         updates the level for the game when child clicks on bottom
         left navigation bar to increment level
         '''
+
+        self.staff.eraseAllNotes()
         self.gcomprisBoard.level = level
         gcompris.bar_set_level(self.gcomprisBoard)
         self.display_level(self.gcomprisBoard.level)

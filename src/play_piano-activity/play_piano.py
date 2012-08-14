@@ -102,7 +102,6 @@ class Gcompris_play_piano:
         gcompris.bar_location(20, -1, 0.6)
 
         self.staff = TrebleStaff(100, 80, self.rootitem, numStaves=1)
-        self.staff.donotwritenotetext = True
         self.staff.noteSpacingX = 36
         self.staff.endx = 200
 

@@ -18,6 +18,12 @@
 #
 #
 
+'''
+Please see
+http://gcompris.net/wiki/Adding_a_music_activity_and_using_gcomprismusic.py_module
+for complete documentation (with examples!) of this module
+'''
+
 import gobject
 import gtk
 import gtk.gdk
@@ -32,11 +38,6 @@ import cPickle as pickle
 import copy
 from random import randint
 import random
-'''
-TODO:
-    - write eighth note class
-    - fix implementation of note text
-'''
 
 # Rainbow color scheme used throughout games,
 # according to music research on best
@@ -68,8 +69,19 @@ given note name in the English notation
  C C♯ D D♯ E F F♯ G G♯ A B H C
 '''
 def getKeyNameFromID(numID, sharpNotation=True):
-    '''optionally sharpNotation = True for sharp notation, or
-    sharpNotation = False for flat notation'''
+    '''
+    get the name of the key that corresponds to the numID given
+
+    optionally set sharpNotation = True for sharp notation, or
+    sharpNotation = False for flat notation
+
+    >>> getKeyNameFromID(1)
+    C
+    >>> getKeyNameFromID(-3, sharpNotation=True)
+    F#
+    >>> getKeyNameFromID(-5, sharpNotation=False)
+    Bb
+    '''
     if numID > 0:
         return WHITE_KEY_NOTATION[numID]
     elif sharpNotation:
@@ -77,14 +89,32 @@ def getKeyNameFromID(numID, sharpNotation=True):
     else:
         return FLAT_NOTATION[numID]
 
+def getIDFromKeyName(keyName):
+    '''
+    returns the numID of the note that corresponds to the keyName
 
+    >>> getIDFromKeyName('C')
+    1
+    >>> getIDFromKeyName('D#')
+    -2
+    >>> getIDFromKeyName('Eb')
+    -2
+    '''
+    for x, y in WHITE_KEY_NOTATION.items():
+        if y == keyName or y.upper() == keyName.upper():
+            return x
+    for x, y in SHARP_NOTATION.items():
+        if y == keyName or y.upper() == keyName.upper():
+            return x
+    for x, y in FLAT_NOTATION.items():
+        if y == keyName or y.upper() == keyName.upper():
+            return x
 
 # ---------------------------------------------------------------------------
 #
 #  STAFF OBJECTS
 #
 # ---------------------------------------------------------------------------
-
 
 class Staff():
     '''
@@ -97,63 +127,59 @@ class Staff():
       self.originalRoot = canvasRoot
       self.x = x        #master X position
       self.y = y        #master Y position
-
-      # ALL LOCATIONS BELOW ARE RELATIVE TO self.x and self.y
-      self.endx = 350     #rightend location of staff lines
-      self.startx = 0     #leftend location of staff lines
-      self.lineNum = 1    #the line number (1,2,3) we're currently writing notes to
-      self.line1Y = 0     #starting Y position of first lines of staff
-      self.line2Y = 115   #startying Y position of second lines of staff
-      self.line3Y = 230   #starting Y position of third lines
-      self.currentNoteXCoordinate = self.initialX = 30 #starting X position of first note
-      self.noteSpacingX = 30 #distance between each note when appended to staff
-      self.staffLineSpacing = 13 #vertical distance between lines in staff
-      self.staffLineThickness = 2 # thickness of staff lines
-      self.numStaves = numStaves # number of staves to draw (1,2, or 3)
-
-      self.currentNoteType = 4 #could be quarter, half, whole (not eight for now)
-
       self.rootitem = goocanvas.Group(parent=canvasRoot, x=self.x, y=self.y)
 
-      self.noteList = [] #list of note items written to staff
-      self.playingNote = False
+      # STAFF FORMATTING
+      # ALL LOCATIONS BELOW ARE RELATIVE TO self.x and self.y
+      self.endx = 400     #rightend location of staff lines
+      self.verticalDistanceBetweenStaves = 115 #vertical distance between musical staves
+      self.staffLineSpacing = 13 #vertical distance between lines in staff
+      self.staffLineThickness = 2.0 # thickness of staff lines
+      self.numStaves = numStaves # number of staves to draw (1,2, or 3)
 
-      self.timers = []
+      # MUSIC NOTATION FORMATTING
+      self.currentNoteXCoordinate = self.initialNoteX = 30 #starting X position of first note
+      self.noteSpacingX = 27 #distance between each note when appended to staff
+      self.currentLineNum = 1    #the line number (1,2,3) you're currently writing notes to
+      self.currentNoteType = 4 #the note type you're currently using to write to the 
+      # musical staff, could be 4 (quarter), 8 (eighth), 2 (half) or 1 (whole)
 
+      # NOTE & PLAY FORMATTING
       self.colorCodeNotes = True # optionally set to False to mark all notes black
+      self.labelBeatNumbers = False # label the beat numbers above each note
+      # (used in play-rhythm activity)
+      self.drawPlayingLine = False # draw vertical line on staff to follow the beat 
+      # as the composition is being played
 
-      self.notReadyToPlay = False
+      self.notReadyToPlay = False #set to True when staff is not ready to 
+      #play composition (something else is going on for example)
 
-      self.donotwritenotetext = False
+      self.noteList = [] #list of note objects written to staff
 
-      self.labelBeatNumbers = False
-      self.beatNumLabels = []
-      self.drawPlayingLine = False
+      self.timers = [] #list of timers to use for playing, running pictures, etc.
+
+      # PRIVATE ATTRIBUTES
+      self._beatNumLabels = []
+      self._staffImages = [] # to keep references to all the staff clefs put onto the page so we can delete just these when needed
 
     def drawStaff(self):
         '''
-        draw the staff, including staff lines and optional staff text
+        draw the staff, including staff lines and staff clefs
+        >>> self.newStaff = TrebleStaff(100, 80, self.rootitem, numStaves=4)
+        >>> self.newStaff.drawStaff()
         '''
         self._drawStaffLines() #draw staff lines
-
-    def textBox(self, text):
-        '''
-        change the staff text
-        '''
-        if hasattr(self, 'noteText'):
-            self.noteText.props.text = text
 
     def _drawStaffLines(self):
         '''
         draw staff lines according to the number of staves
         '''
-        if self.numStaves >= 1:
-            self._drawLines(x=0, y=0, length=self.endx)
-        if self.numStaves >= 2:
-            self._drawLines(x=self.startx, y=self.line2Y, length=self.endx + abs(self.startx))
-        if self.numStaves >= 3:
-            self._drawLines(x=self.startx, y=self.line3Y, length=self.endx + abs(self.startx))
-        self._drawEndBars() #two lines at end of third staff line
+        y = 0
+        for staveNum in range(0, self.numStaves):
+            self._drawLines(x=0, y=y, length=self.endx)
+            y += self.verticalDistanceBetweenStaves
+
+        self._drawEndBars() #two lines at end of the last staff
 
     def _drawLines(self, x, y, length):
         '''
@@ -186,33 +212,35 @@ class Staff():
         '''
         draw the vertical end bars on each line, two for line 3
         '''
-
-        if self.numStaves >= 1:
+        y = 0
+        for num in range(0, self.numStaves - 1):
             goocanvas.polyline_new_line(self.rootitem, self.endx,
-                                    self.line1Y - 1, self.endx, self.line1Y + 53,
+                                    y, self.endx, y + 53,
                                      stroke_color="black", line_width=3.0)
+            y += self.verticalDistanceBetweenStaves
 
-        if self.numStaves >= 2:
-            goocanvas.polyline_new_line(self.rootitem, self.endx,
-                                    self.line2Y - 1, self.endx, self.line2Y + 53,
-                                     stroke_color="black", line_width=3.0)
 
-        if self.numStaves >= 3:
-            #doublebar
-            goocanvas.polyline_new_line(self.rootitem, self.endx - 7,
-                                    self.line3Y - 1, self.endx - 7, self.line3Y + 53,
-                                     stroke_color="black", line_width=3.0)
+        #doublebar
+        goocanvas.polyline_new_line(self.rootitem, self.endx - 7,
+                                y - 1, self.endx - 7, y + 53,
+                                 stroke_color="black", line_width=3.0)
 
-            #final barline, dark
-            goocanvas.polyline_new_line(self.rootitem, self.endx,
-                                    self.line3Y - 1, self.endx, self.line3Y + 53,
-                                     stroke_color="black", line_width=4.0)
+        #final barline, dark
+        goocanvas.polyline_new_line(self.rootitem, self.endx,
+                                y - 1, self.endx, y + 53,
+                                 stroke_color="black", line_width=4.0)
 
     def drawNote(self, note):
         '''
         determine the correct x & y coordinate for the next note, and writes
-        this note as an image to the canvas. An alert is triggered if no more
-        room is left on the screen. Also color-codes the note if self.colorCodeNotes == True
+        this note as an image to the staff. An alert is triggered if no more
+        room is left on the staff. Also color-codes the note if self.colorCodeNotes == True
+
+        >>> self.newStaff = TrebleStaff(50, 50, self.rootitem, numStaves=4)
+        >>> self.newStaff.drawStaff()
+        >>> self.newStaff.drawNote(QuarterNote(1, 'trebleClef', self.newStaff.rootitem))
+        >>> self.newStaff.drawNote(EighthNote(5, 'trebleClef', self.newStaff.rootitem))
+        >>> self.newStaff.drawNote(WholeNote(-3, 'trebleClef', self.newStaff.rootitem))
         '''
         x = self.getNoteXCoordinate() #returns next x coordinate for note,
         if x == False:
@@ -232,7 +260,7 @@ class Staff():
               )
             return
         y = self.getNoteYCoordinate(note) #returns the y coordinate based on note name
-        self.lineNum = self.getLineNum(y) #updates self.lineNum
+        self.currentLineNum = self.getLineNum(y) #updates self.lineNum
         note.draw(x, y) #draws note image on canvas
         if self.colorCodeNotes:
             note.colorCodeNote()
@@ -254,14 +282,22 @@ class Staff():
                 anchor=gtk.ANCHOR_CENTER,
                 alignment=pango.ALIGN_CENTER,
                 use_markup=True)
-                self.beatNumLabels.append(blob)
+                self._beatNumLabels.append(blob)
                 x += self.noteSpacingX / len(note.beatNums)
 
 
     def writeLabel(self, text, note):
         '''
-        writes a note label below the note, such as labeling the note name,
-        in color-code if applicable
+        writes the text below the note, such as labeling the note name,
+        in color-code if self.colorCodeNotes = True
+
+        >>> self.newStaff = TrebleStaff(50, 50, self.rootitem, numStaves=1)
+        >>> self.newStaff.endx = 200
+        >>> self.newStaff.rootitem.scale(2.0, 2.0)
+        >>> self.newStaff.drawStaff()
+        >>> n2 = HalfNote(5, 'trebleClef', self.newStaff.rootitem)
+        >>> self.newStaff.drawNote(n2)
+        >>> self.newStaff.writeLabel('G', n2)
         '''
         if self.colorCodeNotes:
             color = NOTE_COLOR_SCHEME[note.numID]
@@ -285,26 +321,14 @@ class Staff():
                       fill_color=color)
             text.raise_(rect)
 
-    def getNoteXCoordinate(self):
-        '''
-        determines note's x coordinate, with consideration for the maximum
-        staff line length. increments self.lineNum and sets self.currentNoteXCoordinate
-        '''
-        self.currentNoteXCoordinate += self.noteSpacingX
-        if self.currentNoteXCoordinate >= (self.endx - 5):
-            if self.lineNum == 3:
-                #NO MORE STAFF LEFT!
-                return False
-            else:
-                self.currentNoteXCoordinate = self.startx + 50
-                self.lineNum += 1
-
-        return self.currentNoteXCoordinate
-
     def eraseOneNote(self, widget=None, target=None, event=None):
         '''
-        removes the last note in the staff's noteList, updates self.lineNum if
+        removes the last note in the staff's noteList, updates self.currentLineNumif
         necessary, and updates self.currentNoteXCoordinate
+
+        TODO: bug: doesn't remove the label on the note if it has one (easy fix, maybe later)
+
+        >>> self.newStaff.eraseOneNote()
         '''
         try:
             self.alert.remove()
@@ -317,38 +341,29 @@ class Staff():
             else:
               self.currentNoteXCoordinate = self.noteList[-2].x
               remainingNoteY = self.noteList[-2].y
-              self.lineNum = self.getLineNum(remainingNoteY)
+              self.currentLineNum = self.getLineNum(remainingNoteY)
               self.noteList[-1].remove()
               self.noteList.pop()
         else:
             self.eraseAllNotes()
 
-    def getLineNum(self, Ycoordinate):
-        '''
-        given the Ycoordinate, returns the correct lineNum (1,2, or 3)
-        '''
-        if Ycoordinate <= 65:
-            return 1
-        elif Ycoordinate <= 185:
-            return 2
-        else:
-            return 3
-
     def eraseAllNotes(self, widget=None, target=None, event=None):
         '''
         remove all notes from staff, deleting them from self.noteList, and
-        restores self.lineNum to 1 and self.currentNoteXCoordinate to the
+        restores self.currentLineNumto 1 and self.currentNoteXCoordinate to the
         starting position
+
+        >>> self.newStaff.eraseAllNotes()
         '''
         #if not ready(self):
         #    return False
-        for o in self.beatNumLabels:
+        for o in self._beatNumLabels:
             o.remove()
         for n in self.noteList:
           n.remove()
-        self.currentNoteXCoordinate = self.initialX
+        self.currentNoteXCoordinate = self.initialNoteX
         self.noteList = []
-        self.lineNum = 1
+        self.currentLineNum = 1
 
         try:
             self.alert.remove()
@@ -362,17 +377,17 @@ class Staff():
         a clef change)
         '''
         self.eraseAllNotes()
-        if hasattr(self, 'staffImage1'):
-            self.staffImage1.remove()
-        if hasattr(self, 'staffImage2'):
-            self.staffImage2.remove()
-        if hasattr(self, 'staffImage3'):
-            self.staffImage3.remove()
+        for s in self._staffImages:
+            s.remove()
+        self._staffImages = []
+
         if hasattr(self, 'noteText'):
             self.noteText.remove()
 
     def play_it(self, playingLineOnly=False):
         '''
+        NOT A PUBLIC METHOD
+
         called to play one note. Checks to see if all notes have been played
         if not, establishes a timer for the next note depending on that note's
         duration (quarter, half, whole)
@@ -385,8 +400,7 @@ class Staff():
             return
 
         note = self.noteList[self.currentNoteIndex]
-#        if not self.donotwritenotetext:
-#            self.textBox('Note Name: ' + note.niceName)
+
         if hasattr(self, 'verticalPlayLine'):
             self.verticalPlayLine.remove()
 
@@ -396,17 +410,19 @@ class Staff():
                                 stroke_color_rgba=0x121212D0, line_width=2)
 
             self.verticalPlayLine.animate(self.noteSpacingX, 0, 1.0, 0.0, \
-                absolute=False, duration=note.toMillisecs(), step_time=50, type=goocanvas.ANIMATE_FREEZE)
+                absolute=False, duration=note.millisecs, step_time=50, type=goocanvas.ANIMATE_FREEZE)
 
         if not playingLineOnly:
             note.play()
-        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it, playingLineOnly))
+        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].millisecs, self.play_it, playingLineOnly))
         self.currentNoteIndex += 1
 
     def playComposition(self, widget=None, target=None, event=None, playingLineOnly=False):
         '''
         plays entire composition. establish timers, one per note, called after
-        different durations according to noteType
+        different durations according to noteType. Only way to stop playback after
+        calling this method and during play is self.eraseAllNotes()
+        >>> self.newStaff.playComposition()
         '''
 
         if not self.noteList or self.notReadyToPlay:
@@ -417,9 +433,179 @@ class Staff():
 
         self.timers = []
         self.currentNoteIndex = 0
-        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].toMillisecs(), self.play_it, playingLineOnly))
+        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].millisecs, self.play_it, playingLineOnly))
 
+    def file_to_staff(self, filename):
+        '''
+        open text file, read contents and write to staff
+        '''
 
+        file = open(filename, 'rb')
+        self.clear()
+        self.stringToNotation(file.read())
+
+    def staff_to_file(self, filename):
+        '''
+        convert staff to notation, write to text file, save to MyGCompris folder
+        '''
+        file = open(filename , 'wb')
+        file.write(self.staffName + ' ')
+        for note in self.noteList:
+            if note.numID == 8:
+                name = '2C'
+            else:
+                name = getKeyNameFromID(note.numID)
+            file.write(name + str(note.noteType) + ' ')
+
+        file.close()
+
+    def stringToNotation(self, melodyString):
+        '''
+        parse the melody string and write the notes to the staff
+
+        the melody must be in a very simple format. It is one line, and begins
+        the clef, either 'trebleClef' or 'bassClef' Then, each following note is
+        seperated with a space and the note name (English system, sharp=#,flat=b,
+        C (second octave is 2C rather than just C) written first
+        followed by the note duration (8=eighth,4=quarter,2=half,1=whole)
+
+        self.staff1 = TrebleStaff(50, 30, self.rootitem, numStaves=1)
+        self.staff1.endx = 200
+        self.staff1.rootitem.scale(2.0, 2.0)
+        self.staff1.drawStaff()
+        self.staff1.stringToNotation('trebleClef C4 G2 F#4 Ab4 2C2')
+
+        self.staff2 = BassStaff(50, 130, self.rootitem, numStaves=1)
+        self.staff2.endx = 200
+        self.staff2.rootitem.scale(2.0, 2.0)
+        self.staff2.drawStaff()
+        self.staff2.stringToNotation('bassClef Eb2 F4 C#8 Bb4 C2')
+        '''
+        if hasattr(self, 'newClef'):
+            self.newClef.clear()
+        self.clear()
+        keys = melodyString.split()
+        staffName = keys[0]
+        if staffName == 'trebleClef':
+            self.newClef = TrebleStaff(self.x, self.y, self.originalRoot, self.numStaves)
+            self.newClef._drawClefs()
+            #self.newClef.rootitem.scale(2.0, 2.0) TODO: bug: if user scales staff, then calls
+            # this method the new clefs will not scale as well...fix later
+        elif staffName == 'bassClef':
+            self.newClef = BassStaff(self.x, self.y, self.originalRoot, self.numStaves)
+            self.newClef._drawClefs()
+        else:
+            print "please use trebleClef or bassClef"
+            return
+        self.positionDict = self.newClef.positionDict
+        for exp in keys[1:]:
+            duration = int(exp[-1])
+            n = exp[0:-1]
+            if n == '2C':
+                numID = 8
+            else:
+                numID = getIDFromKeyName(str(exp[0:-1]))
+                if not numID:
+                    print 'ERROR: unable to parse note', exp
+                    return
+            if duration == 4:
+                note = QuarterNote(numID, staffName, self.rootitem)
+            elif duration == 2:
+                note = HalfNote(numID, staffName, self.rootitem)
+            elif duration == 1:
+                note = WholeNote(numID, staffName, self.rootitem)
+            elif duration == 8:
+                note = EighthNote(numID, staffName, self.rootitem)
+            else:
+                print 'ERROR: unable to parse note', exp
+                return
+            if '#' in n:
+                note.sharpNotation = True
+            if 'b' in n:
+                note.sharpNotation = False
+            self.drawNote(note)
+
+    def getLineNum(self, Ycoordinate):
+        '''
+        given the Ycoordinate, returns the correct lineNum (1,2,etc.)
+        '''
+        return ((Ycoordinate - 65) / self.verticalDistanceBetweenStaves) + 2
+
+    def getNoteXCoordinate(self):
+        '''
+        determines the x coordinate of the next note to be written to the
+        staff, with consideration for the maximum staff line length.
+        Increments self.currentLineNumand sets self.currentNoteXCoordinate
+        '''
+        self.currentNoteXCoordinate += self.noteSpacingX
+        if self.currentNoteXCoordinate >= (self.endx - 8):
+            if self.currentLineNum == 3:
+                #NO MORE STAFF LEFT!
+                return False
+            else:
+                self.currentNoteXCoordinate = 50
+                self.currentLineNum += 1
+
+        return self.currentNoteXCoordinate
+
+    def getNoteYCoordinate(self, note):
+        '''
+        return a note's vertical coordinate based on the note's name. This is
+        unique to each type of clef (different for bass and treble)
+        '''
+
+        yoffset = (self.currentLineNum - 1) * self.verticalDistanceBetweenStaves
+        if note.numID < 0 and note.sharpNotation:
+            numID = {-1:1, -2:2, -3:4, -4:5, -5:6}[note.numID]
+        elif note.numID < 0:
+            numID = {-1:2, -2:3, -3:5, -4:6, -5:7}[note.numID]
+        else:
+            numID = note.numID
+
+        return  self.positionDict[numID] + yoffset + 36
+
+    def drawScale(self, scaleName, includeNoteNames=True):
+        '''
+        draw the scale on the staff, optionally including Note Names
+
+        >>> self.staff2 = TrebleStaff(50, 50, self.rootitem, numStaves=1)
+        >>> self.staff2.endx = 300
+        >>> self.staff2.rootitem.scale(2.0, 2.0)
+        >>> self.staff2.drawStaff()
+        >>> self.staff2.drawScale('C Major')
+        '''
+        if scaleName == 'C Major':
+            numIDs = [1, 2, 3, 4, 5, 6, 7, 8]
+            # TODO:
+            # good luck with the rest of the scales...all them exceed the C octave,
+            # so you'll need to add in a feature to go beyond just 8 notes ;-)
+        for id in numIDs:
+            note = QuarterNote(id, self.staffName, self.rootitem)
+            self.drawNote(note)
+            if includeNoteNames:
+                text = getKeyNameFromID(note.numID)
+                self.writeLabel(text, note)
+            note.enablePlayOnClick()
+
+    def colorCodeAllNotes(self):
+        '''
+        color notes according to NOTE_COLOR_SCHEME
+
+        self.newStaff.colorCodeAllNotes()
+        '''
+        for note in self.noteList:
+            note.colorCodeNote()
+
+    def colorAllNotes(self, color):
+        '''
+        color all notes a certain color ('black', 'red', 'blue', etc.)
+
+        self.newStaff.colorAllNotes('black')
+        '''
+        for note in self.noteList:
+            note.color(color)
+
+    # ---------- Not - documented ------------------------ #
     def sound_played(self, file):
         pass #mandatory method
 
@@ -438,180 +624,17 @@ class Staff():
     #update current note type based on button clicks
     def updateToEighth(self, widget=None, target=None, event=None):
         self.currentNoteType = 8
-        self.drawFocusRect(-100, -60)
+        self.drawFocusRect(-90, -60)
     def updateToQuarter(self, widget=None, target=None, event=None):
         self.currentNoteType = 4
-        self.drawFocusRect(-70, -60)
+        self.drawFocusRect(-60, -60)
     def updateToHalf(self, widget=None, target=None, event=None):
         self.currentNoteType = 2
-        self.drawFocusRect(-42, -60)
+        self.drawFocusRect(-32, -60)
     def updateToWhole(self, widget=None, target=None, event=None):
         self.currentNoteType = 1
-        self.drawFocusRect(-15, -60)
+        self.drawFocusRect(-5, -60)
 
-
-    def staff_to_file(self, filename):
-        '''
-        uses python's cpickle to save the python object stored in self, a Staff instance
-        '''
-        file = open(filename , 'wb')
-        file.write(self.staffName + ' ')
-        for note in self.noteList:
-            file.write(str(note.numID) + ',' + str(note.noteType) + ' ')
-
-
-        file.close()
-
-
-    def stringToNotation(self, melodyString):
-        if hasattr(self, 'newClef'):
-            self.newClef.clear()
-        self.clear()
-        keys = melodyString.split()
-        staffName = keys[0]
-        if staffName == 'trebleClef':
-            self.newClef = TrebleStaff(self.x, self.y, self.originalRoot)
-            self.newClef._drawClefs()
-        elif staffName == 'bassClef':
-            self.newClef = BassStaff(self.x, self.y, self.originalRoot)
-            self.newClef._drawClefs()
-        else:
-            print "please use trebleClef or bassClef"
-            return
-        self.positionDict = self.newClef.positionDict
-        for exp in keys[1:]:
-            numID, duration = exp.split(',')
-            duration = int(duration)
-            numID = int(numID)
-            if duration == 4:
-                note = QuarterNote(numID, staffName, self.rootitem)
-            elif duration == 2:
-                note = HalfNote(numID, staffName, self.rootitem)
-            elif duration == 1:
-                note = WholeNote(numID, staffName, self.rootitem)
-            elif duration == 8:
-                note = EighthNote(numID, staffName, self.rootitem)
-            else:
-                print 'ERROR: notetype not supported', exp
-                return
-
-            self.drawNote(note)
-
-    def file_to_staff(self, filename):
-        '''
-        uses python's cpickle to load the python object, a staff instance
-        '''
-
-        file = open(filename, 'rb')
-        self.clear()
-        self.stringToNotation(file.read())
-
-#        try:
-
-
-
-#            loadedStaff = pickle.load(file)
-#        except:
-#            file.close()
-#            print 'Cannot load ', filename , " as a GCompris animation"
-#            return
-#        #self.rootitem = self.originalRoot
-#
-#       
-#
-#        '''
-#        PROBLEM: I can't seem to be able to get a direct pointer from the
-#        loadedStaff instance to the self instance....This would be cleanest,
-#        but I'm getting a nasty error about rootitems that I can't seem
-#        to fix. I tried copy.deepcopy on the loaded staff, but that also
-#        doesn't work...
-#        '''
-##        self = copy.deepcopy(loadedStaff)
-##        self = loadedStaff
-##        for note in self.noteList:
-##            print note
-##            self.drawNote(note)
-#
-#        '''
-#        So my fall-back solution is to reconstruct the objects manually. This
-#        is a huge waste of the power of pickle, and I'd like to figure out
-#        how not to do this. Help please ?
-#        '''
-#        if loadedStaff.staffName == 'trebleClef':
-#            y = TrebleStaff(self.x, self.y, self.originalRoot)
-#            y._drawClefs()
-#        else:
-#            y = BassStaff(self.x, self.y, self.originalRoot)
-#            y._drawClefs()
-#        self.positionDict = y.positionDict
-#        self.numID = y.numID
-#
-#        for n in loadedStaff.noteList:
-#            if n.noteType == 'quarterNote':
-#                note = QuarterNote(n.numID, loadedStaff.staffName, self.rootitem)
-#            elif n.noteType == 'halfNote':
-#                note = HalfNote(n.numID, loadedStaff.staffName, self.rootitem)
-#            elif n.noteType == 'wholeNote':
-#                note = WholeNote(n.numID, loadedStaff.staffName, self.rootitem)
-#            else:
-#                print 'ERROR: notetype not supported: ' , n.noteType
-#
-#            self.drawNote(note)
-#
-#        file.close()
-#        self.noteText = goocanvas.Text(
-#          parent=self.originalRoot,
-#          x=120,
-#          y=81,
-#          width=100,
-#          text='',
-#          fill_color="black",
-#          anchor=gtk.ANCHOR_CENTER,
-#          alignment=pango.ALIGN_CENTER
-#          )
-
-    def getNoteYCoordinate(self, note):
-        '''
-        return a note's vertical coordinate based on the note's name. This is
-        unique to each type of clef (different for bass and treble)
-        '''
-        if self.lineNum == 1:
-            yoffset = 0
-        elif self.lineNum == 2:
-            yoffset = self.line2Y
-        else:
-            yoffset = self.line3Y
-
-        if note.numID < 0 and note.sharpNotation:
-            numID = {-1:1, -2:2, -3:4, -4:5, -5:6}[note.numID]
-        elif note.numID < 0:
-            numID = {-1:2, -2:3, -3:5, -4:6, -5:7}[note.numID]
-        else:
-            numID = note.numID
-
-        return  self.positionDict[numID] + yoffset + 36
-
-    def drawScale(self, scaleName, includeNoteNames=True):
-        '''
-        draw the scale on the staff, optionally including Note Names
-        '''
-        if scaleName == 'C Major':
-            numIDs = [1, 2, 3, 4, 5, 6, 7, 8]
-        for id in numIDs:
-            note = QuarterNote(id, self.staffName, self.rootitem)
-            self.drawNote(note)
-            if includeNoteNames:
-                text = getKeyNameFromID(note.numID)
-                self.writeLabel(text, note)
-            note.enablePlayOnClick()
-
-    def colorCodeAllNotes(self):
-        for note in self.noteList:
-            note.colorCodeNote()
-
-    def colorAllNotes(self, color):
-        for note in self.noteList:
-            note.color(color)
 
 class TrebleStaff(Staff):
     '''
@@ -637,33 +660,17 @@ class TrebleStaff(Staff):
         '''
         h = 65
         w = 30
-        if self.numStaves >= 1:
-            self.staffImage1 = goocanvas.Image(
+        y = 0
+        for staveNum in range(0, self.numStaves):
+            self._staffImages.append(goocanvas.Image(
                 parent=self.rootitem,
-                x=10,
-                y= -3,
+                x=5,
+                y= -2 + y,
                 height=h,
                 width=w,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/trebleClef.png')
-                )
-        if self.numStaves >= 2:
-            self.staffImage2 = goocanvas.Image(
-                parent=self.rootitem,
-                x=self.startx,
-                y=self.line2Y,
-                height=h,
-                width=w,
-                pixbuf=gcompris.utils.load_pixmap('piano_composition/trebleClef.png')
-                )
-        if self.numStaves >= 3:
-            self.staffImage3 = goocanvas.Image(
-                parent=self.rootitem,
-                x=self.startx,
-                y=self.line3Y,
-                height=h,
-                width=w,
-                pixbuf=gcompris.utils.load_pixmap('piano_composition/trebleClef.png')
-                )
+                ))
+            y += self.verticalDistanceBetweenStaves
 
 class BassStaff(Staff):
     '''
@@ -690,33 +697,18 @@ class BassStaff(Staff):
         '''
         h = 40
         w = 30
-        if self.numStaves >= 1:
-            self.staffImage1 = goocanvas.Image(
-                parent=self.rootitem,
-                x=10,
-                y=0,
-                height=h,
-                width=w,
-                pixbuf=gcompris.utils.load_pixmap('piano_composition/bassClef.png')
-                )
-        if self.numStaves >= 2:
-            self.staffImage2 = goocanvas.Image(
-                parent=self.rootitem,
-                x=self.startx,
-                y=self.line2Y,
-                height=h,
-                width=w,
-                pixbuf=gcompris.utils.load_pixmap('piano_composition/bassClef.png')
-                )
-        if self.numStaves >= 3:
-            self.staffImage3 = goocanvas.Image(
-                parent=self.rootitem,
-                x=self.startx,
-                y=self.line3Y,
-                height=h,
-                width=w,
-                pixbuf=gcompris.utils.load_pixmap('piano_composition/bassClef.png')
-                )
+        y = 0
+        for staveNum in range(self.numStaves):
+            if self.numStaves >= 1:
+                self._staffImages.append(goocanvas.Image(
+                    parent=self.rootitem,
+                    x=6,
+                    y=y + 1,
+                    height=h,
+                    width=w,
+                    pixbuf=gcompris.utils.load_pixmap('piano_composition/bassClef.png')
+                    ))
+            y += self.verticalDistanceBetweenStaves
 
 # ---------------------------------------------------------------------------
 #
@@ -747,24 +739,10 @@ class Note():
         self.sharpNotation = sharpNotation # toggle to switch note between sharp notation
         # and flat notation, if applicable
 
-    def drawPictureFocus(self, x, y):
-        self.playingLine = goocanvas.Image(
-              parent=self.rootitem,
-              pixbuf=gcompris.utils.load_pixmap("piano_composition/note_highlight.png"),
-              x=x - 13,
-              y=y - 15,
-              )
-        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
-
-    def _drawMidLine(self, x, y):
-        if self.staffType == 'trebleClef' and (self.numID == 1 or  (self.numID == -1 and self.sharpNotation)) or \
-           (self.staffType == 'bassClef' and self.numID == 1 or self.numID == 8) :
-            self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 12, y, x + 12, y ,
-                                        stroke_color_rgba=0x121212D0, line_width=1)
-
-    def play(self, x=None, y=None, z=None):
+    def play(self, widget=None, target=None, event=None):
         '''
-        plays the note sound
+        plays the note pitch. Each pitch is stored in the resources
+        folder as an .ogg file (these are not synthesized)
         '''
         if not ready(self, 700) or self.silent:
             return False
@@ -775,6 +753,70 @@ class Note():
             self.highlight()
         gcompris.sound.play_ogg(self._getPitchDir())
 
+    def color(self, color):
+        '''
+        default color method. colors all components, including notehead's fill
+        '''
+        self.colorNoteHead(color)
+
+    def colorCodeNote(self):
+        '''
+        color the note the appropriate color based on the given color scheme
+        '''
+        self.color(NOTE_COLOR_SCHEME[self.numID])
+
+    def colorNoteHead(self, color, fill=True, outline=True): # not documented online
+        '''
+        colors the notehead, by default both the fill and the outline
+        '''
+        if fill:
+            self.noteHead.props.fill_color = color
+        if outline:
+            self.noteHead.props.stroke_color = "black"
+
+        if hasattr(self, 'midLine'):
+            self.midLine.props.fill_color = "black"
+            self.midLine.props.stroke_color = "black"
+
+    def enablePlayOnClick(self):
+        '''
+        enables the function that the note will be played when the user clicks
+        on the note
+        '''
+        self.noteHead.connect("button_press_event", self.play)
+        gcompris.utils.item_focus_init(self.noteHead, None)
+        self.silent = False
+
+    def disablePlayOnClick(self):
+        self.silent = True
+
+    def highlight(self):
+        '''
+        highlight the note for 700 milliseconds, then revert
+        '''
+        self.playingLine.props.visibility = goocanvas.ITEM_VISIBLE
+        self.timers.append(gobject.timeout_add(self.millisecs, self.stopHighLight))
+
+    def stopHighLight(self): # not documented online
+        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
+
+    def remove(self):
+        '''
+        removes the note from the canvas
+        '''
+        self.rootitem.remove()
+
+    def drawPictureFocus(self, x, y):
+        '''
+        draw focus background picture (when note is played)
+        '''
+        self.playingLine = goocanvas.Image(
+              parent=self.rootitem,
+              pixbuf=gcompris.utils.load_pixmap("piano_composition/note_highlight.png"),
+              x=x - 13,
+              y=y - 15,
+              )
+        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
 
     def _getPitchDir(self):
         '''
@@ -790,6 +832,11 @@ class Note():
 
         return pitchDir
 
+    def _drawMidLine(self, x, y):
+        if self.staffType == 'trebleClef' and (self.numID == 1 or  (self.numID == -1 and self.sharpNotation)) or \
+           (self.staffType == 'bassClef' and self.numID == 1 or self.numID == 8) :
+            self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 12, y, x + 12, y ,
+                                        stroke_color_rgba=0x121212D0, line_width=1)
 
     def _drawAlteration(self, x, y):
         '''
@@ -818,83 +865,17 @@ class Note():
                   height=20,
                   )
 
-    def remove(self):
-        '''
-        removes the note from the canvas
-        '''
-        self.rootitem.remove()
-
-    def colorNoteHead(self, color, fill=True, outline=True):
-        '''
-        colors the notehead, by default both the fill and the outline
-        '''
-        if fill:
-            self.noteHead.props.fill_color = color
-        if outline:
-            self.noteHead.props.stroke_color = "black"
-
-        if hasattr(self, 'midLine'):
-            self.midLine.props.fill_color = "black"
-            self.midLine.props.stroke_color = "black"
-
-    def color(self, color):
-        '''
-        default color method. colors all components, including notehead's fill
-        '''
-        self.colorNoteHead(color)
-
-    def colorCodeNote(self):
-        '''
-        color the note the appropriate color based on the given color scheme
-        '''
-        self.color(NOTE_COLOR_SCHEME[self.numID])
-
-
-    def enablePlayOnClick(self):
-        '''
-        enables the function that the note will be played when the user clicks
-        on the note (not currently used)
-        '''
-
-        self.noteHead.connect("button_press_event", self.play)
-        gcompris.utils.item_focus_init(self.noteHead, None)
-        self.silent = False
-    def disablePlayOnClick(self):
-        self.silent = True
-
-    def enablePlayOnMouseover(self):
-        '''
-        enables the function that the note will be played when the user
-        runs the mouse over the note (used in note_names activity)
-
-        Apparently mouseover actions aren't recommended for GCompris (touchpad
-        issues, etc.) so this method isn't used.
-        '''
-        self.noteHead.connect("motion_notify_event", self.play)
-        gcompris.utils.item_focus_init(self.noteHead, None)
-        self.silent = False
-    def stopHighLight(self):
-        self.playingLine.props.visibility = goocanvas.ITEM_INVISIBLE
-
-    def highlight(self):
-        '''
-        highlight the note for 700 milliseconds, then revert
-        '''
-        self.playingLine.props.visibility = goocanvas.ITEM_VISIBLE
-        self.timers.append(gobject.timeout_add(self.toMillisecs(), self.stopHighLight))
-
 class EighthNote(Note):
     '''
     an object inherited from Note, of specific duration (eighth length)
     '''
     noteType = 8
     beatNums = ['+']
-    def toMillisecs(self):
-        return 250
+    millisecs = 250
 
     def draw(self, x, y):
         '''
-        places note image in canvas
+        places note image in canvas at x,y
         '''
         self.drawPictureFocus(x, y)
 
@@ -924,19 +905,14 @@ class EighthNote(Note):
           height=30,
           width=10
           )
+
 class QuarterNote(Note):
     '''
     an object inherited from Note, of specific duration (quarter length)
     '''
     noteType = 4
     beatNums = ['1']
-    def toMillisecs(self):
-        '''
-        convert noteType to actual duration of sound, in milliseconds. for
-        use when playing whole composition
-        Note: possibly implement 'tempo' and make this dynamic based on tempo of staff
-        '''
-        return 500
+    millisecs = 500
 
     def draw(self, x, y):
         '''
@@ -960,16 +936,13 @@ class QuarterNote(Note):
         self.y = y
         self.x = x
 
-
-
 class HalfNote(Note):
     '''
     an object inherited from Note, of specific duration (half length)
     '''
     noteType = 2
     beatNums = ['1', '2']
-    def toMillisecs(self):
-        return 1000
+    millisecs = 1000
 
     def draw(self, x, y):
         '''
@@ -992,15 +965,13 @@ class HalfNote(Note):
         self.y = y
         self.x = x
 
-
 class WholeNote(Note):
     '''
     an object inherited from Note, of specific duration (whole length)
     '''
     noteType = 1
     beatNums = ['1', '2', '3', '4']
-    def toMillisecs(self):
-        return 2000
+    millisecs = 2000
 
     def draw(self, x, y):
         self.drawPictureFocus(x, y)
@@ -1020,6 +991,7 @@ class WholeNote(Note):
         self.y = y
         self.x = x
 
+# Not yet documented online
 
 # ---------------------------------------------------------------------------
 #
@@ -1222,7 +1194,7 @@ def ready(self, timeouttime=200):
         if not ready(self):
             return False
     '''
-    print 'here'
+
     if not hasattr(self, 'clickTimers'):
         self.clickTimers = []
         self.readyForNextClick = True

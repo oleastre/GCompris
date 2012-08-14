@@ -502,3 +502,5 @@ src/explore_farm_animals-activity/explore_farm_animals.xml.in
 src/explore_farm_animals-activity/explore_farm_animals.py
 src/explore_farm_animals-activity/explore_farm_animals.xml.in
 src/explore_farm_animals-activity/explore_farm_animals.py
+src/justtesting-activity/justtesting.xml.in
+src/justtesting-activity/justtesting.py
