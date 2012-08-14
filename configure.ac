@@ -827,6 +827,7 @@ src/piano_composition-activity/resources/piano_composition/treble_pitches/8/Make
 src/planegame-activity/Makefile
 src/planegame-activity/resources/Makefile
 src/planegame-activity/resources/planegame/Makefile
+src/play_piano-activity/Makefile
 src/play_rhythm-activity/Makefile
 src/play_rhythm-activity/resources/Makefile
 src/play_rhythm-activity/resources/play_rhythm/Makefile
