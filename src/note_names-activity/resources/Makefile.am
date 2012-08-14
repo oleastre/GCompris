@@ -1,2 +1,0 @@
-SUBDIRS = note_names
-
