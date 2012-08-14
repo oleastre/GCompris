@@ -1,7 +1,7 @@
 # Passthrough, do not break uplevel make rule
 install-activity:
 
-SUBDIRS =
+SUBDIRS = resources
 
 pythondir = $(PYTHON_PLUGIN_DIR)
 
