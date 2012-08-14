@@ -110,6 +110,7 @@ SUBDIRS = \
 	paratrooper-activity \
 	penalty-activity \
 	photohunter-activity \
+	piano_composition-activity \
 	planegame-activity \
 	pythontemplate-activity \
 	pythontest-activity \
