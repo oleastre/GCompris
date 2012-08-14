@@ -112,6 +112,7 @@ SUBDIRS = \
 	photohunter-activity \
 	piano_composition-activity \
 	planegame-activity \
+	play_rhythm-activity \
 	pythontemplate-activity \
 	pythontest-activity \
 	railroad-activity \
