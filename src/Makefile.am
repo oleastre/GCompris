@@ -45,6 +45,7 @@ SUBDIRS = \
 	erase-activity \
 	erase_2clic-activity \
 	erase_clic-activity \
+	explore-activity \
 	fifteen-activity \
 	findit-activity \
 	followline-activity \
