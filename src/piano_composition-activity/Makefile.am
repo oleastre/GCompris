@@ -1,11 +1,11 @@
 # Passthrough, do not break uplevel make rule
 install-activity:
 
-SUBDIRS =
+SUBDIRS = resources
 
 pythondir = $(PYTHON_PLUGIN_DIR)
 
-dist_python_DATA= 	piano_composition.py
+dist_python_DATA= 	piano_composition.py gcomprismusic.py
 
 
 
