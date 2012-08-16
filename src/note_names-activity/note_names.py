@@ -17,17 +17,6 @@
 #
 # note_names activity.
 
-
-'''
-DONE:
-    - replace 'mouseover' actions with click & ok button
-    - highlight selection on click
-
-TODO:
-    - bring green and red pop-up notes to front with sort order, but I don't
-    know how to do this yet....
-'''
-
 import gtk
 import gtk.gdk
 import gcompris
@@ -39,8 +28,7 @@ from random import randint
 import random
 
 from gcompris import gcompris_gettext as _
-#import sys
-#sys.path.append('/home/bhadley/Desktop/')
+
 from gcomprismusic import *
 
 
@@ -405,6 +393,7 @@ They also form the C Major Scale. Notice that the note positions are different t
                                         stroke_color="black", line_width=1.0)
         self.focusRect.translate(-515, -320)
         self.focusRect.scale(2.0, 2.0)
+
     def readyToSoundAgain(self):
         self.master_is_not_ready = False
 
@@ -421,10 +410,10 @@ They also form the C Major Scale. Notice that the note positions are different t
         g = self.selectedNoteObject.get_data('numID')
         c = self.currentNote.numID
         if g == c or (c == 8 and g == 1):
-            displayYouWin(self, self.prepareGame)
+            displayHappyNote(self, self.prepareGame)
         else:
-            displayIncorrectAnswer(self, self.clearPic)
-
+            displaySadNote(self, self.clearPic)
+        self.responsePic.raise_(None)
 
     def clearPic(self):
         if hasattr(self, 'responsePic'):
@@ -441,6 +430,7 @@ They also form the C Major Scale. Notice that the note positions are different t
         updates the level for the game when child clicks on bottom
         left navigation bar to increment level
         '''
+        self.staff.eraseAllNotes()
         self.gcomprisBoard.level = level
         gcompris.bar_set_level(self.gcomprisBoard)
         self.display_level(level)

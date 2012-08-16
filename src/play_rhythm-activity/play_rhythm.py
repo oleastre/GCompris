@@ -31,30 +31,6 @@ from random import randint
 import random
 
 
-'''
-TODO:
-    - write more levels:
-        - with eighth notes
-        - with rests
-    - add metronome to record activity
-DONE:
-    - more levels:
-        - with melodies, and click the piano keyboard
-    - write xml documentation
-
-2 & 3.
-I know music 21 a little bit, but I'm more a lilypond user. As you are not writing complex music, a simple format based on some text syntax should be enough ( and easily exportable to other programs if needed ). ABC, lilypond and music21 tiny stream notation use a similar syntax (see below for some references):
-- a note name (A to G) and r for rests
-- some sign to lower or raise a note (flat and sharp)
-- eventually, some sign to set the octave (either a number or signs to raise and lower)
-- a number to indicate the tempo (2 half note, 4 quarter note and so on)
-
-If you implement such a text based parser, you will be able to re-use the current gettext localization framework to simply "translate" the songs.
-
-'''
-
-
-
 class Gcompris_play_rhythm:
 
     def __init__(self, gcomprisBoard):
@@ -149,10 +125,11 @@ class Gcompris_play_rhythm:
         self.metronomePlaying = False
 
         self.playButton.connect("button_press_event", self.stopMetronome)
+        self.playButton.connect("button_press_event", self.setPlayingLine, False)
         self.okButton.connect("button_press_event", self.stopMetronome)
 
 
-    def setPlayingLine(self, on=True):
+    def setPlayingLine(self, x=None, y=None, z=None, on=True):
         if on:
             self.playingLine = True
             self.runPlayingLine()
@@ -223,9 +200,6 @@ class Gcompris_play_rhythm:
         self.timers.append(gobject.timeout_add(1000, self.setPlayingLine, True))
 
     def ok_event(self, widget=None, target=None, event=None):
-        '''
-        DOCS HERE
-        '''
         self.setPlayingLine(False)
         if not ready(self, 1000):
             return False
@@ -241,27 +215,27 @@ class Gcompris_play_rhythm:
             self.netOffsets.append(x - self.recordedHits[index])
         correctedList = []
         if len(self.netOffsets) != len(self.givenRhythm):
-            displayIncorrectAnswer(self, self.tryagain)
+            displaySadNote(self, self.tryagain)
             return
         for rhythmItem, recordedHit in zip(self.givenRhythm[:-1], self.netOffsets[1:]):
             if rhythmItem == 8:
-                if not nearlyEqual(recordedHit, 0.25, 0.3):
-                    displayIncorrectAnswer(self, self.tryagain)
+                if not nearlyEqual(recordedHit, 0.25, 0.2):
+                    displaySadNote(self, self.tryagain)
                     return
             if rhythmItem == 4:
-                if not nearlyEqual(recordedHit, 0.5, 0.3):
-                    displayIncorrectAnswer(self, self.tryagain)
+                if not nearlyEqual(recordedHit, 0.5, 0.2):
+                    displaySadNote(self, self.tryagain)
                     return
             if rhythmItem == 2:
-                if not nearlyEqual(recordedHit, 1.0, 0.3):
-                    displayIncorrectAnswer(self, self.tryagain)
+                if not nearlyEqual(recordedHit, 1.0, 0.2):
+                    displaySadNote(self, self.tryagain)
                     return
             if rhythmItem == 1:
-                if not nearlyEqual(recordedHit, 2.0, 0.3):
-                    displayIncorrectAnswer(self, self.tryagain)
+                if not nearlyEqual(recordedHit, 2.0, 0.2):
+                    displaySadNote(self, self.tryagain)
                     return
 
-        displayYouWin(self, self.nextChallenge)
+        displayHappyNote(self, self.nextChallenge)
         self.metronomePlaying = False
 
         self.remainingNotes = self.givenRhythm

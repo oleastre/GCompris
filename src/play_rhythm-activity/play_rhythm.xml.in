@@ -6,15 +6,31 @@
         section="/experimental"
         icon="play_rhythm.svg"
         difficulty="1"
-        author="your name here"
+        author="Beth Hadley"
         boarddir=""
         >
-        <_title>set a title for play_rhythm</_title>
-        <_description>set a description for play_rhythm</_description>
-        <_prerequisite>set a prerequisite for play_rhythm</_prerequisite>
-        <_goal>set a goal for play_rhythm</_goal>
-        <_manual>set a manual for play_rhythm</_manual>
-        <_credit>set a credit for play_rhythm</_credit>
+        <title>Play Rhythm!</title>
+        <description>Learn to listen to, read, and play musical rhythms!</description>
+        <prerequisite>simple understanding of musical rhythm and beat</prerequisite>
+        <goal>learn to beat rhythms precisely and accurately based on what you see and hear</goal>
+        <manual>This is a relatively challenging game to master, so good luck.
+        Listen to the rhythm played, and follow along with the music. If you would like
+        to ear it again, click the play button. When you're ready to perform the identical rhythm,
+        click the drum to the rhythm, then click the ok button. If you clicked correctly and in the right
+        tempo, another rhythm is displayed. If not, you must try again.
+        If you have difficulty, try turning on the metronome. This will beat quarter notes regularly, and 
+        you should be able to count note durations based on these quarter notes.
+        
+        You can also watch the scrolling vertical line and click whenever it hits a note.
+        
+        The following keyboard bindings work in this game:
+		backspace: erase attempt
+		delete: erase attempt
+		enter/return: ok button
+		space bar: play
+		</manual>
+        
+        <credit>Bruno and Matilda for their suggestions regarding this game.</credit>
   </Board>
   <Data directory=""/>
 </GCompris>

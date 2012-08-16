@@ -131,8 +131,8 @@ class Staff():
 
       # STAFF FORMATTING
       # ALL LOCATIONS BELOW ARE RELATIVE TO self.x and self.y
-      self.endx = 400     #rightend location of staff lines
-      self.verticalDistanceBetweenStaves = 115 #vertical distance between musical staves
+      self.endx = 400     #width of staff lines
+      self.verticalDistanceBetweenStaves = 95 #vertical distance between musical staves
       self.staffLineSpacing = 13 #vertical distance between lines in staff
       self.staffLineThickness = 2.0 # thickness of staff lines
       self.numStaves = numStaves # number of staves to draw (1,2, or 3)
@@ -140,6 +140,7 @@ class Staff():
       # MUSIC NOTATION FORMATTING
       self.currentNoteXCoordinate = self.initialNoteX = 30 #starting X position of first note
       self.noteSpacingX = 27 #distance between each note when appended to staff
+      self.dynamicNoteSpacing = False #adjust note spacing according to space needed by each note
       self.currentLineNum = 1    #the line number (1,2,3) you're currently writing notes to
       self.currentNoteType = 4 #the note type you're currently using to write to the 
       # musical staff, could be 4 (quarter), 8 (eighth), 2 (half) or 1 (whole)
@@ -242,7 +243,16 @@ class Staff():
         >>> self.newStaff.drawNote(EighthNote(5, 'trebleClef', self.newStaff.rootitem))
         >>> self.newStaff.drawNote(WholeNote(-3, 'trebleClef', self.newStaff.rootitem))
         '''
-        x = self.getNoteXCoordinate() #returns next x coordinate for note,
+        if self.dynamicNoteSpacing:
+            if note.numID < 0:
+                self.noteSpacingX = 28
+            elif note.noteType == 1:
+                self.noteSpacingX = 25
+            elif note.noteType == 2:
+                self.noteSpacingX = 23
+            else:
+                self.noteSpacingX = 22
+        x = self.getNoteXCoordinate(note) #returns next x coordinate for note,
         if x == False:
             try:
                 self.alert.remove()
@@ -250,8 +260,8 @@ class Staff():
                 pass
             self.alert = goocanvas.Text(
               parent=self.rootitem,
-              x=300,
-              y=320,
+              x=self.endx - 100,
+              y=self.numStaves * self.verticalDistanceBetweenStaves,
               width=200,
               text=_("The staff is full. Please erase some notes"),
               fill_color="black",
@@ -261,7 +271,11 @@ class Staff():
             return
         y = self.getNoteYCoordinate(note) #returns the y coordinate based on note name
         self.currentLineNum = self.getLineNum(y) #updates self.lineNum
+
         note.draw(x, y) #draws note image on canvas
+        if len(self.noteList) >= 1:
+            if self.noteList[-1].noteType == 8 and self.noteList[-1].isTupleBound == False and note.noteType == 8: #if previous note and current note are eighth notes, draw duple
+                self.drawTupleEighth(self.noteList[-1], note)
         if self.colorCodeNotes:
             note.colorCodeNote()
         self.noteList.append(note) #adds note object to staff list
@@ -284,6 +298,27 @@ class Staff():
                 use_markup=True)
                 self._beatNumLabels.append(blob)
                 x += self.noteSpacingX / len(note.beatNums)
+
+    def drawTupleEighth(self, note1, note2):
+        # don't draw the duple if it's going to be crazy long (from one line to the next for example)
+        if abs(note1.x - note2.x) > 40:
+            return
+        note1.flag.props.visibility = goocanvas.ITEM_INVISIBLE
+        note2.flag.props.visibility = goocanvas.ITEM_INVISIBLE
+
+        note1.tupleBar = goocanvas.polyline_new_line(note1.rootitem,
+                                note1.x + 7, note1.y - 34, note2.x + 7, note2.y - 34,
+                                stroke_color_rgba=0x121212D0, line_width=4)
+        note1.isTupleBound = True
+        note2.isTupleBound = True
+
+    def drawTwoSingleEighthNotes(self, note1, note2):
+        note1.flag.props.visibility = goocanvas.ITEM_VISIBLE
+        note2.flag.props.visibility = goocanvas.ITEM_VISIBLE
+        if note1.isTupleBound:
+            note1.tupleBar.props.visibility = goocanvas.ITEM_INVISIBLE
+        note1.isTupleBound = False
+        note2.isTupleBound = False
 
 
     def writeLabel(self, text, note):
@@ -342,6 +377,9 @@ class Staff():
               self.currentNoteXCoordinate = self.noteList[-2].x
               remainingNoteY = self.noteList[-2].y
               self.currentLineNum = self.getLineNum(remainingNoteY)
+              if len(self.noteList) >= 2:
+                  if self.noteList[-1].noteType == 8 and self.noteList[-1].isTupleBound and self.noteList[-2].noteType == 8:
+                      self.drawTwoSingleEighthNotes(self.noteList[-2], self.noteList[-1])
               self.noteList[-1].remove()
               self.noteList.pop()
         else:
@@ -369,7 +407,9 @@ class Staff():
             self.alert.remove()
         except:
             pass
-
+        if hasattr(self, 'texts'):
+            for x in self.texts:
+                x.remove()
 
     def clear(self):
         '''
@@ -531,19 +571,22 @@ class Staff():
         '''
         return ((Ycoordinate - 65) / self.verticalDistanceBetweenStaves) + 2
 
-    def getNoteXCoordinate(self):
+    def getNoteXCoordinate(self, note):
         '''
         determines the x coordinate of the next note to be written to the
         staff, with consideration for the maximum staff line length.
         Increments self.currentLineNumand sets self.currentNoteXCoordinate
         '''
         self.currentNoteXCoordinate += self.noteSpacingX
-        if self.currentNoteXCoordinate >= (self.endx - 8):
+        if self.currentNoteXCoordinate >= (self.endx - 15) or (self.currentNoteType == 8 and (self.currentNoteXCoordinate >= (self.endx - 25))):
             if self.currentLineNum == 3:
                 #NO MORE STAFF LEFT!
                 return False
             else:
-                self.currentNoteXCoordinate = 50
+                if note.numID < 0:
+                    self.currentNoteXCoordinate = 55
+                else:
+                    self.currentNoteXCoordinate = 50
                 self.currentLineNum += 1
 
         return self.currentNoteXCoordinate
@@ -624,16 +667,16 @@ class Staff():
     #update current note type based on button clicks
     def updateToEighth(self, widget=None, target=None, event=None):
         self.currentNoteType = 8
-        self.drawFocusRect(-90, -60)
+        self.drawFocusRect(-110, -70)
     def updateToQuarter(self, widget=None, target=None, event=None):
         self.currentNoteType = 4
-        self.drawFocusRect(-60, -60)
+        self.drawFocusRect(-82, -70)
     def updateToHalf(self, widget=None, target=None, event=None):
         self.currentNoteType = 2
-        self.drawFocusRect(-32, -60)
+        self.drawFocusRect(-59, -70)
     def updateToWhole(self, widget=None, target=None, event=None):
         self.currentNoteType = 1
-        self.drawFocusRect(-5, -60)
+        self.drawFocusRect(-35, -70)
 
 
 class TrebleStaff(Staff):
@@ -664,7 +707,7 @@ class TrebleStaff(Staff):
         for staveNum in range(0, self.numStaves):
             self._staffImages.append(goocanvas.Image(
                 parent=self.rootitem,
-                x=5,
+                x=3,
                 y= -2 + y,
                 height=h,
                 width=w,
@@ -783,8 +826,9 @@ class Note():
         enables the function that the note will be played when the user clicks
         on the note
         '''
-        self.noteHead.connect("button_press_event", self.play)
-        gcompris.utils.item_focus_init(self.noteHead, None)
+        if hasattr(self, 'noteHead'):
+            self.noteHead.connect("button_press_event", self.play)
+            gcompris.utils.item_focus_init(self.noteHead, None)
         self.silent = False
 
     def disablePlayOnClick(self):
@@ -835,7 +879,7 @@ class Note():
     def _drawMidLine(self, x, y):
         if self.staffType == 'trebleClef' and (self.numID == 1 or  (self.numID == -1 and self.sharpNotation)) or \
            (self.staffType == 'bassClef' and self.numID == 1 or self.numID == 8) :
-            self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 12, y, x + 12, y ,
+            self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 9, y, x + 9, y ,
                                         stroke_color_rgba=0x121212D0, line_width=1)
 
     def _drawAlteration(self, x, y):
@@ -872,7 +916,7 @@ class EighthNote(Note):
     noteType = 8
     beatNums = ['+']
     millisecs = 250
-
+    isTupleBound = False # by default the eight appears with a flag
     def draw(self, x, y):
         '''
         places note image in canvas at x,y
@@ -897,7 +941,7 @@ class EighthNote(Note):
         self.x = x
 
     def _drawFlag(self, x, y):
-        goocanvas.Image(
+        self.flag = goocanvas.Image(
           parent=self.rootitem,
           pixbuf=gcompris.utils.load_pixmap("piano_composition/flag.png"),
           x=x + 7,
@@ -991,8 +1035,6 @@ class WholeNote(Note):
         self.y = y
         self.x = x
 
-# Not yet documented online
-
 # ---------------------------------------------------------------------------
 #
 #  PIANO KEYBOARD
@@ -1017,9 +1059,15 @@ class PianoKeyboard():
 
     def draw(self, width, height, key_callback):
         '''
-        create piano keyboard, with buttons for keys
-        '''
+        create piano keyboard, with buttons for keys. Draw the keyboard
+        using the width and height, and connect the key buttons to the key_callback
+        method
 
+        >>> def keyboard_button_press(self, widget=None, target=None, event=None):
+        ...     pass
+        >>> p = PianoKeyboard(50, 50, self.rootitem)
+        >>> p.draw(300, 200, keyboard_button_press)
+        '''
         #piano keyboard image
         goocanvas.Image(
           parent=self.rootitem,
@@ -1118,10 +1166,215 @@ class PianoKeyboard():
         gcompris.utils.item_focus_init(item, None)
         return item
 
+# ---------------------------------------------------------------------------
+#
+# General UTILITY FUNCTIONS
+#
+# ---------------------------------------------------------------------------
 
+def textButton(x, y, text, self, color='gray', width=100000):
+    '''
+    Add a text button to the screen with the following parameters:
+    1. x: the x position of the button
+    2. y: the y position of the button
+    3. text: the text of the button
+    4. self: the self object this button is to be written to (just pass 'self')
+    5. color: the color of button you'd like to use. Unfortunately there
+    are limited button colors available. I am not a designer, so you are welcome
+    to improve this method, but the current colors available are listed below in the examples
+    6. width: the width of the button
 
+    textButton(200, 300, 'Hello World!', self, color='brown')
+    textButton(350, 300, 'Hola', self, color='darkpurple')
+    textButton(500, 300, 'Ciao', self, color='gray')
+    textButton(650, 300, 'Bonjour', self, color='green')
+    textButton(200, 400, 'Guten Tag', self, color='purple')
+    textButton(350, 400, 'Nei Ho', self, color='red')
+    textButton(500, 400, 'Zdravstvuyte', self, color='teal', width=70)
+    '''
+    self.textbox = goocanvas.Text(
+        parent=self.rootitem,
+        x=x, y=y,
+        width=width,
+        text=text,
+        fill_color="white", anchor=gtk.ANCHOR_CENTER,
+        alignment=pango.ALIGN_CENTER,
+        pointer_events="GOO_CANVAS_EVENTS_NONE"
+        )
+    TG = 15
+    bounds = self.textbox.get_bounds()
+
+    img = goocanvas.Image(
+            parent=self.rootitem,
+            x=bounds.x1 - TG,
+            y=bounds.y1 - TG,
+            height=bounds.y2 - bounds.y1 + TG * 2,
+            width=bounds.x2 - bounds.x1 + TG * 2,
+            pixbuf=gcompris.utils.load_pixmap('piano_composition/buttons/' + color + '.png')
+            )
+
+    gcompris.utils.item_focus_init(img, None)
+    self.textbox.raise_(img)
+    return img
+
+def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, noRect=False, text_color="black"):
+    '''
+    write a textbox with text to the screen. By default the text is surrounded with a rectangle.
+    Customize with the following parameters:
+    text: the text to write
+    x: the x position of the text
+    y: the y position of the text
+    self: the self object this text is to be written to (just pass 'self')
+    width: the width limit of the text
+    fill_color: the color to fill the rectangle
+    stroke_color: the color to make the rectangle lines
+    noRect: set to true for no rectangle to be drawn
+    text_color: the color of the text
+
+    accepted colors include string html color tags or english names
+
+    textBox('Hello World!', 200, 300, self)
+    textBox('Hola', 350, 300, self, fill_color='green')
+    textBox('Ciao', 500, 300, self, stroke_color='pink')
+    textBox('Bonjour', 650, 300, self, noRect=True)
+    textBox('Nei Ho', 350, 400, self, text_color='red')
+    textBox('Guten Tag', 200, 400, self, width=10)
+    textBox('Zdravstvuyte', 500, 400, self, fill_color='#FF00FF')
+    '''
+    self.text = goocanvas.Text(
+        parent=self.rootitem, x=x, y=y, width=width,
+        text=text,
+        fill_color=text_color, anchor=gtk.ANCHOR_CENTER,
+        alignment=pango.ALIGN_CENTER,
+
+        )
+    TG = 10
+    bounds = self.text.get_bounds()
+    if not noRect:
+        rect = goocanvas.Rect(parent=self.rootitem,
+                              x=bounds.x1 - TG,
+                              y=bounds.y1 - TG,
+                              width=bounds.x2 - bounds.x1 + TG * 2,
+                              height=bounds.y2 - bounds.y1 + TG * 2,
+                              line_width=3.0)
+        if fill_color:
+            rect.props.fill_color = fill_color
+        if stroke_color:
+            rect.props.stroke_color = stroke_color
+        self.text.raise_(rect)
+
+def ready(self, timeouttime=200):
+    '''
+    function to help prevent "double-clicks". If your function call is
+    suffering from accidental system double-clicks, import this module
+    and write these lines at the top of your method:
+
+        if not ready(self):
+            return False
+    '''
+
+    if not hasattr(self, 'clickTimers'):
+        self.clickTimers = []
+        self.readyForNextClick = True
+        return True
+
+    def clearClick():
+        self.readyForNextClick = True
+        return False
+
+    if self.readyForNextClick == False:
+        return
+    else:
+        self.clickTimers.append(gobject.timeout_add(timeouttime, clearClick))
+        self.readyForNextClick = False
+        return True
+
+def clearResponsePic(self):
+    self.responsePic.remove()
+
+def displayHappyNote(self, nextMethod):
+    '''
+    displays the happy note for 900 milliseconds
+    '''
+    if hasattr(self, 'responsePic'):
+        self.responsePic.remove()
+    if not hasattr(self, 'timers'):
+        self.timers = []
+
+    self.responsePic = goocanvas.Image(
+    parent=self.rootitem,
+    pixbuf=gcompris.utils.load_pixmap('piano_composition/happyNote.png'),
+    x=300,
+    y=100,
+    height=300,
+    width=150
+    )
+    #self.responsePic.raise_(None)
+    self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
+    self.timers.append(gobject.timeout_add(910, nextMethod))
+
+def displaySadNote(self, nextMethod):
+    '''
+    displays the sad note for 900 milliseconds
+    '''
+    if hasattr(self, 'responsePic'):
+        self.responsePic.remove()
+    if not hasattr(self, 'timers'):
+        self.timers = []
+    self.responsePic = goocanvas.Image(
+    parent=self.rootitem,
+    pixbuf=gcompris.utils.load_pixmap('piano_composition/sadNote.png'),
+    x=300,
+    y=100,
+    height=300,
+    width=150
+    )
+    self.responsePic.raise_(None)
+    self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
+    self.timers.append(gobject.timeout_add(910, nextMethod))
+
+def pianokeyBindings(keyval, self):
+    '''
+    nice key bindings for the piano keys
+    In your activity's key_press method, call this method and pass in the keyval and self
+
+    def key_press(self, keyval, commit_str, preedit_str):
+
+        utf8char = gtk.gdk.keyval_to_unicode(keyval)
+        pianokeyBindings(keyval, self)
+    '''
+    if keyval == 49:
+        self.keyboard_click(None, None, None, 1)
+    elif keyval == 50:
+        self.keyboard_click(None, None, None, 2)
+    elif keyval == 51:
+        self.keyboard_click(None, None, None, 3)
+    elif keyval == 52:
+        self.keyboard_click(None, None, None, 4)
+    elif keyval == 53:
+        self.keyboard_click(None, None, None, 5)
+    elif keyval == 54:
+        self.keyboard_click(None, None, None, 6)
+    elif keyval == 55:
+        self.keyboard_click(None, None, None, 7)
+    elif keyval == 56:
+        self.keyboard_click(None, None, None, 8)
+    elif keyval == gtk.keysyms.F1:
+        self.keyboard_click(None, None, None, -1)
+    elif keyval == gtk.keysyms.F2:
+        self.keyboard_click(None, None, None, -2)
+    elif keyval == gtk.keysyms.F3:
+        self.keyboard_click(None, None, None, -3)
+    elif keyval == gtk.keysyms.F4:
+        self.keyboard_click(None, None, None, -4)
+    elif keyval == gtk.keysyms.F5:
+        self.keyboard_click(None, None, None, -5)
 
 def drawBasicPlayHomePagePart1(self):
+    '''
+    Method used in play activities (play-piano and play-rhythm)
+    because they have similar formats
+    '''
     if self.rootitem:
         self.rootitem.remove()
 
@@ -1142,7 +1395,15 @@ def drawBasicPlayHomePagePart1(self):
 
     textBox(_('Okay'), 550, 30, self, fill_color='gray')
 
+# ---------------------
+# NOT DOCUMENTED ONLINE
+# ---------------------
+
 def drawBasicPlayHomePagePart2(self):
+    '''
+    Method used in play activities (play-piano and play-rhythm)
+    because they have similar formats
+    '''
     # PLAY BUTTON
     self.playButton = goocanvas.Image(
             parent=self.rootitem,
@@ -1175,160 +1436,5 @@ def drawBasicPlayHomePagePart2(self):
             )
     self.eraseButton.connect("button_press_event", self.erase_entry)
     gcompris.utils.item_focus_init(self.eraseButton, None)
-
-
-
-
-# ---------------------------------------------------------------------------
-#
-# UTILITY FUNCTIONS
-#
-# ---------------------------------------------------------------------------
-
-def ready(self, timeouttime=200):
-    '''
-    function to help prevent "double-clicks". If your function call is
-    suffering from accidental system double-clicks, import this module
-    and write these lines at the top of your method:
-
-        if not ready(self):
-            return False
-    '''
-
-    if not hasattr(self, 'clickTimers'):
-        self.clickTimers = []
-        self.readyForNextClick = True
-        return True
-
-    def clearClick():
-        self.readyForNextClick = True
-        return False
-
-    if self.readyForNextClick == False:
-        return
-    else:
-        self.clickTimers.append(gobject.timeout_add(timeouttime, clearClick))
-        self.readyForNextClick = False
-        return True
-
-def clearResponsePic(self):
-    self.responsePic.remove()
-
-def displayYouWin(self, nextMethod):
-    '''
-    displays the happy note for 900 milliseconds
-    '''
-    if hasattr(self, 'responsePic'):
-        self.responsePic.remove()
-
-    self.responsePic = goocanvas.Image(
-    parent=self.rootitem,
-    pixbuf=gcompris.utils.load_pixmap('piano_composition/happyNote.png'),
-    x=300,
-    y=100,
-    height=300,
-    width=150
-    )
-    self.responsePic.raise_(None)
-    self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
-    self.timers.append(gobject.timeout_add(910, nextMethod))
-def displayIncorrectAnswer(self, nextMethod):
-    '''
-    displays the sad note for 900 milliseconds
-    '''
-    if hasattr(self, 'responsePic'):
-        self.responsePic.remove()
-
-    self.responsePic = goocanvas.Image(
-    parent=self.rootitem,
-    pixbuf=gcompris.utils.load_pixmap('piano_composition/sadNote.png'),
-    x=300,
-    y=100,
-    height=300,
-    width=150
-    )
-    self.responsePic.raise_(None)
-    self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
-    self.timers.append(gobject.timeout_add(910, nextMethod))
-
-
-def textButton(x, y, text, self, color='gray', width=100000):
-    self.textbox = goocanvas.Text(
-        parent=self.rootitem,
-        x=x, y=y,
-        width=width,
-        text=text,
-        fill_color="white", anchor=gtk.ANCHOR_CENTER,
-        alignment=pango.ALIGN_CENTER,
-        pointer_events="GOO_CANVAS_EVENTS_NONE"
-        )
-    TG = 15
-    bounds = self.textbox.get_bounds()
-
-    img = goocanvas.Image(
-            parent=self.rootitem,
-            x=bounds.x1 - TG,
-            y=bounds.y1 - TG,
-            height=bounds.y2 - bounds.y1 + TG * 2,
-            width=bounds.x2 - bounds.x1 + TG * 2,
-            pixbuf=gcompris.utils.load_pixmap('piano_composition/buttons/' + color + '.png')
-            )
-
-    gcompris.utils.item_focus_init(img, None)
-    self.textbox.raise_(img)
-    return img
-
-
-def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, noRect=False):
-    self.text = goocanvas.Text(
-        parent=self.rootitem, x=x, y=y, width=width,
-        text=text,
-        fill_color="black", anchor=gtk.ANCHOR_CENTER,
-        alignment=pango.ALIGN_CENTER,
-
-        )
-    TG = 10
-    bounds = self.text.get_bounds()
-    if not noRect:
-        rect = goocanvas.Rect(parent=self.rootitem,
-                              x=bounds.x1 - TG,
-                              y=bounds.y1 - TG,
-                              width=bounds.x2 - bounds.x1 + TG * 2,
-                              height=bounds.y2 - bounds.y1 + TG * 2,
-                              line_width=3.0)
-        if fill_color:
-            rect.props.fill_color = fill_color
-        if stroke_color:
-            rect.props.stroke_color = stroke_color
-        self.text.raise_(rect)
-
-
-def pianokeyBindings(keyval, self):
-    if keyval == 49:
-        self.keyboard_click(None, None, None, 1)
-    elif keyval == 50:
-        self.keyboard_click(None, None, None, 2)
-    elif keyval == 51:
-        self.keyboard_click(None, None, None, 3)
-    elif keyval == 52:
-        self.keyboard_click(None, None, None, 4)
-    elif keyval == 53:
-        self.keyboard_click(None, None, None, 5)
-    elif keyval == 54:
-        self.keyboard_click(None, None, None, 6)
-    elif keyval == 55:
-        self.keyboard_click(None, None, None, 7)
-    elif keyval == 56:
-        self.keyboard_click(None, None, None, 8)
-    elif keyval == gtk.keysyms.F1:
-        self.keyboard_click(None, None, None, -1)
-    elif keyval == gtk.keysyms.F2:
-        self.keyboard_click(None, None, None, -2)
-    elif keyval == gtk.keysyms.F3:
-        self.keyboard_click(None, None, None, -3)
-    elif keyval == gtk.keysyms.F4:
-        self.keyboard_click(None, None, None, -4)
-    elif keyval == gtk.keysyms.F5:
-        self.keyboard_click(None, None, None, -5)
 
 

@@ -30,29 +30,6 @@ from gcomprismusic import *
 from random import randint
 import random
 
-'''
-TODO:
-    - write more levels:
-        - with eighth notes
-        - with rests
-    - add metronome to record activity
-DONE:
-    - more levels:
-        - with melodies, and click the piano keyboard
-    - write xml documentation
-
-2 & 3.
-I know music 21 a little bit, but I'm more a lilypond user. As you are not writing complex music, a simple format based on some text syntax should be enough ( and easily exportable to other programs if needed ). ABC, lilypond and music21 tiny stream notation use a similar syntax (see below for some references):
-- a note name (A to G) and r for rests
-- some sign to lower or raise a note (flat and sharp)
-- eventually, some sign to set the octave (either a number or signs to raise and lower)
-- a number to indicate the tempo (2 half note, 4 quarter note and so on)
-
-If you implement such a text based parser, you will be able to re-use the current gettext localization framework to simply "translate" the songs.
-
-'''
-
-
 
 class Gcompris_play_piano:
 
@@ -96,7 +73,6 @@ class Gcompris_play_piano:
     def display_level(self, level):
         drawBasicPlayHomePagePart1(self)
 
-
         gcompris.bar_set(gcompris.BAR_LEVEL)
         gcompris.bar_set_level(self.gcomprisBoard)
         gcompris.bar_location(20, -1, 0.6)
@@ -104,8 +80,6 @@ class Gcompris_play_piano:
         self.staff = TrebleStaff(100, 80, self.rootitem, numStaves=1)
         self.staff.noteSpacingX = 36
         self.staff.endx = 200
-
-
 
         if level <= 5:
             self.colorCodeNotesButton = textButton(100, 215, _("Color code notes?"), self, 'green')
@@ -135,8 +109,6 @@ class Gcompris_play_piano:
 
     def keyboard_click(self, widget=None, target=None, event=None, numID=None):
 
-#        if not ready(self):
-#            return False
         if not numID:
             numID = target.numID
 
@@ -177,16 +149,13 @@ class Gcompris_play_piano:
             self.staff.drawNote(note)
 
     def ok_event(self, widget=None, target=None, event=None):
-        '''
-        DOCS HERE
-        '''
         if not ready(self, 1000):
             return False
 
         if self.kidsNoteList == self.givenMelody:
-            displayYouWin(self, self.nextChallenge)
+            displayHappyNote(self, self.nextChallenge)
         else:
-            displayIncorrectAnswer(self, self.tryagain)
+            displaySadNote(self, self.tryagain)
 
         self.timers.append(gobject.timeout_add(800, self.staff.playComposition))
 
