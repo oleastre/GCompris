@@ -46,6 +46,12 @@ class Gcompris_piano_composition:
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
 
+        self.timers = []
+        self._bachEasterEggDone = False
+        self._mozartEasterEggDone = False
+        self._bananaEasterEggGone = False
+        self._gsoc2012EasterEggGone = False
+
     def start(self):
         # write the navigation bar to bottom left corner
         gcompris.bar_set(gcompris.BAR_LEVEL)
@@ -79,7 +85,7 @@ class Gcompris_piano_composition:
         4. sharp notes, note duration choice, treble or bass choice
         5. flat notes, note duration choice, treble or bass choice
         6. load and save, only sharp notes, note duration choice, treble or bass choice
-        (7. invisible, loads melodies)
+        (7. , loads melodies)
         '''
         if self.rootitem:
             self.rootitem.remove()
@@ -190,6 +196,24 @@ class Gcompris_piano_composition:
                 )
 
         if (level == 6):
+            self.makeFlatButton = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/blackflat.png'),
+                x=180,
+                y=410,
+                height=45,
+                width=20
+                )
+            self.makeSharpButton = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/blacksharp.png'),
+                x=180,
+                y=410,
+                height=45,
+                width=20
+                )
+            self.makeSharpButton.props.visibility = goocanvas.ITEM_INVISIBLE
+
             self.loadButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/load.png'),
@@ -207,7 +231,8 @@ class Gcompris_piano_composition:
                 height=40,
                 width=40
                 )
-            self.loadSongsButton = textButton(200, 430, _("Load Music"), self, 'red', 100)
+            self.loadSongsButton = textButton(280, 430, _("Load Music"), self, 'red', 100)
+            textBox(_("Change Accidental Style:"), 100, 430, self, width=150, noRect=True)
 
         '''
         create staff instance to manage music data
@@ -264,6 +289,11 @@ class Gcompris_piano_composition:
 
             self.loadSongsButton.connect("button_press_event", self.load_songs_event)
             gcompris.utils.item_focus_init(self.loadSongsButton, None)
+
+            self.makeSharpButton.connect("button_press_event", self.change_accidental_type)
+            gcompris.utils.item_focus_init(self.makeSharpButton, None)
+            self.makeFlatButton.connect("button_press_event", self.change_accidental_type)
+            gcompris.utils.item_focus_init(self.makeFlatButton, None)
         '''
         create piano keyboard for use on every level
         optionally specify to display the "black keys"
@@ -450,6 +480,18 @@ dialogue to\nenable the sound."), stop_board)
         self.wholeNoteSelected.connect("button_press_event", self.staff.updateToWhole)
         gcompris.utils.item_focus_init(self.wholeNoteSelected, None)
 
+    def change_accidental_type(self, widget, target, event):
+        if not ready(self):
+            return False
+        self.keyboard.sharpNotation = not self.keyboard.sharpNotation
+        self.keyboard.draw(300, 200, self.keyboard_click)
+        if self.keyboard.sharpNotation:
+            self.makeSharpButton.props.visibility = goocanvas.ITEM_INVISIBLE
+            self.makeFlatButton.props.visibility = goocanvas.ITEM_VISIBLE
+        else:
+            self.makeSharpButton.props.visibility = goocanvas.ITEM_VISIBLE
+            self.makeFlatButton.props.visibility = goocanvas.ITEM_INVISIBLE
+
     def keyboard_click(self, widget, target, event, numID=None):
         '''
         called whenever a key rectangle is pressed; a note object is created
@@ -458,6 +500,7 @@ dialogue to\nenable the sound."), stop_board)
         '''
         if not ready(self):
             return False
+
 
         if not numID:
             numID = target.numID
@@ -475,7 +518,66 @@ dialogue to\nenable the sound."), stop_board)
         self.staff.drawNote(n)
         n.play()
         n.enablePlayOnClick()
+
+        self.checkForEasterEgg()
         return False
+
+    def checkForEasterEgg(self):
+        '''
+        At GUADEC, I was talking to one of the organizers of GNOME-GSOC and he
+        said that what he really missed about GNOME was all the fun easter eggs it
+        used to have....apparently Cheese had a fun one, and lots of other cool things.
+        So he actually encouraged us to put some in ourselves ;-) So here are mine,
+        they're pretty rare so I don't expect many people to find them
+        but I think they're legitimate and shouldn't be taken out.
+        '''
+        s = r = ''
+        for x in self.staff.noteList:
+            s += str(x.numID)
+            r += str(x.numID) + str(x.noteType)
+
+        if not self._bachEasterEggDone and '-5617' in s:
+            self.responsePic = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/bach.png'),
+                x=250,
+                y=50
+                )
+            self.timers.append(gobject.timeout_add(2000, clearResponsePic, self))
+            self._bachEasterEggDone = True
+        if not self._mozartEasterEggDone and '523248685848383244284428' in r:
+            self.responsePic = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/mozart.png'),
+                x=160,
+                y=80
+                )
+            self.timers.append(gobject.timeout_add(2000, clearResponsePic, self))
+            self._mozartEasterEggDone = True
+        if not self._bananaEasterEggGone and '7464-4464-4464' in r:
+            self.responsePic = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/banana.png'),
+                x=200,
+                y=10
+                )
+            self.responsePic.animate(5, 5, 3.0, 0.0, \
+                absolute=False, duration=800, step_time=100, type=goocanvas.ANIMATE_FREEZE)
+
+            self.timers.append(gobject.timeout_add(800, clearResponsePic, self))
+            self._bananaEasterEggGone = True
+        if not self._gsoc2012EasterEggGone and '14181814343838345458585481' in r:
+            self.responsePic = goocanvas.Image(
+                parent=self.rootitem,
+                pixbuf=gcompris.utils.load_pixmap('piano_composition/gsoc2012.png'),
+                x= -20,
+                y=10
+                )
+            self.responsePic.animate(0, 400, 1, 0, \
+                absolute=False, duration=1000, step_time=100, type=goocanvas.ANIMATE_FREEZE)
+
+            self.timers.append(gobject.timeout_add(1000, clearResponsePic, self))
+            self._gsoc2012EasterEggGone = True
 
     def end(self):
         # Remove the root item removes all the others inside it

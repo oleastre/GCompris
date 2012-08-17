@@ -1056,6 +1056,8 @@ class PianoKeyboard():
 
         self.colors = NOTE_COLOR_SCHEME #provide this as an instance
         # variable so future users may edit it
+        self.sharpBlackKeyTexts = []
+        self.flatBlackKeyTexts = []
 
     def draw(self, width, height, key_callback):
         '''
@@ -1068,6 +1070,9 @@ class PianoKeyboard():
         >>> p = PianoKeyboard(50, 50, self.rootitem)
         >>> p.draw(300, 200, keyboard_button_press)
         '''
+        self.width = width
+        self.height = height
+        self.key_callback = key_callback
         #piano keyboard image
         goocanvas.Image(
           parent=self.rootitem,
@@ -1091,22 +1096,10 @@ class PianoKeyboard():
         seperationWidth = w * 1.37
 
         if self.whiteKeys:
-            self.drawKey(x, y, w, h, self.colors[1], 1)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[2], 2)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[3], 3)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[4], 4)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[5], 5)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[6], 6)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[7], 7)
-            x += seperationWidth
-            self.drawKey(x, y, w, h, self.colors[8], 8)
-            x += seperationWidth
+            for num in range(1, 9):
+                self.drawKey(x, y, w, h, self.colors[num], num)
+                x += seperationWidth
+
 
         if self.blackKeys:
             w = width * 0.07
@@ -1124,6 +1117,9 @@ class PianoKeyboard():
             self.drawKey(x, y, w, h, self.colors[-4], -4)
             x += seperationWidth
             self.drawKey(x, y, w, h, self.colors[-5], -5)
+
+
+
 
 
     def drawKey(self, x, y, width, height, color, numID):
@@ -1155,7 +1151,11 @@ class PianoKeyboard():
          use_markup=True,
          pointer_events="GOO_CANVAS_EVENTS_NONE"
          )
-
+        if numID < 0:
+            if self.sharpNotation == True:
+                self.sharpBlackKeyTexts.append(keyText)
+            elif self.sharpNotation == False:
+                self.flatBlackKeyTexts.append(keyText)
         gcompris.utils.item_focus_init(keyText, item)
 
         '''
@@ -1165,6 +1165,15 @@ class PianoKeyboard():
         item.connect("button_press_event", self.key_callback)
         gcompris.utils.item_focus_init(item, None)
         return item
+
+    def changeAccidentalType(self, sharpNotation=False):
+        if sharpNotation:
+            l = self.flatBlackKeyTexts
+        else:
+            l = self.sharpBlackKeyTexts
+        for x in l:
+            x.remove()
+        self.draw(self.width, self.height, self.key_callback)
 
 # ---------------------------------------------------------------------------
 #

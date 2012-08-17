@@ -5,4 +5,4 @@ activity=explore
 plugindir=$path/../boards/.libs
 pythonplugindir=$path 
 resourcedir=$path/resources
-section="/experimental"
+section="/discovery/sound_group"

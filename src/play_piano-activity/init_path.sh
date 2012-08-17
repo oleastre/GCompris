@@ -5,4 +5,4 @@ activity=play_piano
 plugindir=$path/../boards/.libs
 pythonplugindir=$path/../piano_composition-activity:$path/../play_piano-activity
 resourcedir=$path/resources
-section="/experimental"
+section="/discovery/sound_group"

@@ -3,7 +3,7 @@
   <Board
         name="explore_farm_animals"
         type="python:explore"
-        section="/experimental"
+        section="/discovery/sound_group"
         icon="explore_farm_animals.svg"
         difficulty="1"
         author="Beth Hadley"

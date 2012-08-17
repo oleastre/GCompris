@@ -3,7 +3,7 @@
   <Board
         name="piano_composition"
         type="python:piano_composition"
-        section="/experimental"
+        section="/discovery/sound_group"
         icon="piano_composition.svg"
         difficulty="1"
         author="Beth Hadley"

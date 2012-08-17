@@ -3,7 +3,7 @@
   <Board
         name="note_names"
         type="python:note_names"
-        section="/experimental"
+        section="/discovery/sound_group"
         icon="note_names.svg"
         difficulty="1"
         author="Beth Hadley"

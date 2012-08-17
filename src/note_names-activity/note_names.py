@@ -422,6 +422,8 @@ They also form the C Major Scale. Notice that the note positions are different t
     def end(self):
         # Remove the root item removes all the others inside it
         self.rootitem.remove()
+        if hasattr(self, 'noteButtonsRootItem'):
+            self.noteButtonsRootItem.remove()
         gcompris.sound.policy_set(self.saved_policy)
         gcompris.sound.resume()
 

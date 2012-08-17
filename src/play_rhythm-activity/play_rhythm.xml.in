@@ -3,7 +3,7 @@
   <Board
         name="play_rhythm"
         type="python:play_rhythm"
-        section="/experimental"
+        section="/discovery/sound_group"
         icon="play_rhythm.svg"
         difficulty="1"
         author="Beth Hadley"
