@@ -282,16 +282,16 @@ class Staff():
         self.noteList.append(note) #adds note object to staff list
 
         if self.labelBeatNumbers:
+            x = note.x
             for n in note.beatNums:
                 if n == note.beatNums[0]:
                     size = "10000"
                 else:
                     size = "5000"
-
                 blob = goocanvas.Text(
                 parent=self.rootitem,
-                x=x + self.x,
-                y=y - 75 + self.y,
+                x=x, #x + self.x,
+                y=self.y - 13, #y - 75 ,
                 text='<span size="' + size + '" >' + n + '</span>',
                 fill_color="black",
                 anchor=gtk.ANCHOR_CENTER,
