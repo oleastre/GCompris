@@ -65,7 +65,7 @@ class Gcompris_note_names:
         self.saved_policy = gcompris.sound.policy_get()
         gcompris.sound.policy_set(gcompris.sound.PLAY_AND_INTERRUPT)
         gcompris.sound.pause()
-
+        gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
         # Set a background image
         gcompris.set_default_background(self.gcomprisBoard.canvas.get_root_item())
 
@@ -89,6 +89,8 @@ class Gcompris_note_names:
         7. note-identification: sharp notes
         8. note-identification: flat notes
         '''
+        if hasattr(self, 'staff'):
+            self.staff.eraseAllNotes()
         if self.rootitem:
             self.rootitem.remove()
         if hasattr(self, 'noteButtonsRootItem'):
@@ -421,6 +423,7 @@ They also form the C Major Scale. Notice that the note positions are different t
 
     def end(self):
         # Remove the root item removes all the others inside it
+        self.staff.eraseAllNotes()
         self.rootitem.remove()
         if hasattr(self, 'noteButtonsRootItem'):
             self.noteButtonsRootItem.remove()

@@ -5,8 +5,8 @@
         type="python:play_rhythm"
         section="/discovery/sound_group"
         icon="play_rhythm.svg"
-        difficulty="1"
-        author="Beth Hadley"
+        difficulty="3"
+        author="Beth Hadley (bethmhadley@gmail.com)"
         boarddir=""
         >
         <title>Play Rhythm!</title>

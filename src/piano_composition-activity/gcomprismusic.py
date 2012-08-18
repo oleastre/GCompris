@@ -138,7 +138,8 @@ class Staff():
       self.numStaves = numStaves # number of staves to draw (1,2, or 3)
 
       # MUSIC NOTATION FORMATTING
-      self.currentNoteXCoordinate = self.initialNoteX = 30 #starting X position of first note
+      self.currentNoteXCoordinate = x + 30 #starting X position of first note
+      self.initialNoteX = x + 30
       self.noteSpacingX = 27 #distance between each note when appended to staff
       self.dynamicNoteSpacing = False #adjust note spacing according to space needed by each note
       self.currentLineNum = 1    #the line number (1,2,3) you're currently writing notes to
@@ -260,8 +261,8 @@ class Staff():
                 pass
             self.alert = goocanvas.Text(
               parent=self.rootitem,
-              x=self.endx - 100,
-              y=self.numStaves * self.verticalDistanceBetweenStaves,
+              x=self.endx - 100 + self.x,
+              y=self.numStaves * self.verticalDistanceBetweenStaves + self.y,
               width=200,
               text=_("The staff is full. Please erase some notes"),
               fill_color="black",
@@ -272,7 +273,7 @@ class Staff():
         y = self.getNoteYCoordinate(note) #returns the y coordinate based on note name
         self.currentLineNum = self.getLineNum(y) #updates self.lineNum
 
-        note.draw(x + self.x, y + self.y) #draws note image on canvas
+        note.draw(x, y) #draws note image on canvas
         if len(self.noteList) >= 1:
             if self.noteList[-1].noteType == 8 and self.noteList[-1].isTupleBound == False and note.noteType == 8: #if previous note and current note are eighth notes, draw duple
                 self.drawTupleEighth(self.noteList[-1], note)
@@ -569,7 +570,8 @@ class Staff():
         '''
         given the Ycoordinate, returns the correct lineNum (1,2,etc.)
         '''
-        return ((Ycoordinate - 65) / self.verticalDistanceBetweenStaves) + 2
+
+        return ((Ycoordinate - self.y + 10) / self.verticalDistanceBetweenStaves) + 1
 
     def getNoteXCoordinate(self, note):
         '''
@@ -578,15 +580,17 @@ class Staff():
         Increments self.currentLineNumand sets self.currentNoteXCoordinate
         '''
         self.currentNoteXCoordinate += self.noteSpacingX
-        if self.currentNoteXCoordinate >= (self.endx - 15) or (self.currentNoteType == 8 and (self.currentNoteXCoordinate >= (self.endx - 25))):
+
+        if self.currentNoteXCoordinate >= (self.endx + self.x - 15) or (self.currentNoteType == 8 and
+                                (self.currentNoteXCoordinate >= (self.endx + self.x + -25))):
             if self.currentLineNum == 3:
                 #NO MORE STAFF LEFT!
                 return False
             else:
                 if note.numID < 0:
-                    self.currentNoteXCoordinate = 55
+                    self.currentNoteXCoordinate = self.initialNoteX + 20
                 else:
-                    self.currentNoteXCoordinate = 50
+                    self.currentNoteXCoordinate = self.initialNoteX + 20
                 self.currentLineNum += 1
 
         return self.currentNoteXCoordinate
@@ -605,7 +609,7 @@ class Staff():
         else:
             numID = note.numID
 
-        return  self.positionDict[numID] + yoffset + 36
+        return  self.positionDict[numID] + yoffset + 36 + self.y
 
     def drawScale(self, scaleName, includeNoteNames=True):
         '''

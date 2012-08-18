@@ -43,7 +43,7 @@ import random
 RECORD_LOCATIONS = False
 # -----------------------------------------------------------------------------
 
-ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
+
 class Gcompris_explore:
 
     def __init__(self, gcomprisBoard):
@@ -143,7 +143,7 @@ class Gcompris_explore:
                 # PLAY BUTTON
                 self.playButton = goocanvas.Image(
                         parent=self.rootitem,
-                        pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'playbutton.png'),
+                        pixbuf=gcompris.utils.load_pixmap('explore/playbutton.png'),
                         x=65,
                         y=100,
                         )

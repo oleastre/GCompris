@@ -5,8 +5,8 @@
         type="python:note_names"
         section="/discovery/sound_group"
         icon="note_names.svg"
-        difficulty="1"
-        author="Beth Hadley"
+        difficulty="2"
+        author="Beth Hadley (bethmhadley@gmail.com)"
         boarddir=""
         >
         <title>Name that Note!</title>

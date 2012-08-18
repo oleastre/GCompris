@@ -71,6 +71,9 @@ class Gcompris_play_rhythm:
         self.display_level(self.gcomprisBoard.level)
 
     def display_level(self, level):
+        if hasattr(self, 'staff'):
+            self.staff.clear()
+            self.staff.eraseAllNotes()
         drawBasicPlayHomePagePart1(self)
         goocanvas.Rect(parent=self.rootitem,
             x=200, y=160, width=400, height=30,
@@ -284,6 +287,7 @@ class Gcompris_play_rhythm:
 
     def end(self):
 
+        self.staff.eraseAllNotes()
         # Remove the root item removes all the others inside it
         self.rootitem.remove()
 

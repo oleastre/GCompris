@@ -53,7 +53,7 @@ class Gcompris_play_piano:
         self.saved_policy = gcompris.sound.policy_get()
         gcompris.sound.policy_set(gcompris.sound.PLAY_AND_INTERRUPT)
         gcompris.sound.pause()
-
+        gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
 
         # Set the buttons we want in the bar
         gcompris.bar_set(gcompris.BAR_LEVEL)
@@ -71,6 +71,9 @@ class Gcompris_play_piano:
         self.display_level(self.gcomprisBoard.level)
 
     def display_level(self, level):
+        if hasattr(self, 'staff'):
+            self.staff.clear()
+            self.staff.eraseAllNotes()
         drawBasicPlayHomePagePart1(self)
 
         gcompris.bar_set(gcompris.BAR_LEVEL)
@@ -172,6 +175,7 @@ class Gcompris_play_piano:
 
     def end(self):
 
+        self.staff.eraseAllNotes()
         # Remove the root item removes all the others inside it
         self.rootitem.remove()
 

@@ -581,6 +581,7 @@ dialogue to\nenable the sound."), stop_board)
 
     def end(self):
         # Remove the root item removes all the others inside it
+        self.staff.eraseAllNotes()
         self.rootitem.remove()
         gcompris.sound.policy_set(self.saved_policy)
         gcompris.sound.resume()
@@ -625,7 +626,7 @@ dialogue to\nenable the sound."), stop_board)
         updates the level for the game when child clicks on bottom
         left navigation bar to increment level
         '''
-
+        self.staff.eraseAllNotes()
         self.staff.eraseAllNotes()
         self.gcomprisBoard.level = level
         gcompris.bar_set_level(self.gcomprisBoard)

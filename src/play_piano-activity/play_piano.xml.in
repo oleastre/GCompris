@@ -5,8 +5,8 @@
         type="python:play_piano"
         section="/discovery/sound_group"
         icon="play_piano.svg"
-        difficulty="1"
-        author="your name here"
+        difficulty="2"
+        author="Beth Hadley (bethmhadley@gmail.com)"
         boarddir=""
         >
 		<title>Play Piano!</title>
