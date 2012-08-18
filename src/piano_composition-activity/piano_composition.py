@@ -199,18 +199,18 @@ class Gcompris_piano_composition:
             self.makeFlatButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/blackflat.png'),
-                x=180,
+                x=175,
                 y=410,
-                height=45,
-                width=20
+                height=40,
+                width=30
                 )
             self.makeSharpButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/blacksharp.png'),
-                x=180,
+                x=175,
                 y=410,
-                height=45,
-                width=20
+                height=40,
+                width=30
                 )
             self.makeSharpButton.props.visibility = goocanvas.ITEM_INVISIBLE
 
@@ -278,7 +278,7 @@ class Gcompris_piano_composition:
             gcompris.utils.item_focus_init(self.wholeNoteSelected, None)
 
             # draw focus rectangle around quarter note duration, the default
-            self.staff.drawFocusRect(-82, -70)
+            self.staff.drawFocusRect(288, 115)
 
         if level == 6:
             self.saveButton.connect("button_press_event", self.save_file_event)

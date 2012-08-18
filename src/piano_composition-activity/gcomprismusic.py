@@ -127,7 +127,7 @@ class Staff():
       self.originalRoot = canvasRoot
       self.x = x        #master X position
       self.y = y        #master Y position
-      self.rootitem = goocanvas.Group(parent=canvasRoot, x=self.x, y=self.y)
+      self.rootitem = goocanvas.Group(parent=canvasRoot, x=0, y=0)
 
       # STAFF FORMATTING
       # ALL LOCATIONS BELOW ARE RELATIVE TO self.x and self.y
@@ -150,7 +150,7 @@ class Staff():
       self.labelBeatNumbers = False # label the beat numbers above each note
       # (used in play-rhythm activity)
       self.drawPlayingLine = False # draw vertical line on staff to follow the beat 
-      # as the composition is being played
+      # as the comp370osition is being played
 
       self.notReadyToPlay = False #set to True when staff is not ready to 
       #play composition (something else is going on for example)
@@ -175,9 +175,9 @@ class Staff():
         '''
         draw staff lines according to the number of staves
         '''
-        y = 0
+        y = self.y
         for staveNum in range(0, self.numStaves):
-            self._drawLines(x=0, y=y, length=self.endx)
+            self._drawLines(x=self.x, y=y, length=self.endx)
             y += self.verticalDistanceBetweenStaves
 
         self._drawEndBars() #two lines at end of the last staff
@@ -213,22 +213,22 @@ class Staff():
         '''
         draw the vertical end bars on each line, two for line 3
         '''
-        y = 0
+        y = self.y
         for num in range(0, self.numStaves - 1):
-            goocanvas.polyline_new_line(self.rootitem, self.endx,
-                                    y, self.endx, y + 53,
+            goocanvas.polyline_new_line(self.rootitem, self.endx + self.x,
+                                    y, self.endx + self.x, y + 53,
                                      stroke_color="black", line_width=3.0)
             y += self.verticalDistanceBetweenStaves
 
 
         #doublebar
-        goocanvas.polyline_new_line(self.rootitem, self.endx - 7,
-                                y - 1, self.endx - 7, y + 53,
+        goocanvas.polyline_new_line(self.rootitem, self.endx + self.x - 7,
+                                y - 1, self.endx + self.x - 7, y + 53,
                                  stroke_color="black", line_width=3.0)
 
         #final barline, dark
-        goocanvas.polyline_new_line(self.rootitem, self.endx,
-                                y - 1, self.endx, y + 53,
+        goocanvas.polyline_new_line(self.rootitem, self.endx + self.x,
+                                y - 1, self.endx + self.x, y + 53,
                                  stroke_color="black", line_width=4.0)
 
     def drawNote(self, note):
@@ -272,7 +272,7 @@ class Staff():
         y = self.getNoteYCoordinate(note) #returns the y coordinate based on note name
         self.currentLineNum = self.getLineNum(y) #updates self.lineNum
 
-        note.draw(x, y) #draws note image on canvas
+        note.draw(x + self.x, y + self.y) #draws note image on canvas
         if len(self.noteList) >= 1:
             if self.noteList[-1].noteType == 8 and self.noteList[-1].isTupleBound == False and note.noteType == 8: #if previous note and current note are eighth notes, draw duple
                 self.drawTupleEighth(self.noteList[-1], note)
@@ -289,8 +289,8 @@ class Staff():
 
                 blob = goocanvas.Text(
                 parent=self.rootitem,
-                x=x,
-                y=y - 75,
+                x=x + self.x,
+                y=y - 75 + self.y,
                 text='<span size="' + size + '" >' + n + '</span>',
                 fill_color="black",
                 anchor=gtk.ANCHOR_CENTER,
@@ -341,7 +341,7 @@ class Staff():
             text = goocanvas.Text(
                   parent=self.rootitem,
                   x=note.x,
-                  y=self.staffLineSpacing * 6 + 3,
+                  y=self.y + self.staffLineSpacing * 6 + 3,
                   text=text,
                   fill_color='black',
                   anchor=gtk.ANCHOR_CENTER,
@@ -349,7 +349,7 @@ class Staff():
                   )
             rect = goocanvas.Rect(parent=self.rootitem,
                       x=note.x - 10,
-                      y=self.staffLineSpacing * 6 - 8,
+                      y=self.y + self.staffLineSpacing * 6 - 8,
                       width=20,
                       height=20,
                       line_width=.5,
@@ -667,16 +667,16 @@ class Staff():
     #update current note type based on button clicks
     def updateToEighth(self, widget=None, target=None, event=None):
         self.currentNoteType = 8
-        self.drawFocusRect(-110, -70)
+        self.drawFocusRect(260, 115)
     def updateToQuarter(self, widget=None, target=None, event=None):
         self.currentNoteType = 4
-        self.drawFocusRect(-82, -70)
+        self.drawFocusRect(288, 115)
     def updateToHalf(self, widget=None, target=None, event=None):
         self.currentNoteType = 2
-        self.drawFocusRect(-59, -70)
+        self.drawFocusRect(310, 115)
     def updateToWhole(self, widget=None, target=None, event=None):
         self.currentNoteType = 1
-        self.drawFocusRect(-35, -70)
+        self.drawFocusRect(335, 115)
 
 
 class TrebleStaff(Staff):
@@ -703,11 +703,11 @@ class TrebleStaff(Staff):
         '''
         h = 65
         w = 30
-        y = 0
+        y = self.y
         for staveNum in range(0, self.numStaves):
             self._staffImages.append(goocanvas.Image(
                 parent=self.rootitem,
-                x=3,
+                x=3 + self.x,
                 y= -2 + y,
                 height=h,
                 width=w,
@@ -740,12 +740,12 @@ class BassStaff(Staff):
         '''
         h = 40
         w = 30
-        y = 0
+        y = self.y
         for staveNum in range(self.numStaves):
             if self.numStaves >= 1:
                 self._staffImages.append(goocanvas.Image(
                     parent=self.rootitem,
-                    x=6,
+                    x=6 + self.x,
                     y=y + 1,
                     height=h,
                     width=w,
