@@ -43,7 +43,7 @@ import random
 RECORD_LOCATIONS = False
 # -----------------------------------------------------------------------------
 
-
+ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
 class Gcompris_explore:
 
     def __init__(self, gcomprisBoard):
