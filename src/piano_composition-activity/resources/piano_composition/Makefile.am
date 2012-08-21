@@ -14,7 +14,7 @@ img_DATA = \
 	happyNote.png \
 	keyboard.png \
 	load.png \
-	melodies.txt \
+	melodies.desktop.in \
 	mozart.png \
 	note_highlight.png \
 	quarterNote.png \
