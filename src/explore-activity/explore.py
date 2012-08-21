@@ -143,7 +143,7 @@ class Gcompris_explore:
                 # PLAY BUTTON
                 self.playButton = goocanvas.Image(
                         parent=self.rootitem,
-                        pixbuf=gcompris.utils.load_pixmap('explore/playbutton.png'),
+                        pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'playbutton.png'),
                         x=65,
                         y=100,
                         )
