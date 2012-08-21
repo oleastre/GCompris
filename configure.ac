@@ -659,6 +659,9 @@ src/erase_clic-activity/Makefile
 src/explore-activity/Makefile
 src/explore-activity/resources/Makefile
 src/explore-activity/resources/explore/Makefile
+src/explore_farm_animals-activity/Makefile
+src/explore_farm_animals-activity/resources/Makefile
+src/explore_farm_animals-activity/resources/explore_farm_animals/Makefile
 src/explore_world_music-activity/Makefile
 src/explore_world_music-activity/resources/Makefile
 src/explore_world_music-activity/resources/explore_world_music/Makefile
