@@ -1365,6 +1365,7 @@ def pianokeyBindings(keyval, self):
         utf8char = gtk.gdk.keyval_to_unicode(keyval)
         pianokeyBindings(keyval, self)
     '''
+    if keyval == gtk.keysyms._2:        print 'here'
     if keyval == 49:
         self.keyboard_click(None, None, None, 1)
     elif keyval == 50:

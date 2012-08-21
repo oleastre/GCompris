@@ -648,6 +648,7 @@ dialogue to\nenable the sound."), stop_board)
     def key_press(self, keyval, commit_str, preedit_str):
 
         utf8char = gtk.gdk.keyval_to_unicode(keyval)
+        print keyval
         #if not ready(self, timeouttime=100): return False
         if keyval == gtk.keysyms.BackSpace:
             if not ready(self, timeouttime=100): return False
@@ -663,6 +664,10 @@ dialogue to\nenable the sound."), stop_board)
                 pianokeyBindings(keyval, self)
             else:
                 self.first = False
+
+        # Inform GTK that we did process the key
+        return True
+
     def pause(self, x):
         pass
 
