@@ -47,6 +47,7 @@ SUBDIRS = \
 	erase_clic-activity \
 	explore-activity \
 	explore_farm_animals-activity \
+	explore_world_animals-activity \
 	explore_world_music-activity \
 	fifteen-activity \
 	findit-activity \
