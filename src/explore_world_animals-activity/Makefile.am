@@ -1,13 +1,7 @@
 # Passthrough, do not break uplevel make rule
 install-activity:
 
-SUBDIRS =
-
-pythondir = $(PYTHON_PLUGIN_DIR)
-
-dist_python_DATA= 	explore_world_animals.py
-
-
+SUBDIRS = resources
 
 xmldir = $(pkgdatadir)/@PACKAGE_DATA_DIR@
 
