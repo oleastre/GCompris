@@ -659,6 +659,9 @@ src/erase_clic-activity/Makefile
 src/explore-activity/Makefile
 src/explore-activity/resources/Makefile
 src/explore-activity/resources/explore/Makefile
+src/explore_world_music-activity/Makefile
+src/explore_world_music-activity/resources/Makefile
+src/explore_world_music-activity/resources/explore_world_music/Makefile
 src/fifteen-activity/Makefile
 src/fifteen-activity/resources/Makefile
 src/fifteen-activity/resources/fifteen/Makefile
