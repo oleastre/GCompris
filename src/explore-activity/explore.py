@@ -43,7 +43,11 @@ import random
 RECORD_LOCATIONS = False
 # -----------------------------------------------------------------------------
 
-ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
+ExploreActivityResourcesFilepath = "%s/explore/" % gcompris.DATA_DIR
+
+#Uncomment following line to run gcompris in the build folder.
+#ExploreActivityResourcesFilepath = '..//src/explore-activity/resources/explore/'
+
 class Gcompris_explore:
 
     def __init__(self, gcomprisBoard):
