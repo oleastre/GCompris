@@ -28,6 +28,8 @@ import gcompris.skin
 import goocanvas
 import pango
 import gcompris.sound
+import ConfigParser
+
 from gcompris import gcompris_gettext as _
 
 from gcomprismusic import *
@@ -41,7 +43,7 @@ class Gcompris_piano_composition:
         self.gcomprisBoard = gcomprisBoard
 
         self.gcomprisBoard.level = 1
-        self.gcomprisBoard.maxlevel = 6
+        self.gcomprisBoard.maxlevel = 7
 
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
@@ -51,6 +53,8 @@ class Gcompris_piano_composition:
         self._mozartEasterEggDone = False
         self._bananaEasterEggGone = False
         self._gsoc2012EasterEggGone = False
+
+        self.noClefDescription = False
 
     def start(self):
         # write the navigation bar to bottom left corner
@@ -92,11 +96,13 @@ class Gcompris_piano_composition:
 
         self.rootitem = goocanvas.Group(parent=
                                        self.gcomprisBoard.canvas.get_root_item())
-        if level == 7:
+        if level == 8:
             self.displayMelodySelection()
+            self.noClefDescription = True
             return
 
-        clefDescription = keyboardDescription = True
+
+        clefDescription = keyboardDescription = not self.noClefDescription
         if level == 1:
             clefText = _("This is the Treble clef staff, for high pitched notes")
             keyboardText = _("These are the 8 \"white\" keys in an octave")
@@ -113,6 +119,9 @@ class Gcompris_piano_composition:
             clefText = _("Flat notes have a b sign")
             keyboardText = _("Each black key has two names, one with a flat and one with a sharp")
         elif level == 6:
+            clefText = _("Now you can load melodies from around the world")
+            keyboardDescription = False
+        elif level == 7:
             clefText = _("Compose music now! Click to load or save your work")
             keyboardDescription = False
 
@@ -150,17 +159,22 @@ class Gcompris_piano_composition:
             y = 115
 
             # WRITE NOTE BUTTONS TO SELECT NOTE DURATION
-            self.eighthNoteSelectedButton = goocanvas.Image(
-                parent=self.rootitem,
+
+            self.eighthNoteSelectedButton = goocanvas.Group(parent=
+                                       self.rootitem)
+
+            goocanvas.Image(
+                parent=self.eighthNoteSelectedButton,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/quarterNote.png'),
                 x=x,
                 y=y,
                 height=45,
-                width=20
+                width=20,
+                tooltip=_("Eighth Note")
                 )
 
             goocanvas.Image(
-              parent=self.rootitem,
+              parent=self.eighthNoteSelectedButton,
               pixbuf=gcompris.utils.load_pixmap("piano_composition/flag.png"),
               x=x + 17,
               y=y + 5 ,
@@ -171,31 +185,35 @@ class Gcompris_piano_composition:
             self.quarterNoteSelectedButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/quarterNote.png'),
-                x=x + 30,
+                x=x + 35,
                 y=y,
                 height=45,
-                width=20
+                width=20,
+                tooltip=_("Quarter Note")
                 )
 
             self.halfNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/halfNote.png'),
-                x=x + 55,
+                x=x + 62,
                 y=y,
                 height=45,
-                width=20
+                width=20,
+                tooltip=_("Half Note")
                 )
+
 
             self.wholeNoteSelected = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/wholeNote.png'),
-                x=x + 80,
+                x=x + 90,
                 y=y,
                 height=45,
-                width=20
+                width=20,
+                tooltip=_("Whole Note")
                 )
 
-        if (level == 6):
+        if (level in [6, 7]):
             self.makeFlatButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/blackflat.png'),
@@ -214,10 +232,14 @@ class Gcompris_piano_composition:
                 )
             self.makeSharpButton.props.visibility = goocanvas.ITEM_INVISIBLE
 
+            self.loadSongsButton = textButton(280, 430, _("Load Music"), self, 'red', 100)
+            textBox(_("Change Accidental Style:"), 100, 430, self, width=150, noRect=True)
+
+        if (level == 7):
             self.loadButton = goocanvas.Image(
                 parent=self.rootitem,
                 pixbuf=gcompris.utils.load_pixmap('piano_composition/load.png'),
-                x=680,
+                x=683,
                 y=45,
                 height=40,
                 width=40
@@ -231,8 +253,6 @@ class Gcompris_piano_composition:
                 height=40,
                 width=40
                 )
-            self.loadSongsButton = textButton(280, 430, _("Load Music"), self, 'red', 100)
-            textBox(_("Change Accidental Style:"), 100, 430, self, width=150, noRect=True)
 
         '''
         create staff instance to manage music data
@@ -278,15 +298,16 @@ class Gcompris_piano_composition:
             gcompris.utils.item_focus_init(self.wholeNoteSelected, None)
 
             # draw focus rectangle around quarter note duration, the default
-            self.staff.drawFocusRect(288, 115)
+            self.staff.drawFocusRect(292, 112)
 
-        if level == 6:
+        if level == 7:
             self.saveButton.connect("button_press_event", self.save_file_event)
             gcompris.utils.item_focus_init(self.saveButton, None)
 
             self.loadButton.connect("button_press_event", self.load_file_event)
             gcompris.utils.item_focus_init(self.loadButton, None)
 
+        if level >= 6:
             self.loadSongsButton.connect("button_press_event", self.load_songs_event)
             gcompris.utils.item_focus_init(self.loadSongsButton, None)
 
@@ -302,7 +323,7 @@ class Gcompris_piano_composition:
         if level == 5:
             self.keyboard.sharpNotation = False
             self.keyboard.blackKeys = True
-        elif level == 4 or level == 6:
+        elif level in [4, 6, 7]:
             self.keyboard.blackKeys = True
             self.keyboard.sharpNotation = True
 
@@ -318,6 +339,9 @@ dialogue to\nenable the sound."), stop_board)
         '''
         parse the text file melodies.txt and display the melodies for selection
         '''
+
+        self.noClefDescription = True
+
         goocanvas.Text(parent=self.rootitem,
          x=290,
          y=30,
@@ -328,34 +352,17 @@ dialogue to\nenable the sound."), stop_board)
          pointer_events="GOO_CANVAS_EVENTS_NONE"
          )
 
-        file = open(gcompris.DATA_DIR + '/piano_composition/melodies.txt' , 'r')
-        songList = []
-        lineCnt = 1
-        newSong = {}
-        for line in file:
-            if line == '\n':
-                newSong = {}
-                lineCnt = 1
-                continue
-            if lineCnt == 1:
-                newSong['title'] = line.strip()
-                lineCnt += 1
-            elif lineCnt == 2:
-                newSong['origin'] = line.strip()
-                lineCnt += 1
-            elif lineCnt == 3:
-                newSong['lyrics'] = line.strip()
-                lineCnt += 1
-            else:
-                newSong['melody'] = line.strip()
-                songList.append(newSong)
-        self.songList = songList
+        self.read_data()
 
-        def displayTitle(song, x, y):
+        self.writeDataToScreen()
+
+    def writeDataToScreen(self):
+
+        def displayTitle(section, x, y):
             self.text = goocanvas.Text(
                 parent=self.rootitem,
                 x=x, y=y,
-                text=song['title'], # not to be translated
+                text=self.data.get(section, '_title'),
                 fill_color="black"
                 )
 
@@ -364,40 +371,65 @@ dialogue to\nenable the sound."), stop_board)
                  y=y + 23,
                  width=175,
                  text='<span font_family="URW Gothic L" size="7000" \
-                 weight="bold">' + _(song['origin']) + '</span>',
+                 weight="bold">' + self.data.get(section, '_origin') + '</span>',
                  fill_color="black",
                  use_markup=True,
                  pointer_events="GOO_CANVAS_EVENTS_NONE"
                  )
 
-            self.text.connect("button_press_event", self.melodySelected, song)
+            self.text.connect("button_press_event", self.melodySelected, section)
             gcompris.utils.item_focus_init(self.text, None)
 
 
         x = 75
         y = 75
-        for song in self.songList:
-            displayTitle(song, x, y)
+        for section in self.data.sections():
+            displayTitle(section, x, y)
             if y > 400:
                 y = 75
                 x += 300
             else:
                 y += 50
 
+    def read_data(self):
+            '''
+            method to read in the data from melodies.desktop.in. Saves this data as
+            self.data for reference later.
+            '''
+            #self.data = ConfigParser.RawConfigParser() # the data that is parsed from
+            config = ConfigParser.RawConfigParser()
+            filename = gcompris.DATA_DIR + '/' + self.gcomprisBoard.name + '/melodies.desktop.in'
+            try:
+                gotit = config.read(filename)
+                if not gotit:
+                    gcompris.utils.dialog(_("Cannot find the file '{filename}'").\
+                                        format(filename=filename),
+                                    None)
+                    return False
+            except ConfigParser.Error, error:
+                    gcompris.utils.dialog(_("Failed to parse data set '{filename}'"
+                                      " with error:\n{error}").\
+                                      format(filename=filename, error=error),
+                                    None)
+                    return False
 
-    def melodySelected(self, widget, target, event, song):
+            self.data = config
+
+
+
+    def melodySelected(self, widget, target, event, section):
         '''
         called once a melody has been selected
         writes the melody to the staff, and displayes the title and lyrics
         '''
-        self.display_level(6)
-        self.staff.stringToNotation(song['melody'])
+        self.display_level(self.gcomprisBoard.level)
+        self.staff.stringToNotation(self.data.get(section, 'melody'))
         self.staff.texts = []
         self.staff.texts.append(goocanvas.Text(parent=self.rootitem,
-         x=420,
-         y=100,
+         x=400,
+         y=30,
          width=300,
-         text='<span font_family="URW Gothic L" size="11000" weight="bold" >' + _(song['title']) + '</span>',
+         text='<span font_family="URW Gothic L" size="15000" weight="bold" >' + self.data.get(section, '_title') + '</span>',
          fill_color="black",
          use_markup=True,
          alignment=pango.ALIGN_CENTER,
@@ -405,18 +437,31 @@ dialogue to\nenable the sound."), stop_board)
          ))
 
         self.staff.texts.append(goocanvas.Text(parent=self.rootitem,
-         x=370,
-         y=117,
-         width=400,
-         text='<span font_family="URW Gothic L" size="11000" >' + _(song['lyrics']) + '</span>',
+         x=405,
+         y=70,
+         width=280,
+         text='<span font_family="URW Gothic L" size="11000" >' + self.data.get(section, '_lyrics') + '</span>',
          fill_color="black",
          use_markup=True,
          alignment=pango.ALIGN_CENTER,
          pointer_events="GOO_CANVAS_EVENTS_NONE"
          ))
 
+        self.staff.texts.append(goocanvas.Text(parent=self.rootitem,
+         x=400,
+         y=55,
+         width=300,
+         text='<span font_family="URW Gothic L" size="8000" weight="bold" >' + self.data.get(section, '_origin') + '</span>',
+         fill_color="black",
+         use_markup=True,
+         alignment=pango.ALIGN_CENTER,
+         pointer_events="GOO_CANVAS_EVENTS_NONE"
+         ))
+
+
     def load_songs_event(self, widget, target, event):
-        self.set_level(7)
+        #self.staff.eraseAllNotes()
+        self.display_level(8)
 
     def save_file_event(self, widget, target, event):
         '''
@@ -626,7 +671,7 @@ dialogue to\nenable the sound."), stop_board)
         updates the level for the game when child clicks on bottom
         left navigation bar to increment level
         '''
-        self.staff.eraseAllNotes()
+        self.noClefDescription = False
         self.staff.eraseAllNotes()
         self.gcomprisBoard.level = level
         gcompris.bar_set_level(self.gcomprisBoard)

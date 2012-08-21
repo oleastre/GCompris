@@ -482,7 +482,7 @@ class Gcompris_explore:
 # METHODS TO DEAL WITH INPUT & OUTPUT OF CONTENT FILE
 # --------------------------------------------------------------------------
 
-# FYI: t first I didn't see any need to make a class to handle the data, but in 
+# FYI: at first I didn't see any need to make a class to handle the data, but in 
 # retrospect having a data object would have been much cleaner.
 
     def recordLocationsForDeveloper(self):

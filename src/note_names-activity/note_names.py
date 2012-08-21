@@ -56,6 +56,10 @@ class Gcompris_note_names:
 
         self._okayToRepeat = False
 
+        self.remainingNotesToIdentify = []
+
+        self.repeatThisNoteLaterPlease = False
+
     def start(self):
         # Set the buttons we want in the bar
         gcompris.bar_set(gcompris.BAR_LEVEL)
@@ -247,7 +251,7 @@ They also form the C Major Scale. Notice that the note positions are different t
 
         if levelNum in [8, 9, 10, 18, 19, 20]:
             self.sharpNotation = False
-
+        self.remainingNotesToIdentify = self.pitchPossibilities
         self.drawRandomNote(self.staff.staffName)
         self.drawNoteButtons()
 
@@ -270,10 +274,9 @@ They also form the C Major Scale. Notice that the note positions are different t
         '''
         if self.pitchSoundEnabled:
             self.pitchSoundEnabled = False
-            self.currentNote.disablePlayOnClick()
         else:
             self.pitchSoundEnabled = True
-            self.currentNote.enablePlayOnClick()
+
 
     def drawRandomNote(self, staffType):
         '''
@@ -284,20 +287,20 @@ They also form the C Major Scale. Notice that the note positions are different t
             if not ready(self):
                 return
 
-        newNoteID = self.pitchPossibilities[randint(0, len(self.pitchPossibilities) - 1)]
+        newNoteID = self.remainingNotesToIdentify[randint(0, len(self.pitchPossibilities) - 1)]
 
-        if hasattr(self, 'currentNote') and \
-        self.currentNote.numID == newNoteID: #don't repeat the same note twice
+        if hasattr(self, 'currentNote') and self.currentNote.numID == newNoteID and len(self.remainingNotesToIdentify) > 1: #don't repeat the same note twice
             self._okayToRepeat = True
             self.drawRandomNote(staffType)
             return
         self._okayToRepeat = False
+
         note = QuarterNote(newNoteID, staffType, self.staff.rootitem, self.sharpNotation)
 
         self.staff.drawNote(note)
         if self.pitchSoundEnabled:
             note.play()
-            note.enablePlayOnClick()
+        note.enablePlayOnClick()
         self.currentNote = note
 
     def play_scale_game(self, widget=None, target=None, event=None):
@@ -412,10 +415,19 @@ They also form the C Major Scale. Notice that the note positions are different t
         g = self.selectedNoteObject.get_data('numID')
         c = self.currentNote.numID
         if g == c or (c == 8 and g == 1):
-            displayHappyNote(self, self.prepareGame)
+            if not self.repeatThisNoteLaterPlease:
+                self.remainingNotesToIdentify.remove(c)
+            if self.remainingNotesToIdentify == []:
+                displayHappyNote(self, lambda: self.set_level(self.gcomprisBoard.level + 1))
+            else:
+                displayHappyNote(self, self.prepareGame)
+            self.repeatThisNoteLaterPlease = False
         else:
+            self.repeatThisNoteLaterPlease = True
             displaySadNote(self, self.clearPic)
         self.responsePic.raise_(None)
+
+
 
     def clearPic(self):
         if hasattr(self, 'responsePic'):

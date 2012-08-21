@@ -571,7 +571,7 @@ class Staff():
         given the Ycoordinate, returns the correct lineNum (1,2,etc.)
         '''
 
-        return ((Ycoordinate - self.y + 10) / self.verticalDistanceBetweenStaves) + 1
+        return ((Ycoordinate - self.y + 20) / self.verticalDistanceBetweenStaves) + 1
 
     def getNoteXCoordinate(self, note):
         '''
@@ -656,31 +656,40 @@ class Staff():
     def sound_played(self, file):
         pass #mandatory method
 
-    def drawFocusRect(self, x, y):
+    def drawFocusRect(self, x, y, eighth=False):
         '''
         draws focus rectangle around notes (quarter/half/whole) in piano_composition game
         '''
         if hasattr(self, 'focusRect'):
             self.focusRect.remove()
+        if eighth:
+            width = 34
+            height = 51
+            radius_x = 9
+            radius_y = 9
+        else:
+            width = 26
+            height = 51
+
         self.focusRect = goocanvas.Rect(parent=self.rootitem,
                                     x=x,
                                     y=y,
-                                    width=28, height=45,
-                                    radius_x=5, radius_y=5,
+                                    width=width, height=height,
+                                    radius_x=9, radius_y=9,
                                     stroke_color="black", line_width=2.0)
     #update current note type based on button clicks
     def updateToEighth(self, widget=None, target=None, event=None):
         self.currentNoteType = 8
-        self.drawFocusRect(260, 115)
+        self.drawFocusRect(256.5, 112, True)
     def updateToQuarter(self, widget=None, target=None, event=None):
         self.currentNoteType = 4
-        self.drawFocusRect(288, 115)
+        self.drawFocusRect(292, 112)
     def updateToHalf(self, widget=None, target=None, event=None):
         self.currentNoteType = 2
-        self.drawFocusRect(310, 115)
+        self.drawFocusRect(319.5, 112)
     def updateToWhole(self, widget=None, target=None, event=None):
         self.currentNoteType = 1
-        self.drawFocusRect(335, 115)
+        self.drawFocusRect(347, 112)
 
 
 class TrebleStaff(Staff):
@@ -882,9 +891,9 @@ class Note():
 
     def _drawMidLine(self, x, y):
         if self.staffType == 'trebleClef' and (self.numID == 1 or  (self.numID == -1 and self.sharpNotation)) or \
-           (self.staffType == 'bassClef' and self.numID == 1 or self.numID == 8) :
+           (self.staffType == 'bassClef' and (self.numID == 1 or self.numID == 8)) :
             self.midLine = goocanvas.polyline_new_line(self.rootitem, x - 9, y, x + 9, y ,
-                                        stroke_color_rgba=0x121212D0, line_width=1)
+                                        stroke_color_rgba=0x121212D0, line_width=1, pointer_events="GOO_CANVAS_EVENTS_NONE")
 
     def _drawAlteration(self, x, y):
         '''
