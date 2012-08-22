@@ -20,7 +20,6 @@ img_DATA = \
 	middleeast.ogg\
 	middleeast.png\
 	orchestra.png\
-	star.png\
 	suitcase.png\
 	worldmap.png
 

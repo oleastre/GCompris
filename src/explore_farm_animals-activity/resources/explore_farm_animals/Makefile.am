@@ -5,7 +5,6 @@ img_DATA = \
 	chicken.JPG\
 	chickens.ogg\
 	content.desktop.in\
-	correctpic.png\
 	cow.jpg\
 	cow.ogg\
 	dog.jpg\
