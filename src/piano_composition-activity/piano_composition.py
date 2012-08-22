@@ -77,8 +77,6 @@ class Gcompris_piano_composition:
 
         self.display_level(self.gcomprisBoard.level)
 
-        self.first = True # random variable used for key clicks
-
     def display_level(self, level):
         '''
         displays level contents.
@@ -362,7 +360,7 @@ dialogue to\nenable the sound."), stop_board)
             self.text = goocanvas.Text(
                 parent=self.rootitem,
                 x=x, y=y,
-                text=self.data.get(section, '_title'),
+                text=self.data.get(section, 'title'),
                 fill_color="black"
                 )
 
@@ -371,7 +369,7 @@ dialogue to\nenable the sound."), stop_board)
                  y=y + 23,
                  width=175,
                  text='<span font_family="URW Gothic L" size="7000" \
-                 weight="bold">' + self.data.get(section, '_origin') + '</span>',
+                 weight="bold">' + _(self.data.get(section, '_origin')) + '</span>',
                  fill_color="black",
                  use_markup=True,
                  pointer_events="GOO_CANVAS_EVENTS_NONE"
@@ -426,10 +424,10 @@ dialogue to\nenable the sound."), stop_board)
         self.staff.stringToNotation(self.data.get(section, 'melody'))
         self.staff.texts = []
         self.staff.texts.append(goocanvas.Text(parent=self.rootitem,
-         x=400,
-         y=30,
-         width=300,
-         text='<span font_family="URW Gothic L" size="15000" weight="bold" >' + self.data.get(section, '_title') + '</span>',
+         x=300,
+         y=15,
+         width=500,
+         text='<span font_family="URW Gothic L" size="15000" weight="bold" >' + self.data.get(section, 'title') + '</span>',
          fill_color="black",
          use_markup=True,
          alignment=pango.ALIGN_CENTER,
@@ -440,7 +438,7 @@ dialogue to\nenable the sound."), stop_board)
          x=405,
          y=70,
          width=280,
-         text='<span font_family="URW Gothic L" size="11000" >' + self.data.get(section, '_lyrics') + '</span>',
+         text='<span font_family="URW Gothic L" size="11000" >' + self.data.get(section, 'lyrics') + '</span>',
          fill_color="black",
          use_markup=True,
          alignment=pango.ALIGN_CENTER,
@@ -449,9 +447,9 @@ dialogue to\nenable the sound."), stop_board)
 
         self.staff.texts.append(goocanvas.Text(parent=self.rootitem,
          x=400,
-         y=55,
+         y=45,
          width=300,
-         text='<span font_family="URW Gothic L" size="8000" weight="bold" >' + self.data.get(section, '_origin') + '</span>',
+         text='<span font_family="URW Gothic L" size="12000" weight="bold" >' + _(self.data.get(section, '_origin')) + '</span>',
          fill_color="black",
          use_markup=True,
          alignment=pango.ALIGN_CENTER,
@@ -569,12 +567,55 @@ dialogue to\nenable the sound."), stop_board)
 
     def checkForEasterEgg(self):
         '''
+        Note From Beth:
         At GUADEC, I was talking to one of the organizers of GNOME-GSOC and he
         said that what he really missed about GNOME was all the fun easter eggs it
         used to have....apparently Cheese had a fun one, and lots of other cool things.
         So he actually encouraged us to put some in ourselves ;-) So here are mine,
         they're pretty rare so I don't expect many people to find them
         but I think they're legitimate and shouldn't be taken out.
+
+        If you're reading this to figure out what the easter eggs are...then you
+        obviously have an interest in music and code. why not code a music activyt
+        for GCompris? I'll help you...just email me.
+
+        And now, the easter egges are:
+
+        if you enter the notes (on the American keyboard) Bb/A# - A - C - B or (on the
+        German keyboard) B - A - C - H, a picture of Bach's statue in front of his
+        cathedral in Leipzig will appear. This is a picture I took during the summer
+        I was coding this activity, and I had the pleasure to visit Leipzig in Germany
+
+        if you enter the following (note the note name is first, followed by thr rhythm length
+        (4=quarter, 8=eighth, 2=half, 1= whole)
+
+        B4 A4 Ab4 A4 Ab4 A4 , a banana will appear to fly across the screen. this is
+        a joke from GUADEC...if you're really curious, email bethmhadley@gmail.com ;-)
+
+        if you enter
+
+        G2 E2 F8 A8 G8 F8 E8 E2 F4 D8 F4 D8
+
+        then you'll see picture of the inside of a cathedral, with a girl standing
+        on the right. Do you know who it is and where? It's the inside of a cathedral in
+        Salzburg, Mozart's birthplace. Mozart served as music master here for a few years
+        (because he was forced to leave! ;-) The girl, by the way, is me...I was lucky
+        enough to visit Salzurg during the summer I spent coding this activity, and took
+        this picture.
+
+        and if you enter
+
+        C4 C8 C8 C E4 E8 E8 E4 G4 G8 G8 G4
+
+        you'll see the Google Summer of Code Banner move across the screen. This is in
+        recognition of the wonderful program that enabled me to make this summer project
+        a possibility. I really enjoyed working this summer on this code, and I am very
+        grateful to my mentor, Bruno Coudoin, for his support and assistance in this process.
+        I'm also thankful to the entire GUADEC and GCompris communities for their ideas, support,
+        and encouragement.
+
+        Thanks everyone, and enjoy!
+
         '''
         s = r = ''
         for x in self.staff.noteList:
@@ -648,7 +689,6 @@ dialogue to\nenable the sound."), stop_board)
     def key_press(self, keyval, commit_str, preedit_str):
 
         utf8char = gtk.gdk.keyval_to_unicode(keyval)
-
         #if not ready(self, timeouttime=100): return False
         if keyval == gtk.keysyms.BackSpace:
             if not ready(self, timeouttime=100): return False
@@ -660,13 +700,7 @@ dialogue to\nenable the sound."), stop_board)
             if not ready(self, timeouttime=100): return False
             self.staff.playComposition()
         else:
-            if not self.first:
-                pianokeyBindings(keyval, self)
-            else:
-                self.first = False
-
-        # Inform GTK that we did process the key
-        return True
+            pianokeyBindings(keyval, self)
 
     def pause(self, x):
         pass

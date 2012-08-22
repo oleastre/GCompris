@@ -5,9 +5,11 @@ backgroundy = 5
 credits = Public domain animal sounds: http://www.animal-sounds.org/index.html, Public domain animal pictures: http://commons.wikimedia.org/wiki/Main_Page
 creator = Beth Hadley
 locationpic = questionpic.png
-completedlocationpic = correctpic.png
-game1text = Click on the questions to explore each farm animal.
-game2text = Click on the farm animals that makes the sound you hear.
+generalText = Click on the questions to explore each farm animal.
+SoundMatchingGameText = Click on the farm animal that makes the sound you hear.
+TextMatchingGameText = Click the animal that matches the description.
+textBoxX = 200
+textBoxY = 150
 
 [1]
 x = 130
@@ -16,8 +18,7 @@ _title = Horse
 _text = The horse goes "neigh! neigh!". Horses usually sleep standing up.
 image = horse.jpg
 music = horse.ogg
-_question = Which of the following is NOT a horse breed?
-_answeroptions = Labrador, Appaloosa, Arabian, Morgan
+_shortPrompt = You can ride on the back of this animal!
 
 [2]
 x = 290
@@ -26,18 +27,16 @@ _title = Chickens
 _text = The chichen goes "cluck, cackle, cluck". Chickens have over 200 different noises they can use to communicate.
 image = chicken.JPG
 music =chickens.ogg
-_question = The chicken is the closest living relative to ...
-_answeroptions = the T-Rex dinosaur, the ostrich, the turtle, the frog
+_shortPrompt = This animal lays eggs.
 
 [3]
 x = 470
 y = 425
 _title = Cows
-_text = The cow goes "moo. moo." Cows have a memory of about three years.
+_text = The cow goes "moo. moo." Cows have a memory of about three years. Cows have many uses, including for milk and meat.
 image = cow.jpg
 music = cow.ogg
-_question = How many compartments does a cow's stomach have?
-_answeroptions = four, one, two, five
+_shortPrompt = You can drink the milk this animal produces.
 
 [4]
 x = 735
@@ -46,8 +45,7 @@ _title = Cat
 _text = The cat goes "meow, meow". Cats usually hate water because their fur doesn't stay warm when it is wet.
 image = cat.JPG
 music = cat.ogg
-_question = How many cats did Abraham Lincoln keep at the White House?
-_answeroptions = four, two, one, none
+_shortPrompt = This pet likes to chase mice.
 
 [5]
 x = 610
@@ -56,18 +54,16 @@ _title = Pigs
 _text = The pig goes "oink, oink". Pigs are the 4th most intelligent animal.
 image = pig.jpg
 music = pig.ogg
-_question = How many piglets does a large mother pig usually have?
-_answeroptions = 8 - 12, 3 - 5, 15 - 20, 1 or 2
+_shortPrompt = This animal like to lay in the mud.
 
 [6]
-x = 380
-y = 460
+x = 385
+y = 440
 _title = White Duck
-_text = The duck goes "quack, quack". Ducks have waterproof feathers.
+_text = The duck goes "quack, quack". Ducks have special features like webbed feat and waterproof feathers.
 image = duck.jpg
 music = duck.ogg
-_question = What does the duck use in her nest to make it soft for her babies?
-_answeroptions = her own feathers, cotton, hair, leaves
+_shortPrompt = This animal has webbed feet so it can swim in the water.
 
 [7]
 x = 430
@@ -76,8 +72,7 @@ _title = Owl
 _text = The owl goes "hoo. hoo." The owl has excellent vision and hearing at night.
 image = owl.jpg
 music = owl.ogg
-_question = How many mice can a barn owl eat in one year?
-_answeroptions = 1000, 500, 2000, 360
+_shortPrompt = This animal likes to come out at night.
 
 [9]
 x = 705
@@ -86,15 +81,13 @@ _title = Dogs
 _text = The dog goes "bark! bark!". Dogs are great human companions and usually enjoy love and attention.
 image = dog.jpg
 music = dog.ogg
-_question = Dogs can smell how many times better than humans?
-_answeroptions = 1000 times, 50 times, 5 times, 10 times
+_shortPrompt = This animal's ancesters were wolves.
 
 [10]
 x = 630
 y = 410
 _title = Rooster
-_text = The rooster goes "coc-a-doodle-doo!". Roosters have been on farms for about 5,000 years!
+_text = The rooster goes "coc-a-doodle-doo!". Roosters have been on farms for about 5,000 years. Every morning it wakes the farm up with its noices.
 image = rooster.jpg
 music = rooster.ogg
-_question = The rooster is what type of chicken?
-_answeroptions = male, female, egg-laying, young
+_shortPrompt = This animal wakes the farm up in the morning.

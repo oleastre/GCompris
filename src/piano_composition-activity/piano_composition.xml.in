@@ -22,7 +22,8 @@
         Level 3: option to choose between treble and bass clef, additional function includes option to select note duration (quarter, half, and whole notes)
         Level 4: addition of black keys (sharp keys)
         Level 5: flat notation used for black keys
-        Level 6: all features available, with the additional feature to load and save your composition
+        Level 6: load children's melodies from around the world
+        Level 7: all features available, with the additional feature to load and save your composition
         
         The following keyboard bindings work in this activity:
 		backspace: erase one note

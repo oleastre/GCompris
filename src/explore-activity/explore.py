@@ -50,7 +50,7 @@ class Gcompris_explore:
 
         self.gcomprisBoard = gcomprisBoard
         self.gcomprisBoard.level = 1
-        self.gcomprisBoard.maxlevel = 1
+        self.gcomprisBoard.maxlevel = 2
 
         # Needed to get key_press
         gcomprisBoard.disable_im_context = True
@@ -60,14 +60,17 @@ class Gcompris_explore:
 
         self.timers = []
 
-        self.score1 = 0
-        self.score2 = 0
+        self.soundMatchingScore = 0
+        self.textMatchingScore = 0
 
-        self.sectionsAnsweredCorrectlyGame1 = []
-        self.sectionsAnsweredCorrectlyGame2 = []
+        self.sectionsAnsweredCorrectlySoundMatchingGame = []
+        self.sectionsAnsweredCorrectlyTextMatchingGame = []
 
         self.soundClipsRemaining = [] # list of sound clips still to be played during level 2
         self.allSoundClips = [] # list of sound clips extracted from content.desktop.in
+
+        self.textPromptsRemaining = []
+        self.allTextPrompts = []
 
     def start(self):
         '''
@@ -86,15 +89,6 @@ class Gcompris_explore:
         self.display_level(self.gcomprisBoard.level)
 
     def display_level(self, x=None, y=None, z=None):
-        level = self.gcomprisBoard.level
-
-        # set the game bar in the bottom left
-        gcompris.bar_set(gcompris.BAR_LEVEL)
-        gcompris.bar_set_level(self.gcomprisBoard)
-        gcompris.bar_location(20, -1, 0.6)
-
-        # silence any currently playing music
-        gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
 
         # Create a rootitem.
         if hasattr(self, 'rootitem'):
@@ -102,15 +96,27 @@ class Gcompris_explore:
         self.rootitem = goocanvas.Group(parent=
                                         self.gcomprisBoard.canvas.get_root_item())
 
+        # silence any currently playing music
+        gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
+
+        level = self.gcomprisBoard.level
+
+        # set the game bar in the bottom left
+        gcompris.bar_set(gcompris.BAR_LEVEL)
+        gcompris.bar_set_level(self.gcomprisBoard)
+        gcompris.bar_location(20, -1, 0.6)
+
+
+
         # -------------------------------------------------------------
         # Load Background Image
         # -------------------------------------------------------------
         if not hasattr(self, 'data'):
             self.read_data() # read in the data from content.desktop.in file
 
-        # only allow second level if content file has the tag 'game2text'
-        if hasattr(self, 'game2text'):
-            self.gcomprisBoard.maxlevel = 2
+        # only allow second level if content file has the tag 'SoundMatchingGameText'
+        if hasattr(self, 'SoundMatchingGameText'):
+            self.gcomprisBoard.maxlevel = 3
 
         # set x and y positions for the background image
         if not hasattr(self, 'backgroundx'):
@@ -131,26 +137,33 @@ class Gcompris_explore:
         if RECORD_LOCATIONS:
             self.recordLocationsForDeveloper()
         else:
-            # prepare game for play
-            if self.loadBasicHomePage() == False:
-                return
+
             self.drawLocations()
 
             if level == 1:
-                self.writeText(self.game1text)
-            if level == 2:
-                self.writeText(self.game2text)
-                # PLAY BUTTON
-                self.playButton = goocanvas.Image(
-                        parent=self.rootitem,
-                        pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'playbutton.png'),
-                        x=65,
-                        y=100,
-                        )
-                self.playButton.connect("button_press_event", self.playCurrentMusicSelection)
-                self.writeText(_('Click to play sound'), 100, 70)
-                gcompris.utils.item_focus_init(self.playButton, None)
-                self.playRandomSong()
+                self.writeText(self.generalText)
+            else:
+                # prepare game for play
+                if self.loadStatusBar() == False:
+                     return
+                if level == 2 and self.gcomprisBoard.maxlevel == 3:
+
+                    self.writeText(self.SoundMatchingGameText)
+                    # PLAY BUTTON
+                    self.playButton = goocanvas.Image(
+                            parent=self.rootitem,
+                            pixbuf=gcompris.utils.load_pixmap(ExploreActivityResourcesFilepath + 'playbutton.png'),
+                            x=65,
+                            y=100,
+                            )
+                    self.playButton.connect("button_press_event", self.playCurrentMusicSelection)
+                    self.writeText(_('Click to play sound'), 100, 70)
+                    gcompris.utils.item_focus_init(self.playButton, None)
+                    self.playRandomSong()
+                elif level == 3 or level == 2:
+
+                    self.writeText(self.TextMatchingGameText)
+                    self.playRandomText()
 
     def writeText(self, txt, x=None, y=None):
         '''
@@ -185,7 +198,7 @@ class Gcompris_explore:
         rect.props.stroke_color = 'black'
         t.raise_(rect)
 
-    def loadBasicHomePage(self):
+    def loadStatusBar(self):
         '''
         load the home page with the background image and locations with progress bar
         '''
@@ -208,12 +221,12 @@ class Gcompris_explore:
                 stroke_color="black",
                 line_width=3.0)
 
-        if self.gcomprisBoard.level == 1:
-            s = self.score1
-            sec = self.sectionsAnsweredCorrectlyGame1
+        if self.gcomprisBoard.level == 3 or self.gcomprisBoard.maxlevel == 2:
+            s = self.textMatchingScore
+            sec = self.sectionsAnsweredCorrectlyTextMatchingGame
         else:
-            s = self.score2
-            sec = self.sectionsAnsweredCorrectlyGame2
+            s = self.soundMatchingScore
+            sec = self.sectionsAnsweredCorrectlySoundMatchingGame
 
         # display the correct progress in the progress bar, according to the 
         # number of locations the student has correclty answered the question for
@@ -237,15 +250,6 @@ class Gcompris_explore:
         # check to see if student has won game
         if s == (len(self.data.sections()) - 1) and s != 0:
 
-            if self.gcomprisBoard.level == 1:
-                self.score1 = 0
-                self.sectionsAnsweredCorrectlyGame1 = []
-            else:
-                self.score2 = 0
-                self.sectionsAnsweredCorrectlyGame2 = []
-                self.soundClipsRemaining = self.allSoundClips[:]
-            self.timers = []
-
             gcompris.sound.play_ogg('//boards/sounds/silence1s.ogg')
 
             # show congratulations image!
@@ -256,7 +260,21 @@ class Gcompris_explore:
             )
 
             # reset the game
-            self.timers.append(gobject.timeout_add(3000, self.display_level))
+            if self.gcomprisBoard.level == 2:
+
+                self.soundMatchingScore = 0
+                self.sectionsAnsweredCorrectlySoundMatchingGame = []
+                self.soundClipsRemaining = self.allSoundClips[:]
+                self.timers.append(gobject.timeout_add(3000, self.set_level, 3))
+            elif self.gcomprisBoard.level == 3:
+                self.textMatchingScore = 0
+                self.sectionsAnsweredCorrectlyTextMatchingGame = []
+                self.textPromptsRemaining = self.allTextPrompts[:]
+
+                self.timers.append(gobject.timeout_add(3000, self.set_level, 1))
+            self.timers = []
+
+
             return False
         return True
 
@@ -269,22 +287,21 @@ class Gcompris_explore:
         thellipse will be colored green. Otherwise, the ellipse is red.
         '''
         if self.gcomprisBoard.level == 1:
-             l = self.sectionsAnsweredCorrectlyGame1
-             method = self.goto_location
+            method = self.goto_location
+        elif self.gcomprisBoard.level == 2 and self.gcomprisBoard.maxlevel == 3:
+            method = self.checkAnswerSoundMatchingGame
         else:
-             l = self.sectionsAnsweredCorrectlyGame2
-             method = self.checkAnswerGame2
+            method = self.checkAnswerTextMatchingGame
+
         for section in self.sectionNames:
-            if section in l:
-                filename = self.completedLocationPic
-            else:
-                filename = self.locationPic
+            filename = self.locationPic
+
             vars()[section] = goocanvas.Image(
-                parent=self.rootitem,
-                x=int(self.data.get(section, 'x')) - 20,
-                y=int(self.data.get(section, 'y')) - 20,
-                pixbuf=gcompris.utils.load_pixmap(filename)
-                )
+            parent=self.rootitem,
+            x=int(self.data.get(section, 'x')) - 20,
+            y=int(self.data.get(section, 'y')) - 20,
+            pixbuf=gcompris.utils.load_pixmap(filename)
+            )
 
             vars()[section].connect("button_press_event", method)
             gcompris.utils.item_focus_init(vars()[section], None)
@@ -351,43 +368,10 @@ class Gcompris_explore:
             goocanvas.Image(
                 parent=self.rootitem,
                 x=300,
-                y=75,
+                y=120,
                 pixbuf=gcompris.utils.load_pixmap(self.activityDataFilePath + image)
                 )
 
-            question = self.data.get(sectionNum, '_question')
-            goocanvas.Text(
-              parent=self.rootitem,
-              x=500,
-              y=390,
-              width=400,
-              text=_(question),
-              fill_color="black",
-              anchor=gtk.ANCHOR_CENTER,
-              alignment=pango.ALIGN_CENTER
-              )
-
-            options = self.data.get(sectionNum, '_answerOptions').split(',')
-            m = []
-            for el in options:
-                m.append(el.strip())
-            self.correctAnswer = m[0]
-            m.sort()
-            y = 400
-            for answer in m:
-                y += 25
-                vars(self)[answer] = goocanvas.Text(
-                      parent=self.rootitem,
-                      x=500,
-                      y=y,
-                      text=_(answer),
-                      anchor=gtk.ANCHOR_CENTER,
-                      alignment=pango.ALIGN_CENTER,
-                      )
-
-                vars(self)[answer].connect("button_press_event",
-                lambda x, y, z: self.checkAnswerGame1(sectionNum, x, y, z))
-                gcompris.utils.item_focus_init(vars(self)[answer], None)
 
             try:
                 music = str(self.data.get(sectionNum, 'music'))
@@ -395,18 +379,21 @@ class Gcompris_explore:
             except: pass
 
 
-    def checkAnswerGame1(self, sectionNum, widget=None, target=None, event=None):
+    def checkAnswerTextMatchingGame(self, widget=None, target=None, event=None):
         '''
         check to see if the student pressed the correct answer. If so, increment
-        score1. Display appropriate face (happy or sad) for 800 ms.
+        textMatchingScore. Display appropriate face (happy or sad) for 800 ms.
         '''
-        if not ready(self, timeouttime=1500): # precents kids from double clicking too quickly
+        if not ready(self, timeouttime=1000):
             return
-        if target.props.text == self.correctAnswer:
-            if not (sectionNum in self.sectionsAnsweredCorrectlyGame1):
-                self.score1 += 1
-                self.sectionsAnsweredCorrectlyGame1.append(sectionNum)
+        if target.get_data('sectionNum') == self.currentTextSelection[1] and \
+            self.currentTextSelection in self.textPromptsRemaining:
+            self.textMatchingScore += 1
+            self.sectionsAnsweredCorrectlyTextMatchingGame.append(target.get_data('sectionNum'))
             pic = ExploreActivityResourcesFilepath + 'happyFace.png'
+            self.textPromptsRemaining.remove(self.currentTextSelection)
+            self.timers.append(gobject.timeout_add(810, self.display_level))
+
         else:
             pic = ExploreActivityResourcesFilepath + 'sadFace.png'
 
@@ -421,17 +408,17 @@ class Gcompris_explore:
         )
         self.timers.append(gobject.timeout_add(800, self.clearPic))
 
-    def checkAnswerGame2(self, widget=None, target=None, event=None):
+    def checkAnswerSoundMatchingGame(self, widget=None, target=None, event=None):
         '''
         check to see if the location the student chose corresponds to the
         currently playing sound clip. increment score accordingly
         '''
-        if not ready(self, timeouttime=2000): # precents kids from double clicking too quickly
+        if not ready(self, timeouttime=1000): # precents kids from double clicking too quickly
             return
         if target.get_data('sectionNum') == self.currentMusicSelection[1] and \
             self.currentMusicSelection in self.soundClipsRemaining:
-            self.score2 += 1
-            self.sectionsAnsweredCorrectlyGame2.append(target.get_data('sectionNum'))
+            self.soundMatchingScore += 1
+            self.sectionsAnsweredCorrectlySoundMatchingGame.append(target.get_data('sectionNum'))
             pic = ExploreActivityResourcesFilepath + 'happyFace.png'
             self.soundClipsRemaining.remove(self.currentMusicSelection)
             self.timers.append(gobject.timeout_add(810, self.display_level))
@@ -459,6 +446,33 @@ class Gcompris_explore:
             self.soundClipsRemaining[randint(0, len(self.soundClipsRemaining) - 1)]
             self.timers.append(gobject.timeout_add(800, self.playCurrentMusicSelection))
 
+    def playRandomText(self):
+
+        if self.textPromptsRemaining:
+            self.currentTextSelection = \
+            self.textPromptsRemaining[randint(0, len(self.textPromptsRemaining) - 1)]
+
+        self.text = goocanvas.Text(
+            parent=self.rootitem, x=self.textBoxX, y=self.textBoxY, width=200,
+            text=_(self.currentTextSelection[0]),
+            fill_color='black', anchor=gtk.ANCHOR_CENTER,
+            alignment=pango.ALIGN_CENTER,
+
+            )
+        TG = 10
+        bounds = self.text.get_bounds()
+
+        rect = goocanvas.Rect(parent=self.rootitem,
+                              x=bounds.x1 - TG,
+                              y=bounds.y1 - TG,
+                              width=bounds.x2 - bounds.x1 + TG * 2,
+                              height=bounds.y2 - bounds.y1 + TG * 2,
+                              line_width=3.0)
+        rect.props.fill_color = 'gray'
+        rect.props.stroke_color = 'blach'
+        self.text.raise_(rect)
+
+
     def playCurrentMusicSelection(self, x=None, y=None, z=None):
         gcompris.sound.play_ogg(self.activityDataFilePath +
                                                     self.currentMusicSelection[0])
@@ -474,6 +488,8 @@ class Gcompris_explore:
         updates the level for the game when child clicks on bottom
         left navigation bar to increment level
         '''
+        if not ready(self, 500):
+            return
         self.gcomprisBoard.level = level
         gcompris.bar_set_level(self.gcomprisBoard)
         self.display_level(self.gcomprisBoard.level)
@@ -514,9 +530,7 @@ class Gcompris_explore:
         self.data.set(str(self.numLocations), '_text', _('location text here'))
         self.data.set(str(self.numLocations), 'image', _('image filepath here, located in resources/name_of_activity/'))
         self.data.set(str(self.numLocations), 'music', _('music file name here'))
-        self.data.set(str(self.numLocations), '_question', _('enter question about topic here'))
-        self.data.set(str(self.numLocations), '_answerOptions', _('provide \
-comma-seperated list, of answer options here, The correct answer should, be listed FIRST.'))
+        self.data.set(str(self.numLocations), '_shortPrompt', _('enter text for child to match to the location'))
 
         # draw small elipse on screen to show developer where they clicked
         goocanvas.Ellipse(parent=self.rootitem,
@@ -580,23 +594,31 @@ comma-seperated list, of answer options here, The correct answer should, be list
                 except: self.author = ''
                 try: self.locationPic = self.activityDataFilePath + self.data.get('common', 'locationpic')
                 except: self.locationPic = ExploreActivityResourcesFilepath + 'defaultLocationPic.png'
-                try: self.completedLocationPic = self.activityDataFilePath + self.data.get('common', 'completedlocationpic')
-                except: self.completedLocationPic = ExploreActivityResourcesFilepath + 'defaultCompletedLocationPic.png'
                 try: self.gameWonPic = self.activityDataFilePath + self.data.get('common', 'gamewonpic')
                 except: self.gameWonPic = ExploreActivityResourcesFilepath + 'happyFace.png'
-                try: self.game1text = self.data.get('common', 'game1text')
+                try: self.generalText = self.data.get('common', 'GeneralText')
                 except:pass
-                try: self.game2text = self.data.get('common', 'game2text')
+                try: self.SoundMatchingGameText = self.data.get('common', 'SoundMatchingGameText')
+                except:pass
+                try: self.TextMatchingGameText = self.data.get('common', 'TextMatchingGameText')
                 except:pass
                 try: self.backgroundx = self.data.get('common', 'backgroundx')
                 except:pass
                 try: self.backgroundy = self.data.get('common', 'backgroundy')
                 except:pass
+                try: self.textBoxX = int(self.data.get('common', 'textBoxX'))
+                except:pass
+                try: self.textBoxY = int(self.data.get('common', 'textBoxY'))
+                except:pass
             else:
                 try:
                     self.soundClipsRemaining.append((self.data.get(section, 'music'), section))
                     self.allSoundClips.append((self.data.get(section, 'music'), section))
-                except: pass
+                except:
+                    pass
+                self.textPromptsRemaining.append((self.data.get(section, '_shortPrompt'), section))
+                self.allTextPrompts.append((self.data.get(section, '_shortPrompt'), section))
+
                 self.sectionNames.append(section)
     def end(self):
         '''
@@ -609,13 +631,17 @@ comma-seperated list, of answer options here, The correct answer should, be list
             except: pass
             try: self.data.set('common', 'locationpic', _('enter the filename of the picture you would like to use to identify items to click on your background image'))
             except: pass
-            try: self.data.set('common', 'completedlocationpic', _('enter the filename of the picture to be used as the identification picture after the player has answered the question correctly'))
-            except: pass
             try: self.data.set('common', 'gamewonpic', _('enter the filename of the picture to be shown when the player wins the entire game'))
             except: pass
-            try: self.data.set('common', 'game1text', _('enter the text to appear on your image for game1'))
+            try: self.data.set('common', 'generalText', _('enter the text to appear on your image for textMatchingGame'))
             except: pass
-            try: self.data.set('common', 'game2text', _('enter the text to appear on your image for game2'))
+            try: self.data.set('common', 'SoundMatchingGameText', _('enter the text to appear on your image for SoundMatchingGame'))
+            except: pass
+            try: self.data.set('common', 'TextMatchingGameText', _('enter the text to appear on your image for TextMatchingGame'))
+            except: pass
+            try: self.data.set('common', 'textBoxX', _('enter the x location for the text box to appear in the text matching game'))
+            except: pass
+            try: self.data.set('common', 'textBoxY', _('enter the x location for the text box to appear in the text matching game'))
             except: pass
             with open(gcompris.DATA_DIR + '/' + self.gcomprisBoard.name + '/content.desktop.in', 'wb') as configfile:
                 self.data.write(configfile)

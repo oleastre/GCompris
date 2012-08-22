@@ -42,13 +42,12 @@ class Gcompris_play_piano:
         gcomprisBoard.disable_im_context = True
 
         self.gcomprisBoard.level = 1
-        self.gcomprisBoard.maxlevel = 6
+        self.gcomprisBoard.maxlevel = 12
 
         self.metronomePlaying = False
 
         self.timers = []
     def start(self):
-        self.first = True
         self.recordedHits = []
         self.saved_policy = gcompris.sound.policy_get()
         gcompris.sound.policy_set(gcompris.sound.PLAY_AND_INTERRUPT)
@@ -71,6 +70,7 @@ class Gcompris_play_piano:
         self.display_level(self.gcomprisBoard.level)
 
     def display_level(self, level):
+        self.score = 0
         if hasattr(self, 'staff'):
             self.staff.clear()
             self.staff.eraseAllNotes()
@@ -80,11 +80,16 @@ class Gcompris_play_piano:
         gcompris.bar_set_level(self.gcomprisBoard)
         gcompris.bar_location(20, -1, 0.6)
 
-        self.staff = TrebleStaff(100, 80, self.rootitem, numStaves=1)
-        self.staff.noteSpacingX = 36
+        if level <= 6:
+            self.staff = TrebleStaff(100, 80, self.rootitem, numStaves=1)
+            self.staff.noteSpacingX = 32
+        else:
+            self.staff = BassStaff(100, 90, self.rootitem, numStaves=1)
+            self.staff.noteSpacingX = 28
+
         self.staff.endx = 200
 
-        if level <= 5:
+        if level not in [6, 12]:
             self.colorCodeNotesButton = textButton(100, 215, _("Color code notes?"), self, 'green')
 
             self.colorCodeNotesButton.connect("button_press_event", self.color_code_notes)
@@ -95,72 +100,77 @@ class Gcompris_play_piano:
         self.staff.drawStaff()
         self.staff.rootitem.scale(2.0, 2.0)
 
-        self.givenMelody = []
+        self.givenOption = []
         self.show_melody()
         self.kidsNoteList = []
         self.piano = PianoKeyboard(250, 300, self.rootitem)
-        if level >= 4:
+        if level in [4, 5, 6, 12, 11, 10]:
             self.piano.blackKeys = True
 
         self.piano.draw(300, 175, self.keyboard_click)
 
-        textBox(_("Click the piano keys that match the written notes."), 388, 80, self, fill_color='gray', width=200)
+        textBox(_("Click the piano keys that match the written notes."), 388, 60, self, fill_color='gray', width=200)
 
         drawBasicPlayHomePagePart2(self)
-
-        self.timers.append(gobject.timeout_add(500, self.staff.playComposition))
 
     def keyboard_click(self, widget=None, target=None, event=None, numID=None):
 
         if not numID:
             numID = target.numID
-
-        n = QuarterNote(numID, 'trebleClef', self.staff.rootitem)
+        if self.gcomprisBoard.level <= 6:
+            n = QuarterNote(numID, 'trebleClef', self.staff.rootitem)
+        else:
+            n = QuarterNote(numID, 'bassClef', self.staff.rootitem)
         n.play()
         self.kidsNoteList.append(numID)
 
     def generateMelody(self):
         level = self.gcomprisBoard.level
-        if level >= 1:
-            options = [1, 2, 3]
-            notenum = 3
-        if level >= 2:
+        options = [1, 2, 3]
+        notenum = 3
+        if level in [2, 3, 4, 5, 6, 8, 9, 10, 11, 12]:
             options.extend([4, 5, 6])
             notenum = 3
-        if level >= 3:
+        if level in [3, 4, 5, 6, 9, 10, 11, 12]:
             options.extend([7, 8])
             notenum = 4
-        if level >= 4:
+        if level in [4, 5, 6, 10, 11, 12]:
             options.extend([-1, -2])
-        if level >= 5:
+        if level in [5, 6, 11, 12]:
             options.extend([-3, -4, -5])
 
         newmelody = []
         for ind in range(0, notenum):
             newmelody.append(options[randint(0, len(options) - 1)])
-        if newmelody == self.givenMelody:
+        if newmelody == self.givenOption:
 
             return self.generateMelody()
         else:
             return newmelody
 
     def show_melody(self):
-        self.givenMelody = self.generateMelody()
+        self.givenOption = self.generateMelody()
 
-        for item in self.givenMelody:
-            note = QuarterNote(item, 'trebleClef', self.staff.rootitem)
+        for item in self.givenOption:
+            if self.gcomprisBoard.level <= 6:
+                note = QuarterNote(item, 'trebleClef', self.staff.rootitem)
+            else:
+                note = QuarterNote(item, 'bassClef', self.staff.rootitem)
             self.staff.drawNote(note)
+
+        self.timers.append(gobject.timeout_add(500, self.staff.playComposition))
 
     def ok_event(self, widget=None, target=None, event=None):
         if not ready(self, 1000):
             return False
 
-        if self.kidsNoteList == self.givenMelody:
+        if self.kidsNoteList == self.givenOption:
             displayHappyNote(self, self.nextChallenge)
+            self.score += 1
         else:
             displaySadNote(self, self.tryagain)
-
-        self.timers.append(gobject.timeout_add(800, self.staff.playComposition))
+            self.timers.append(gobject.timeout_add(1500, self.staff.playComposition))
+            self.score -= 1
 
     def tryagain(self):
         self.kidsNoteList = []
@@ -168,6 +178,10 @@ class Gcompris_play_piano:
     def nextChallenge(self):
         self.kidsNoteList = []
         self.staff.eraseAllNotes()
+        l = self.gcomprisBoard.level
+        if self.score >= 5:
+            self.set_level(l + 1)
+            return
         self.show_melody()
 
     def erase_entry(self, widget, target, event):
@@ -211,10 +225,8 @@ class Gcompris_play_piano:
             self.staff.playComposition()
         else:
             if not ready(self, timeouttime=50): return False
-            if not self.first:
-                pianokeyBindings(keyval, self)
-            else:
-                self.first = False
+            pianokeyBindings(keyval, self)
+        return True
     def pause(self, pause):
         pass
 

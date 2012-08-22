@@ -425,7 +425,7 @@ class Staff():
         if hasattr(self, 'noteText'):
             self.noteText.remove()
 
-    def play_it(self, playingLineOnly=False):
+    def play_it(self, noteIndexToPlay, playingLineOnly=False):
         '''
         NOT A PUBLIC METHOD
 
@@ -434,18 +434,19 @@ class Staff():
         duration (quarter, half, whole)
         colors the note white that it is currently sounding
         '''
-        if self.currentNoteIndex >= len(self.noteList):
+
+        if noteIndexToPlay >= len(self.noteList):
             if hasattr(self, 'verticalPlayLine'):
-                self.verticalPlayLine.remove()
-            self.notReadyToPlay = False
+                 self.verticalPlayLine.remove()
+                 self.notReadyToPlay = False
             return
 
-        note = self.noteList[self.currentNoteIndex]
+        note = self.noteList[noteIndexToPlay]
 
         if hasattr(self, 'verticalPlayLine'):
             self.verticalPlayLine.remove()
 
-        if self.drawPlayingLine or playingLineOnly:
+        if playingLineOnly == True or self.drawPlayingLine:
             self.verticalPlayLine = goocanvas.polyline_new_line(self.rootitem,
                                 note.x, note.y, note.x, note.y - 50,
                                 stroke_color_rgba=0x121212D0, line_width=2)
@@ -455,8 +456,12 @@ class Staff():
 
         if not playingLineOnly:
             note.play()
-        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].millisecs, self.play_it, playingLineOnly))
-        self.currentNoteIndex += 1
+
+        self.timers.append(
+                           gobject.timeout_add(
+                                               self.noteList[noteIndexToPlay].millisecs,
+                                               self.play_it, noteIndexToPlay + 1, playingLineOnly))
+
 
     def playComposition(self, widget=None, target=None, event=None, playingLineOnly=False):
         '''
@@ -466,15 +471,17 @@ class Staff():
         >>> self.newStaff.playComposition()
         '''
 
-        if not self.noteList or self.notReadyToPlay:
-            return
+        #if not self.noteList or self.notReadyToPlay:
+        #    return
         self.notReadyToPlay = True
-        if not ready(self):
-            return False
+        #if not ready(self):
+        #    return False
 
         self.timers = []
         self.currentNoteIndex = 0
-        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].millisecs, self.play_it, playingLineOnly))
+        self.play_it(0, playingLineOnly)
+        self.timers.append(gobject.timeout_add(self.noteList[self.currentNoteIndex].millisecs,
+                                            self.play_it, (self.currentNoteIndex + 1), playingLineOnly))
 
     def file_to_staff(self, filename):
         '''
@@ -1263,7 +1270,7 @@ def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, 
     textBox('Guten Tag', 200, 400, self, width=10)
     textBox('Zdravstvuyte', 500, 400, self, fill_color='#FF00FF')
     '''
-    self.text = goocanvas.Text(
+    text = goocanvas.Text(
         parent=self.rootitem, x=x, y=y, width=width,
         text=text,
         fill_color=text_color, anchor=gtk.ANCHOR_CENTER,
@@ -1271,7 +1278,7 @@ def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, 
 
         )
     TG = 10
-    bounds = self.text.get_bounds()
+    bounds = text.get_bounds()
     if not noRect:
         rect = goocanvas.Rect(parent=self.rootitem,
                               x=bounds.x1 - TG,
@@ -1283,8 +1290,9 @@ def textBox(text, x, y , self, width=10000, fill_color=None, stroke_color=None, 
             rect.props.fill_color = fill_color
         if stroke_color:
             rect.props.stroke_color = stroke_color
-        self.text.raise_(rect)
-
+        text.raise_(rect)
+        return text, rect
+    return text
 def ready(self, timeouttime=200):
     '''
     function to help prevent "double-clicks". If your function call is
@@ -1331,9 +1339,11 @@ def displayHappyNote(self, nextMethod):
     height=300,
     width=150
     )
+
     #self.responsePic.raise_(None)
     self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
     self.timers.append(gobject.timeout_add(910, nextMethod))
+
 
 def displaySadNote(self, nextMethod):
     '''
@@ -1354,6 +1364,7 @@ def displaySadNote(self, nextMethod):
     self.responsePic.raise_(None)
     self.timers.append(gobject.timeout_add(900, clearResponsePic, self))
     self.timers.append(gobject.timeout_add(910, nextMethod))
+
 
 def pianokeyBindings(keyval, self):
     '''
@@ -1414,9 +1425,9 @@ def drawBasicPlayHomePagePart1(self):
     if hasattr(self, 'staff'):
         self.staff.clear()
 
-    textBox(_('Play'), 220, 30, self, fill_color='gray')
+    self.playText, self.playRect = textBox(_('Play'), 220, 30, self, fill_color='gray')
 
-    textBox(_('Okay'), 550, 30, self, fill_color='gray')
+    self.okText, self.okRect = textBox(_('Okay'), 550, 30, self, fill_color='gray')
 
 # ---------------------
 # NOT DOCUMENTED ONLINE
@@ -1449,7 +1460,7 @@ def drawBasicPlayHomePagePart2(self):
     gcompris.utils.item_focus_init(self.okButton, None)
 
     # ERASE BUTTON
-    textBox(_("Erase Attempt"), 700, 150, self, fill_color='gray')
+    self.eraseText, self.eraseRect = textBox(_("Erase Attempt"), 700, 150, self, fill_color='gray')
 
     self.eraseButton = goocanvas.Image(
             parent=self.rootitem,
