@@ -357,11 +357,13 @@ dialogue to\nenable the sound."), stop_board)
     def writeDataToScreen(self):
 
         def displayTitle(section, x, y):
+
             self.text = goocanvas.Text(
                 parent=self.rootitem,
                 x=x, y=y,
-                text=self.data.get(section, 'title'),
-                fill_color="black"
+                text='<span size="10000"> ' + self.data.get(section, 'title') + '</span>',
+                fill_color="black",
+                use_markup=True
                 )
 
             goocanvas.Text(parent=self.rootitem,
@@ -374,7 +376,7 @@ dialogue to\nenable the sound."), stop_board)
                  use_markup=True,
                  pointer_events="GOO_CANVAS_EVENTS_NONE"
                  )
-
+            goocanvas.Group()
             self.text.connect("button_press_event", self.melodySelected, section)
             gcompris.utils.item_focus_init(self.text, None)
 
@@ -385,9 +387,9 @@ dialogue to\nenable the sound."), stop_board)
             displayTitle(section, x, y)
             if y > 400:
                 y = 75
-                x += 300
+                x += 250
             else:
-                y += 50
+                y += 45
 
     def read_data(self):
             '''

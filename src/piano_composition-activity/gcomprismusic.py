@@ -55,7 +55,9 @@ NOTE_COLOR_SCHEME = {1:'#FF0000',
                      6:'#D02090',
                      - 5:'#FF00FF',
                      7:'#FF1493',
-                     8:'#FF0000'
+                     - 6: '#FF6347',
+                     8:'#FF0000',
+                     9:'#FF7F00'
                      }
 # this is unique to the English notation system
 # translators must modify this dictionary for each language
@@ -551,6 +553,10 @@ class Staff():
             n = exp[0:-1]
             if n == '2C':
                 numID = 8
+            elif n == '2D':
+                numID = 9
+            elif n == '2C#':
+                numID = -6
             else:
                 numID = getIDFromKeyName(str(exp[0:-1]))
                 if not numID:
@@ -610,9 +616,9 @@ class Staff():
 
         yoffset = (self.currentLineNum - 1) * self.verticalDistanceBetweenStaves
         if note.numID < 0 and note.sharpNotation:
-            numID = {-1:1, -2:2, -3:4, -4:5, -5:6}[note.numID]
+            numID = {-1:1, -2:2, -3:4, -4:5, -5:6, -6:8}[note.numID]
         elif note.numID < 0:
-            numID = {-1:2, -2:3, -3:5, -4:6, -5:7}[note.numID]
+            numID = {-1:2, -2:3, -3:5, -4:6, -5:7, -6:9}[note.numID]
         else:
             numID = note.numID
 
@@ -711,7 +717,7 @@ class TrebleStaff(Staff):
 
          # for use in getNoteYCoordinateMethod
         self.positionDict = {1:26, 2:22, 3:16, 4:9, 5:3,
-                        6:-4, 7:-10, 8:-17}
+                        6:-4, 7:-10, 8:-17, 9:-23}
 
     def drawStaff(self):
         self._drawClefs()
@@ -747,7 +753,7 @@ class BassStaff(Staff):
 
         # for use in getNoteYCoordinateMethod
         self.positionDict = {1:-4, 2:-11, 3:-17, 4:-24, 5:-30,
-                        6:-36, 7:-42, 8:-48}
+                        6:-36, 7:-42, 8:-48, 9:-52}
 
     def drawStaff(self, text=None):
         self._drawClefs()
