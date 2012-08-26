@@ -1,8 +1,8 @@
 imgdir = $(pkgdatadir)/@PACKAGE_DATA_DIR@/explore_farm_animals
 img_DATA = \
-	cat.JPG\
+	cat.jpg\
 	cat.ogg\
-	chicken.JPG\
+	chicken.jpg\
 	chickens.ogg\
 	content.desktop.in\
 	cow.jpg\
@@ -20,7 +20,6 @@ img_DATA = \
 	pig.ogg\
 	questionpic.png\
 	rooster.jpg\
-	rooster.ogg\
-	rooster.wav
+	rooster.ogg
 
 EXTRA_DIST = $(img_DATA)

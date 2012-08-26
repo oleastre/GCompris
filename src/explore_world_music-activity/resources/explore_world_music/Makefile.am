@@ -1,26 +1,26 @@
 imgdir = $(pkgdatadir)/@PACKAGE_DATA_DIR@/explore_world_music
 img_DATA = \
+	africa.jpg\
 	africa.ogg\
-	africa.png\
+	america.jpg\
 	america.ogg\
-	america.png\
+	australia.jpg\
 	australia.ogg\
-	australia.png\
 	beethoven.ogg\
 	content.desktop.in\
 	dancingWorld.png\
+	ireland.jpg\
 	ireland.ogg\
-	ireland.png\
+	italy.jpg\
 	italy.ogg\
-	italy.png\
+	japan.jpg\
 	japan.ogg\
-	japan.png\
+	mexico.jpg\
 	mexico.ogg\
-	mexico.png\
+	middleeast.jpg\
 	middleeast.ogg\
-	middleeast.png\
-	orchestra.png\
+	orchestra.jpg\
 	suitcase.png\
-	worldmap.png
+	worldmap.jpg
 
 EXTRA_DIST = $(img_DATA)

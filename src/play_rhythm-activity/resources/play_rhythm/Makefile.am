@@ -1,6 +1,5 @@
 imgdir = $(pkgdatadir)/@PACKAGE_DATA_DIR@/play_rhythm
 img_DATA = \
-	click-old1.wav \
 	click.wav \
 	drumhead.png \
 	metronome.png \
